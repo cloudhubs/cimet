@@ -4,7 +4,6 @@ import edu.university.ecs.lab.common.utils.FullCimetUtils;
 import edu.university.ecs.lab.delta.DeltaExtraction;
 import edu.university.ecs.lab.intermediate.create.IRExtraction;
 import edu.university.ecs.lab.intermediate.merge.IRMergeRunner;
-import edu.university.ecs.lab.report.ReportRunner;
 
 public class CimetRunner {
 
@@ -46,18 +45,5 @@ public class CimetRunner {
     };
     IRMergeRunner.main(IRMergeArgs);
 
-    // RUN REPORT
-    System.out.println("Starting Report Creation...");
-    String[] reportArgs = {
-      configPath,
-      baseBranch,
-      baseCommit,
-      compareBranch,
-      compareCommit,
-      FullCimetUtils.pathToIR,
-      FullCimetUtils.pathToNewIR,
-      FullCimetUtils.pathToDelta
-    };
-    ReportRunner.main(reportArgs);
   }
 }

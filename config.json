@@ -4,7 +4,7 @@
   "outputPath": "./out",
   "repositories": [
     {
-      "repoUrl": "https://github.com/austinth127/austin-train-ticket-microservices-test.git",
+      "repoUrl": "https://github.com/g-goulis/train-ticket-microservices-test.git",
       "paths": [
         "ts-admin-service",
         "ts-assurance-service",

@@ -3,7 +3,6 @@ package edu.university.ecs.lab.common.models;
 import com.google.gson.annotations.SerializedName;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
-import edu.university.ecs.lab.impact.models.change.Link;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -218,16 +217,16 @@ public class Microservice implements JsonSerializable {
     }
   }
 
-  public Set<Link> getAllLinks() {
-    Set<Link> links = new HashSet<>();
-
-    // Detect all rest calls
-    for (JService service : services) {
-      for (RestCall restCall : service.getRestCalls()) {
-        links.add(new Link(restCall));
-      }
-    }
-
-    return links;
-  }
+//  public Set<Link> getAllLinks() {
+//    Set<Link> links = new HashSet<>();
+//
+//    // Detect all rest calls
+//    for (JService service : services) {
+//      for (RestCall restCall : service.getRestCalls()) {
+//        links.add(new Link(restCall));
+//      }
+//    }
+//
+//    return links;
+//  }
 }
