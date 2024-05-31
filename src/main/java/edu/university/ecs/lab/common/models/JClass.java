@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.annotations.SerializedName;
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import lombok.*;
 
@@ -57,7 +57,7 @@ public class JClass implements JsonSerializable {
     this.className = className.replace(".java", "");
   }
 
-  public static JClass deletedClass(File classFile, InputConfig config) {
+  public static JClass deletedClass(File classFile, Config config) {
     return new JClass(
         classFile.getName(),
         getRepositoryPath(classFile, config),
@@ -71,7 +71,6 @@ public class JClass implements JsonSerializable {
   }
 
   /** Uniquely identify a class as an object of a given service */
-  @SerializedName("id")
   public String getId() {
     return classRole.name() + ":" + msId + "#" + className;
   }

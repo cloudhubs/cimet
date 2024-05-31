@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.intermediate.merge.services;
 
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.models.*;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.utils.IRParserUtils;
@@ -27,7 +27,7 @@ public class MergeService {
   private final String compareBranch;
   private final String compareCommit;
 
-  private final InputConfig config;
+  private final Config config;
 
   private final MsSystem msSystem;
   private final SystemChange systemChange;
@@ -37,7 +37,7 @@ public class MergeService {
   public MergeService(
       String intermediatePath,
       String deltaPath,
-      InputConfig config,
+      Config config,
       String compareBranch,
       String compareCommit)
       throws IOException {

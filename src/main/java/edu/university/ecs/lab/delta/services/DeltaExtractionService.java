@@ -1,8 +1,11 @@
 package edu.university.ecs.lab.delta.services;
 
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
+import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.config.models.InputRepository;
+import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FullCimetUtils;
 import edu.university.ecs.lab.common.writers.MsJsonWriter;
 import edu.university.ecs.lab.delta.models.SystemChange;
@@ -23,54 +26,44 @@ import static edu.university.ecs.lab.common.utils.SourceToObjectUtils.parseClass
  */
 public class DeltaExtractionService {
 
-  /** The branch to compare to */
-  private final String branch;
-
-  /** The Commit to compare to */
-  private final String compareCommit;
+  /** Config file, defaults to config.json */
+  private final Config config;
 
   /** Config file, defaults to config.json */
-  private final InputConfig config;
+  private final GitService gitService;
+
 
   /**
-   * Constructor for the delta extraction service.
+   * Constructor for the delta extraction service
    *
-   * @param branch the branch to compare to
-   * @param config input configuration file
+   * @param configPath file path to the configuration file
    */
-  public DeltaExtractionService(String branch, String commit, InputConfig config) {
-    this.branch = branch;
-    this.compareCommit = commit;
-    this.config = config;
+  public DeltaExtractionService(String configPath) {
+    this.gitService = new GitService(configPath);
+    this.config = ConfigUtil.readConfig(configPath);
   }
 
   /**
-   * Top level generate the delta between the local and remote repository.
-   *
-   * @return set of output file names generated
+   * Generate delta between base branch and base branch + 1
    */
-  public List<String> generateDelta() {
-    List<String> outputNames = new ArrayList<>();
+  public void generateDelta() {
+    List<DiffEntry> differences = null;
 
-    // iterate through each repository path
-    for (InputRepository inputRepository : config.getRepositories()) {
-      try (Repository localRepo =
-          GitFetchUtils.establishLocalEndpoint(config.getLocalPath(inputRepository))) {
-        // point to local repository
+    try{
+      differences = gitService.getDifferences(1);
 
-        // extract remote differences with local
-        List<DiffEntry> differences =
-            GitFetchUtils.fetchRemoteDifferences(localRepo, compareCommit);
-
-        // process/write differences to delta output
-        String outputFile = this.processDifferences(differences, inputRepository);
-        outputNames.add(outputFile);
-      } catch (Exception e) {
-        System.err.println("Error extracting delta: " + e.getMessage());
-        e.printStackTrace();
-        System.exit(DELTA_EXTRACTION_FAIL.ordinal());
-      }
+    } catch (Exception e) {
+      Error.reportAndExit(Error.GIT_FAILED);
     }
+
+    // process/write differences to delta output
+    String outputFile = processDifferences(differences);
+
+    // Advance the local commit for next delta generation
+    if(!gitService.resetLocal(1)) {
+      System.out.println("No additional commits to fast forward to!");
+    }
+
 
     return outputNames;
   }
@@ -85,24 +78,10 @@ public class DeltaExtractionService {
    * @return the name of the output file generated
    * @throws IOException if a failure occurs while trying to write to the file
    */
-  public String processDifferences(List<DiffEntry> diffEntries, InputRepository inputRepo)
-      throws IOException {
+  public String processDifferences(List<DiffEntry> diffEntries) {
 
-    // Set local repo to latest commit
-    advanceLocalRepo(inputRepo);
-
-    // All java files
-    List<DiffEntry> filteredEntries =
-        diffEntries.stream()
-            .filter(
-                diffEntry -> {
-                  if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-                    return diffEntry.getOldPath().endsWith(".java");
-                  } else {
-                    return diffEntry.getNewPath().endsWith(".java");
-                  }
-                })
-            .collect(Collectors.toUnmodifiableList());
+    // Filter entries
+    List<DiffEntry> filteredEntries = filterDiffEntries(diffEntries);
 
     SystemChange systemChange = new SystemChange();
 
@@ -140,21 +119,23 @@ public class DeltaExtractionService {
   }
 
   /**
-   * Advance the local repository to the latest commit on the remote branch.
+   * Returns only Java related files and accounts for discrepancy when
+   * dealing with deleted files whose "new path" does not exist.
    *
-   * @param inputRepository the input repository to advance
+   * @param diffEntries the diff entry list to filter
+   * @return filtered list of diff entries
    */
-  private void advanceLocalRepo(InputRepository inputRepository) {
-    try {
-      ProcessBuilder processBuilder = new ProcessBuilder("git", "reset", "--hard", compareCommit);
-      processBuilder.directory(
-          new File(Path.of(config.getLocalPath(inputRepository)).toAbsolutePath().toString()));
-      processBuilder.redirectErrorStream(true);
-      Process process = processBuilder.start();
-      int exitCode = process.waitFor();
-    } catch (IOException | InterruptedException e) {
-      System.err.println("Error advancing local repository: " + e.getMessage());
-      System.exit(DELTA_EXTRACTION_FAIL.ordinal());
-    }
+  private List<DiffEntry> filterDiffEntries(List<DiffEntry> diffEntries) {
+    return diffEntries.stream()
+            .filter(
+                    diffEntry -> {
+                      if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+                        return diffEntry.getOldPath().endsWith(".java");
+                      } else {
+                        return diffEntry.getNewPath().endsWith(".java");
+                      }
+                    })
+            .collect(Collectors.toUnmodifiableList());
   }
+
 }

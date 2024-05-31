@@ -1,13 +1,12 @@
 package edu.university.ecs.lab.intermediate.create.services;
 
-import edu.university.ecs.lab.common.config.models.InputConfig;
 import edu.university.ecs.lab.common.config.models.InputRepository;
 import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.writers.MsJsonWriter;
 import javassist.NotFoundException;
 
 import javax.json.JsonObject;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,22 +18,8 @@ import static edu.university.ecs.lab.intermediate.utils.IRParserUtils.updateCall
  * are allowed to exit the program with an error code if an error occurs.
  */
 public class IRExtractionService {
-  public static final String INIT_VERSION_NUMBER = "0.0.1";
-
-  /** The input configuration file, defaults to config.json */
-  private final InputConfig config;
-
-  /**
-   * Relative path to clone repositories to, default: "./repos", specified in {@link InputConfig}
-   */
-  private final String basePath;
-
-  private final String baseBranch;
-
-  private final String baseCommit;
-
   /** Service to handle cloning from git */
-  private final GitCloneService gitCloneService;
+  private final GitService gitService;
 
   /** Service to handle parsing a git repo and extracting files */
   private final RestModelService restModelService;
@@ -42,13 +27,9 @@ public class IRExtractionService {
   /**
    * @param config
    */
-  public IRExtractionService(InputConfig config, String baseBranch, String baseCommit) {
-    this.config = config;
-    basePath = config.getClonePath();
-    gitCloneService = new GitCloneService(config);
-    restModelService = new RestModelService(config, baseBranch, baseCommit);
-    this.baseBranch = baseBranch;
-    this.baseCommit = baseCommit;
+  public IRExtractionService(String configPath, String baseBranch, String baseCommit) throws Exception {
+    gitService = new GitService(configPath);
+    restModelService = new RestModelService(configPath, baseBranch, baseCommit);
   }
 
   /**
@@ -94,7 +75,7 @@ public class IRExtractionService {
     for (InputRepository inputRepository : config.getRepositories()) {
       // Clone the remote repository
       try {
-        gitCloneService.cloneRemote(inputRepository, baseCommit);
+        gitService.cloneRemote(inputRepository, baseCommit);
       } catch (Exception e) {
         System.err.println(GIT_CLONE_FAILED.getMessage() + ": " + e.getMessage());
         System.exit(GIT_CLONE_FAILED.ordinal());
@@ -127,25 +108,25 @@ public class IRExtractionService {
     return msModelMap;
   }
 
-  /**
-   * Create local directory to clone files to ("./repos" by default) as specified in the config
-   * file. <div><br>
-   * Exits the program if the directory cannot be created.</div>
-   *
-   * <p><div><br>
-   * Post condition: Directory is created.</div>
-   */
-  private void validateOrCreateLocalDirectory(String dirPath) {
-    File cloneDir = new File(dirPath);
-    if (!cloneDir.exists()) {
-      if (cloneDir.mkdirs()) {
-        System.out.println("Successfully created \"" + dirPath + "\" directory.");
-      } else {
-        System.err.println(COULD_NOT_CREATE_DIRECTORY.getMessage() + ": \"" + dirPath + "\"");
-        System.exit(COULD_NOT_CREATE_DIRECTORY.ordinal());
-      }
-    }
-  }
+//  /**
+//   * Create local directory to clone files to ("./repos" by default) as specified in the config
+//   * file. <div><br>
+//   * Exits the program if the directory cannot be created.</div>
+//   *
+//   * <p><div><br>
+//   * Post condition: Directory is created.</div>
+//   */
+//  private void validateOrCreateLocalDirectory() {
+//    File cloneDir = new File(config);
+//    if (!cloneDir.exists()) {
+//      if (cloneDir.mkdirs()) {
+//        System.out.println("Successfully created \"" + dirPath + "\" directory.");
+//      } else {
+//        System.err.println(COULD_NOT_CREATE_DIRECTORY.getMessage() + ": \"" + dirPath + "\"");
+//        System.exit(COULD_NOT_CREATE_DIRECTORY.ordinal());
+//      }
+//    }
+//  }
 
   /**
    * Write each service and endpoints to intermediate representation

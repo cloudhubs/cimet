@@ -1,9 +1,9 @@
 package edu.university.ecs.lab;
 
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.utils.FullCimetUtils;
-import edu.university.ecs.lab.delta.DeltaExtraction;
+import edu.university.ecs.lab.delta.DeltaExtractionRunner;
 import edu.university.ecs.lab.intermediate.create.IRExtraction;
 import edu.university.ecs.lab.intermediate.merge.IRMergeRunner;
 import org.eclipse.jgit.api.Git;
@@ -67,8 +67,8 @@ public class IncrementalCimetRunner {
     }
 
     // Git Repository Path
-    InputConfig inputConfig = ConfigUtil.validateConfig(configPath);
-    String repoPath = inputConfig.getClonePath() + File.separator + "train-ticket-microservices";
+    Config config = ConfigUtil.validateConfig(configPath);
+    String repoPath = config.getClonePath() + File.separator + "train-ticket-microservices";
 
     try {
 
@@ -123,7 +123,7 @@ public class IncrementalCimetRunner {
         // Run Delta Extraction on next commit
         LOGGER.info("Beginning Delta Extraction: " + commitsList.get(i).getName());
         String[] deltaArgs = {branch, commitsList.get(i).getName(), configPath};
-        DeltaExtraction.main(deltaArgs);
+        DeltaExtractionRunner.main(deltaArgs);
 
         // If First merge use IR, else use new IR
         if (i == 1) {

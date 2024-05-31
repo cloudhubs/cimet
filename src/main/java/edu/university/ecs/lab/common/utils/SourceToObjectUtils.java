@@ -5,10 +5,9 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.models.InputRepository;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
-import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.enums.RestTemplate;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import edu.university.ecs.lab.common.models.*;
@@ -35,7 +34,7 @@ public class SourceToObjectUtils {
    * @throws IOException on parse error
    */
   // TODO move this logic to JClass
-  public static JClass parseClass(File sourceFile, InputConfig config) throws IOException {
+  public static JClass parseClass(File sourceFile, Config config) throws IOException {
     CompilationUnit cu;
     try {
       cu = StaticJavaParser.parse(sourceFile);
@@ -63,15 +62,15 @@ public class SourceToObjectUtils {
             msId);
 
     // Handle special class roles
-    if (jClass.getClassRole() == ClassRole.CONTROLLER) {
-      JController controller = new JController(jClass);
-      controller.setEndpoints(parseEndpoints(msId, sourceFile));
-      return controller;
-    } else if (jClass.getClassRole() == ClassRole.SERVICE) {
-      JService service = new JService(jClass);
-      service.setRestCalls(parseRestCalls(cu, msId));
-      return service;
-    }
+//    if (jClass.getClassRole() == ClassRole.CONTROLLER) {
+//      JController controller = new JController(jClass);
+//      controller.setEndpoints(parseEndpoints(msId, sourceFile));
+//      return controller;
+//    } else if (jClass.getClassRole() == ClassRole.SERVICE) {
+//      JService service = new JService(jClass);
+//      service.setRestCalls(parseRestCalls(cu, msId));
+//      return service;
+//    }
 
     return jClass;
   }
@@ -83,7 +82,7 @@ public class SourceToObjectUtils {
    * @return the service name of the file, null if not found TODO this logic is now in {@link
    *     InputRepository#getServiceNameFromPath(String)}, refactor and delete
    */
-  public static String getMicroserviceName(File sourceFile, InputConfig config) {
+  public static String getMicroserviceName(File sourceFile, Config config) {
     // Get the path beginning with repoName/serviceName/...
     String filePath = getRepositoryPath(sourceFile, config);
 
@@ -118,7 +117,7 @@ public class SourceToObjectUtils {
    * @return the relative path of the file after ./clonePath/ TODO this logic should be put in
    *     {@link InputRepository}, refactor and delete
    */
-  public static String getRepositoryPath(File sourceFile, InputConfig config) {
+  public static String getRepositoryPath(File sourceFile, Config config) {
     // Get the file path start from the clonePath directory
     String filePath = sourceFile.getAbsolutePath();
     String clonePath = config.getClonePath();
@@ -149,64 +148,64 @@ public class SourceToObjectUtils {
     return methods;
   }
 
-  public static List<Endpoint> parseEndpoints(String msId, File sourceFile) throws IOException {
-    List<Endpoint> endpoints = new ArrayList<>();
-
-    CompilationUnit cu = StaticJavaParser.parse(sourceFile);
-
-    for (ClassOrInterfaceDeclaration cid : cu.findAll(ClassOrInterfaceDeclaration.class)) {
-      AnnotationExpr aExpr = cid.getAnnotationByName("RequestMapping").orElse(null);
-
-      if (aExpr == null) {
-        return endpoints;
-      }
-
-      String classLevelPath = pathFromAnnotation(aExpr);
-
-      // loop through methods
-      for (MethodDeclaration md : cid.findAll(MethodDeclaration.class)) {
-
-        // loop through annotations
-        for (AnnotationExpr ae : md.getAnnotations()) {
-          String url = StringParserUtils.mergePaths(classLevelPath, pathFromAnnotation(ae));
-          String decorator = ae.getNameAsString();
-          String httpMethod = null;
-          // TODO move logic to enum
-          switch (ae.getNameAsString()) {
-            case "GetMapping":
-              httpMethod = "GET";
-              break;
-            case "PostMapping":
-              httpMethod = "POST";
-              break;
-            case "DeleteMapping":
-              httpMethod = "DELETE";
-              break;
-            case "PutMapping":
-              httpMethod = "PUT";
-              break;
-            case "RequestMapping":
-              if (ae.toString().contains("RequestMethod.POST")) {
-                httpMethod = "POST";
-              } else if (ae.toString().contains("RequestMethod.DELETE")) {
-                httpMethod = "DELETE";
-              } else if (ae.toString().contains("RequestMethod.PUT")) {
-                httpMethod = "PUT";
-              } else {
-                httpMethod = "GET";
-              }
-              break;
-          }
-
-          if (httpMethod != null) {
-            endpoints.add(new Endpoint(parseMethod(md), url, decorator, httpMethod, msId));
-          }
-        }
-      }
-    }
-
-    return endpoints;
-  }
+//  public static List<Endpoint> parseEndpoints(String msId, File sourceFile) throws IOException {
+//    List<Endpoint> endpoints = new ArrayList<>();
+//
+//    CompilationUnit cu = StaticJavaParser.parse(sourceFile);
+//
+//    for (ClassOrInterfaceDeclaration cid : cu.findAll(ClassOrInterfaceDeclaration.class)) {
+//      AnnotationExpr aExpr = cid.getAnnotationByName("RequestMapping").orElse(null);
+//
+//      if (aExpr == null) {
+//        return endpoints;
+//      }
+//
+//      String classLevelPath = pathFromAnnotation(aExpr);
+//
+//      // loop through methods
+//      for (MethodDeclaration md : cid.findAll(MethodDeclaration.class)) {
+//
+//        // loop through annotations
+//        for (AnnotationExpr ae : md.getAnnotations()) {
+//          String url = StringParserUtils.mergePaths(classLevelPath, pathFromAnnotation(ae));
+//          String decorator = ae.getNameAsString();
+//          String httpMethod = null;
+//          // TODO move logic to enum
+//          switch (ae.getNameAsString()) {
+//            case "GetMapping":
+//              httpMethod = "GET";
+//              break;
+//            case "PostMapping":
+//              httpMethod = "POST";
+//              break;
+//            case "DeleteMapping":
+//              httpMethod = "DELETE";
+//              break;
+//            case "PutMapping":
+//              httpMethod = "PUT";
+//              break;
+//            case "RequestMapping":
+//              if (ae.toString().contains("RequestMethod.POST")) {
+//                httpMethod = "POST";
+//              } else if (ae.toString().contains("RequestMethod.DELETE")) {
+//                httpMethod = "DELETE";
+//              } else if (ae.toString().contains("RequestMethod.PUT")) {
+//                httpMethod = "PUT";
+//              } else {
+//                httpMethod = "GET";
+//              }
+//              break;
+//          }
+//
+//          if (httpMethod != null) {
+//            endpoints.add(new Endpoint(parseMethod(md), url, decorator, httpMethod, msId));
+//          }
+//        }
+//      }
+//    }
+//
+//    return endpoints;
+//  }
 
   public static Method parseMethod(MethodDeclaration md) {
     // Get params and returnType
@@ -232,63 +231,63 @@ public class SourceToObjectUtils {
         parseAnnotations(md.getAnnotations()));
   }
 
-  public static List<RestCall> parseRestCalls(CompilationUnit cu, String msId) throws IOException {
-    List<RestCall> restCalls = new ArrayList<>();
-
-    // loop through class declarations
-    for (ClassOrInterfaceDeclaration cid : cu.findAll(ClassOrInterfaceDeclaration.class)) {
-      // loop through methods
-
-      for (MethodDeclaration md : cid.findAll(MethodDeclaration.class)) {
-        String calledFromMethodName = md.getNameAsString();
-
-        // loop through method calls
-        for (MethodCallExpr mce : md.findAll(MethodCallExpr.class)) {
-          String methodName = mce.getNameAsString();
-          Expression scope = mce.getScope().orElse(null);
-
-          RestTemplate callTemplate = RestTemplate.findCallByName(methodName);
-          String calledServiceName = getCallingObjectName(scope);
-          String payloadObject = "";
-
-          HttpMethod httpMethod;
-          // Are we a rest call
-          if (!Objects.isNull(callTemplate)
-              && Objects.nonNull(calledServiceName)
-              && calledServiceName.equals("restTemplate")) {
-            // get http methods for exchange method
-            if (callTemplate.getMethodName().equals("exchange")) {
-              httpMethod = RestTemplate.getHttpMethodForExchange(mce.getArguments().toString());
-              // We are arbitrarily setting it, temporary
-              payloadObject =
-                  mce.getArguments().size() >= 2 ? mce.getArguments().get(2).toString() : "";
-            } else {
-              httpMethod = callTemplate.getHttpMethod();
-            }
-
-            // TODO find a more graceful way of handling/validating this can be passed up
-            if (parseURL(mce, cid).equals("")) {
-              continue;
-            }
-
-            RestCall call =
-                new RestCall(
-                    callTemplate.getMethodName(),
-                    calledServiceName,
-                    calledFromMethodName,
-                    msId,
-                    httpMethod,
-                    parseURL(mce, cid),
-                    "",
-                    "",
-                    payloadObject);
-            restCalls.add(call);
-          }
-        }
-      }
-    }
-    return restCalls;
-  }
+//  public static List<RestCall> parseRestCalls(CompilationUnit cu, String msId) throws IOException {
+//    List<RestCall> restCalls = new ArrayList<>();
+//
+//    // loop through class declarations
+//    for (ClassOrInterfaceDeclaration cid : cu.findAll(ClassOrInterfaceDeclaration.class)) {
+//      // loop through methods
+//
+//      for (MethodDeclaration md : cid.findAll(MethodDeclaration.class)) {
+//        String calledFromMethodName = md.getNameAsString();
+//
+//        // loop through method calls
+//        for (MethodCallExpr mce : md.findAll(MethodCallExpr.class)) {
+//          String methodName = mce.getNameAsString();
+//          Expression scope = mce.getScope().orElse(null);
+//
+//          RestTemplate callTemplate = RestTemplate.findCallByName(methodName);
+//          String calledServiceName = getCallingObjectName(scope);
+//          String payloadObject = "";
+//
+//          HttpMethod httpMethod;
+//          // Are we a rest call
+//          if (!Objects.isNull(callTemplate)
+//              && Objects.nonNull(calledServiceName)
+//              && calledServiceName.equals("restTemplate")) {
+//            // get http methods for exchange method
+//            if (callTemplate.getMethodName().equals("exchange")) {
+//              httpMethod = RestTemplate.getHttpMethodForExchange(mce.getArguments().toString());
+//              // We are arbitrarily setting it, temporary
+//              payloadObject =
+//                  mce.getArguments().size() >= 2 ? mce.getArguments().get(2).toString() : "";
+//            } else {
+//              httpMethod = callTemplate.getHttpMethod();
+//            }
+//
+//            // TODO find a more graceful way of handling/validating this can be passed up
+//            if (parseURL(mce, cid).equals("")) {
+//              continue;
+//            }
+//
+//            RestCall call =
+//                new RestCall(
+//                    callTemplate.getMethodName(),
+//                    calledServiceName,
+//                    calledFromMethodName,
+//                    msId,
+//                    httpMethod,
+//                    parseURL(mce, cid),
+//                    "",
+//                    "",
+//                    payloadObject);
+//            restCalls.add(call);
+//          }
+//        }
+//      }
+//    }
+//    return restCalls;
+//  }
 
   public static List<MethodCall> parseMethodCalls(CompilationUnit cu, String msId)
       throws IOException {

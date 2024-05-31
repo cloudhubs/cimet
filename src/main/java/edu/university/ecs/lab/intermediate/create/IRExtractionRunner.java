@@ -1,14 +1,14 @@
 package edu.university.ecs.lab.intermediate.create;
 
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.utils.FullCimetUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 
 import static edu.university.ecs.lab.common.models.enums.ErrorCodes.BAD_ARGS;
 
 /**
- * {@link IRExtraction} is the main entry point for the intermediate extraction process, relying on
+ * {@link IRExtractionRunner} is the main entry point for the intermediate extraction process, relying on
  * {@link IRExtractionService}.
  *
  * <p>The IR extraction process is responsible for cloning remote services, scanning through each
@@ -17,7 +17,7 @@ import static edu.university.ecs.lab.common.models.enums.ErrorCodes.BAD_ARGS;
  *
  * <p>
  */
-public class IRExtraction {
+public class IRExtractionRunner {
 
   /**
    * Intermediate extraction runner, generates IR from remote repository and writes to file.
@@ -33,7 +33,7 @@ public class IRExtraction {
     }
 
     // Get input config
-    InputConfig inputConfig = ConfigUtil.validateConfig(args[0]);
+    Config config = ConfigUtil.validateConfig(args[0]);
     String baseBranch = args[1];
     String commit = null;
 
@@ -42,7 +42,7 @@ public class IRExtraction {
     }
 
     IRExtractionService irExtractionService =
-        new IRExtractionService(inputConfig, baseBranch, commit);
+        new IRExtractionService(config, baseBranch, commit);
     String outputFileName = irExtractionService.generateSystemIntermediate();
 
     // Save the file name for the full system runner

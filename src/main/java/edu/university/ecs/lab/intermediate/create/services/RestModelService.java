@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.intermediate.create.services;
 
-import edu.university.ecs.lab.common.config.models.InputConfig;
+import edu.university.ecs.lab.common.config.ConfigUtil;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.models.InputRepository;
 import edu.university.ecs.lab.common.models.JController;
 import edu.university.ecs.lab.common.models.JService;
@@ -18,15 +19,15 @@ import java.util.List;
 public class RestModelService {
 
   /** The input configuration file */
-  private final InputConfig inputConfig;
+  private final Config config;
 
   private final String baseBranch;
   private final String baseCommit;
 
-  public RestModelService(InputConfig config, String baseBranch, String baseCommit) {
-    this.inputConfig = config;
-    this.baseBranch = baseBranch;
-    this.baseCommit = baseCommit;
+  public RestModelService(String configPath, String baseBranch, String baseCommit) throws Exception {
+    this.config = ConfigUtil.readConfig(configPath);
+    this.baseBranch = config.getBranch();
+    this.baseCommit = config.getInitialCommit();
   }
 
   /**
@@ -42,8 +43,8 @@ public class RestModelService {
       throws NotFoundException {
     System.out.println("Scanning repository '" + localMicroservicePath + "'...");
 
-    List<JController> controllers = new ArrayList<>();
-    List<JService> services = new ArrayList<>();
+    List<JClass> controllers = new ArrayList<>();
+    List<JClass> services = new ArrayList<>();
     List<JClass> dtos = new ArrayList<>();
     List<JClass> repositories = new ArrayList<>();
     List<JClass> entities = new ArrayList<>();
@@ -72,8 +73,8 @@ public class RestModelService {
    */
   public void scanDirectory(
       File directory,
-      List<JController> controllers,
-      List<JService> services,
+      List<JClass> controllers,
+      List<JClass> services,
       List<JClass> dtos,
       List<JClass> repositories,
       List<JClass> entities) {
@@ -100,13 +101,13 @@ public class RestModelService {
    */
   public void scanFile(
       File file,
-      List<JController> controllers,
-      List<JService> services,
+      List<JClass> controllers,
+      List<JClass> services,
       List<JClass> dtos,
       List<JClass> repositories,
       List<JClass> entities) {
     try {
-      JClass jClass = SourceToObjectUtils.parseClass(file, inputConfig);
+      JClass jClass = SourceToObjectUtils.parseClass(file, config);
 
       if (jClass == null) {
         return;
@@ -115,10 +116,10 @@ public class RestModelService {
       // Switch through class roles and handle additional logic if needed
       switch (jClass.getClassRole()) {
         case CONTROLLER:
-          controllers.add((JController) jClass);
+          controllers.add(jClass);
           break;
         case SERVICE:
-          services.add((JService) jClass);
+          services.add(jClass);
           break;
         case DTO:
           dtos.add(jClass);

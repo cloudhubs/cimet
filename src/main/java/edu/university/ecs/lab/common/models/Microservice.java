@@ -32,10 +32,10 @@ public class Microservice implements JsonSerializable {
   private String commit;
 
   /** Controller classes belonging to the microservice. */
-  private List<JController> controllers;
+  private List<JClass> controllers;
 
   /** Service classes to the microservice. */
-  private List<JService> services;
+  private List<JClass> services;
 
   /** DTO classes belonging to the microservice. */
   private List<JClass> dtos;
@@ -61,13 +61,13 @@ public class Microservice implements JsonSerializable {
     this.commit = commit;
   }
 
-  public void setControllers(List<JController> controllers) {
+  public void setControllers(List<JClass> controllers) {
     Objects.requireNonNull(controllers, "controllers cannot be null");
     this.controllers = controllers;
     propagateId(this.controllers);
   }
 
-  public void setServices(List<JService> services) {
+  public void setServices(List<JClass> services) {
     Objects.requireNonNull(services, "services cannot be null");
     this.services = services;
     propagateId(this.services);
@@ -121,8 +121,8 @@ public class Microservice implements JsonSerializable {
       String id,
       String branch,
       String commit,
-      List<JController> controllers,
-      List<JService> services,
+      List<JClass> controllers,
+      List<JClass> services,
       List<JClass> dtos,
       List<JClass> repositories,
       List<JClass> entities) {
@@ -199,10 +199,10 @@ public class Microservice implements JsonSerializable {
   public void addChange(Delta delta) {
     switch (delta.getChangedClass().getClassRole()) {
       case CONTROLLER:
-        controllers.add((JController) delta.getChangedClass());
+        controllers.add(delta.getChangedClass());
         break;
       case SERVICE:
-        services.add((JService) delta.getChangedClass());
+        services.add(delta.getChangedClass());
         break;
       case REPOSITORY:
       case DTO:
