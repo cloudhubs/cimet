@@ -16,8 +16,9 @@ import static edu.university.ecs.lab.common.error.Error.*;
 @Getter
 @Setter
 public class Config {
-  static final String DEFAULT_OUTPUT_PATH = "./output";
-  static final String DEFAULT_CLONE_PATH = "./clone";
+  static final String RELATIVE_PROJECT_PATH = System.getProperty("user.dir");
+  static final String DEFAULT_OUTPUT_PATH = "output";
+  static final String DEFAULT_CLONE_PATH = "clone";
   private static final String GIT_SCHEME_DOMAIN = "https://github.com/";
   private static final String GIT_PATH_EXTENSION = ".git";
 
@@ -91,7 +92,7 @@ public class Config {
    * @return the plain string repository name with no path related characters
    */
   public String getRepoName() {
-    int lastSlashIndex = repositoryURL.lastIndexOf(File.separator);
+    int lastSlashIndex = repositoryURL.lastIndexOf("/");
     int lastDotIndex = repositoryURL.lastIndexOf('.');
     return repositoryURL.substring(lastSlashIndex + 1, lastDotIndex);
   }
@@ -114,7 +115,7 @@ public class Config {
 
     for (String relativeMicroservicePath : relativeMicroservicePaths) {
 
-      String updatedRelativeMicroservicePath = "." + File.separator + getRepoName() + relativeMicroservicePath + File.separator;
+      String updatedRelativeMicroservicePath = "." + File.separator + DEFAULT_CLONE_PATH + File.separator + getRepoName() + File.separator + relativeMicroservicePath + File.separator;
 
       // In line validation that the relative path is a directory
       File file = new File(updatedRelativeMicroservicePath);
@@ -138,4 +139,6 @@ public class Config {
 //  public String getShortPath(String fullPath) {
 //    return fullPath.substring(fullPath.indexOf(clonePath) + clonePath.length() + 1);
 //  }
+
+
 }

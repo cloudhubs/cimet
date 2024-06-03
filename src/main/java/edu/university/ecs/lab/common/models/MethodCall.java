@@ -10,10 +10,8 @@ import javax.json.JsonObjectBuilder;
  * Represents a method call in Java. Method call looks like: objectName.methodName() inside of
  * calledFrom
  */
+@Data
 @AllArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 public class MethodCall implements JsonSerializable {
   /** Name of the called method */
   protected String methodName;
@@ -27,9 +25,6 @@ public class MethodCall implements JsonSerializable {
   /** Name of method that contains this call */
   protected String calledFrom;
 
-  /** Name of service that contains this method */
-  protected String msId;
-
   @Override
   public JsonObject toJsonObject() {
     return createBuilder().build();
@@ -41,7 +36,6 @@ public class MethodCall implements JsonSerializable {
     methodObjectBuilder.add("methodName", this.methodName);
     methodObjectBuilder.add("objectName", this.objectName);
     methodObjectBuilder.add("calledFrom", this.calledFrom);
-    methodObjectBuilder.add("msId", this.msId);
 
     return methodObjectBuilder;
   }

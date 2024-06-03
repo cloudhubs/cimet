@@ -8,7 +8,8 @@ public enum Error {
     INVALID_REPO_PATH(4, "Invalid repository relative path after update! Skipping!"),
     INVALID_CONFIG_PATH(5, "Invalid configuration file path!"),
     REPO_DONT_EXIST(6, "The specified repository does not exist!"),
-    GIT_FAILED(7, "The requested git action failed for an unknown reason!");
+    GIT_FAILED(7, "The requested git action failed for an unknown reason!"),
+    INVALID_ARGS(8, "Invalid arguments!"),;
 
     private final int code;
     private final String message;

@@ -1,16 +1,14 @@
 package edu.university.ecs.lab.common.models.enums;
 
 import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.JController;
-import edu.university.ecs.lab.common.models.JService;
 import lombok.Getter;
 
 import java.io.File;
 
 /** Enum to represent the role of a class in a system */
 public enum ClassRole {
-  CONTROLLER(JController.class),
-  SERVICE(JService.class),
+  CONTROLLER(JClass.class),
+  SERVICE(JClass.class),
   REPOSITORY(JClass.class),
   ENTITY(JClass.class),
   DTO(JClass.class),

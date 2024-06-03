@@ -1,10 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -16,11 +13,9 @@ import java.util.Map;
 import static edu.university.ecs.lab.common.utils.ObjectToJsonUtils.listToJsonArray;
 
 /** Represents the intermediate structure of a microservice system. */
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
-@EqualsAndHashCode
-public class MsSystem implements JsonSerializable {
+public class System implements JsonSerializable {
   /** The name of the system */
   private String systemName;
 

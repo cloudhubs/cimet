@@ -48,6 +48,12 @@ public class GitService {
    * @throws Exception if Git clone failed
    */
   public void cloneRemote() {
+
+    File file = new File("./clone/train-ticket-microservices-test");
+    if(file.exists()) {
+      return;
+    }
+
     try {
       ProcessBuilder processBuilder =
               new ProcessBuilder("git", "clone", config.getRepositoryURL(), config.getLocalClonePath());
@@ -114,7 +120,7 @@ public class GitService {
    * reports and exits if it doesn't.
    */
   private void validateLocalExists() {
-    File file = new File(config.getLocalClonePath());
+    File file = new File(ConfigUtil.getBaseClonePath());
     if(!(file.exists() && file.isDirectory())) {
       Error.reportAndExit(Error.REPO_DONT_EXIST);
     }

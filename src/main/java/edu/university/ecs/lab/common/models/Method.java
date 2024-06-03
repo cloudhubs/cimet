@@ -11,10 +11,8 @@ import java.util.List;
 import static edu.university.ecs.lab.common.utils.ObjectToJsonUtils.listToJsonArray;
 
 /** Represents a method declaration in Java. */
+@Data
 @AllArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 public class Method implements JsonSerializable {
   /** Name of the method */
   protected String methodName;
@@ -24,7 +22,7 @@ public class Method implements JsonSerializable {
 
   /** List of parameters in the method as a string like: [String userId, String money] */
   @SerializedName("parameter")
-  protected String parameterList;
+  protected List<Field> parameters;
 
   /** Java return type of the method */
   protected String returnType;
@@ -41,7 +39,7 @@ public class Method implements JsonSerializable {
     JsonObjectBuilder methodObjectBuilder = Json.createObjectBuilder();
 
     methodObjectBuilder.add("methodName", methodName);
-    methodObjectBuilder.add("parameter", parameterList);
+    methodObjectBuilder.add("parameter", parameters.toString());
     methodObjectBuilder.add("returnType", returnType);
     methodObjectBuilder.add("annotations", listToJsonArray(annotations));
 

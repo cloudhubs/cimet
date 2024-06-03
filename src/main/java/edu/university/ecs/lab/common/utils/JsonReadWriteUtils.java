@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.common.writers;
+package edu.university.ecs.lab.common.utils;
 
 import javax.json.*;
 import javax.json.stream.JsonGenerator;
@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /** Utility class for writing JSON to a file. */
-public class MsJsonWriter {
+public class JsonReadWriteUtils {
   /** Private constructor to prevent instantiation. */
-  private MsJsonWriter() {}
+  private JsonReadWriteUtils() {}
 
   /**
    * Write the given JSON object to the given file path. Can use this method for any JSON file out.
