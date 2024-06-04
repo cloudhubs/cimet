@@ -1,10 +1,8 @@
 package edu.university.ecs.lab.common.utils;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
@@ -12,11 +10,8 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
-import edu.university.ecs.lab.common.models.enums.RestTemplate;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import edu.university.ecs.lab.common.models.*;
-import javassist.NotFoundException;
-import javassist.compiler.ast.MethodDecl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 /** Static utility class for parsing a file and returning associated models from code structure. */
 public class SourceToObjectUtils {
@@ -48,11 +43,19 @@ public class SourceToObjectUtils {
       Error.reportAndExit(Error.UNKNOWN_ERROR);
     }
 
-    // Calculate early to determine classrole based on annotation
-    List<Annotation> annotations = parseAnnotations(cu.findAll(AnnotationExpr.class));
+    // Calculate early to determine classrole based on annotation, filter for class based only
+    List<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
+      if(annotationExpr.getParentNode().isPresent()) {
+        Node n = annotationExpr.getParentNode().get();
+        if(n instanceof ClassOrInterfaceDeclaration) {
+          return true;
+        }
+      }
+      return false;
+    }).collect(Collectors.toUnmodifiableList()));
 
     // Null returned if not needed class and caller will skip null JClasses
-    ClassRole classRole = parseClassRole(annotations);
+    ClassRole classRole = parseClassRole(classAnnotations);
     if(classRole.equals(ClassRole.UNKNOWN)) {
       return null;
     }
@@ -65,7 +68,7 @@ public class SourceToObjectUtils {
                     classRole,
                     parseMethods(cu.findAll(MethodDeclaration.class)),
                     parseFields(cu.findAll(FieldDeclaration.class)),
-                    annotations,
+                    classAnnotations,
                     parseMethodCalls(cu.findAll(MethodDeclaration.class)));
 
     return jClass;
@@ -101,18 +104,12 @@ public class SourceToObjectUtils {
       for (MethodCallExpr mce : methodDeclaration.findAll(MethodCallExpr.class)) {
         String methodName = mce.getNameAsString();
 
-        RestTemplate template = RestTemplate.findCallByName(methodName);
         String calledServiceName = getCallingObjectName(mce);
+        String parameterContents = mce.getArguments().stream().map(Objects::toString).collect(Collectors.joining(","));
 
-        // Are we a rest call
-        if (!Objects.isNull(template)
-                && Objects.nonNull(calledServiceName)
-                && calledServiceName.equals("restTemplate")) {
-          // do nothing, we only want regular methodCalls
-          // System.out.println(restCall);
-        } else if (Objects.nonNull(calledServiceName)) {
+        if (Objects.nonNull(calledServiceName)) {
           methodCalls.add(
-                  new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString()));
+                  new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents));
         }
       }
     }
@@ -126,7 +123,7 @@ public class SourceToObjectUtils {
     // loop through class declarations
     for (FieldDeclaration fd : fieldDeclarations) {
       for (VariableDeclarator variable : fd.getVariables()) {
-        javaFields.add(new Field(variable));
+        javaFields.add(new Field(variable.getTypeAsString(), variable.getNameAsString()));
       }
 
     }
@@ -171,7 +168,7 @@ public class SourceToObjectUtils {
     }
 
     String calledServiceID = null;
-    if (Objects.nonNull(scope) && scope instanceof NameExpr) {
+    if (scope instanceof NameExpr) {
       NameExpr fae = scope.asNameExpr();
       calledServiceID = fae.getNameAsString();
     }

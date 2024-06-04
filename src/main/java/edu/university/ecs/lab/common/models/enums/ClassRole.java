@@ -10,8 +10,6 @@ public enum ClassRole {
   CONTROLLER(JClass.class),
   SERVICE(JClass.class),
   REPOSITORY(JClass.class),
-  ENTITY(JClass.class),
-  DTO(JClass.class),
   UNKNOWN(null),
   /** Only for metrics reporting, not a real class role */
   TOTAL(null);
@@ -58,12 +56,8 @@ public enum ClassRole {
       return ClassRole.CONTROLLER;
     } else if (fileName.contains("service")) {
       return ClassRole.SERVICE;
-    } else if (fileName.contains("dto")) {
-      return ClassRole.DTO;
     } else if (fileName.contains("repository")) {
       return ClassRole.REPOSITORY;
-    } else if (parentPath.contains("entity") || parentPath.contains("model")) {
-      return ClassRole.ENTITY;
     } else {
       return ClassRole.UNKNOWN;
     }

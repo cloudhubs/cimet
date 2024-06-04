@@ -2,7 +2,7 @@ package edu.university.ecs.lab.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import edu.university.ecs.lab.common.models.System;
+import edu.university.ecs.lab.common.models.MicroserviceSystem;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,11 +23,11 @@ public class IRParserUtils {
    * @return the parsed MsSystem object
    * @throws IOException if an I/O error occurs
    */
-  public static System parseIRSystem(String irFileName) {
-    System system = null;
+  public static MicroserviceSystem parseIRSystem(String irFileName) {
+    MicroserviceSystem microserviceSystem = null;
     try {
       Reader irReader = new FileReader(irFileName);
-      system = gson.fromJson(irReader, System.class);
+      microserviceSystem = gson.fromJson(irReader, MicroserviceSystem.class);
       irReader.close();
     } catch (FileNotFoundException e) {
       java.lang.System.err.println("IR File not Found: " + irFileName);
@@ -35,7 +35,7 @@ public class IRParserUtils {
       java.lang.System.err.println("Error reading IR file: " + irFileName);
     }
 
-    return system;
+    return microserviceSystem;
   }
 
 //  /**

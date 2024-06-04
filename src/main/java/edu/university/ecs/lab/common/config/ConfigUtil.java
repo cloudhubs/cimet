@@ -3,6 +3,7 @@ package edu.university.ecs.lab.common.config;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -23,16 +24,7 @@ public class ConfigUtil {
    * @return Config object
    */
   public static Config readConfig(String configPath) {
-    JsonReader jsonReader = null;
-    try {
-      jsonReader = new JsonReader(new FileReader(configPath));
-    } catch (Exception e) {
-      Error.reportAndExit(Error.INVALID_CONFIG_PATH);
-    }
-
-    Gson gson = new Gson();
-
-    return gson.fromJson(jsonReader, Config.class);
+    return JsonReadWriteUtils.readFromJSON(configPath, Config.class);
   }
 
   public static String getGitRelativePath(String path) {

@@ -1,21 +1,17 @@
 package edu.university.ecs.lab.common.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonObject;
 import lombok.*;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static edu.university.ecs.lab.common.utils.ObjectToJsonUtils.listToJsonArray;
-
 /** Represents the intermediate structure of a microservice system. */
 @Data
 @AllArgsConstructor
-public class System implements JsonSerializable {
+public class MicroserviceSystem implements JsonSerializable {
+  public static final String INITIAL_VERSION = "1.0";
+
   /** The name of the system */
   private String systemName;
 
@@ -23,8 +19,7 @@ public class System implements JsonSerializable {
   private String version;
 
   /** List of microservices in the system */
-  @SerializedName("microservices")
-  private List<Microservice> msList;
+  private List<Microservice> microservices;
 
   /**
    * Get a map of microservices in the system as {@literal <msId (service name), Microservice>}
@@ -34,7 +29,7 @@ public class System implements JsonSerializable {
   public Map<String, Microservice> getServiceMap() {
     Map<String, Microservice> msMap = new LinkedHashMap<>();
 
-    for (Microservice ms : msList) {
+    for (Microservice ms : microservices) {
       msMap.put(ms.getId(), ms);
     }
 
@@ -49,16 +44,17 @@ public class System implements JsonSerializable {
    */
   @Override
   public JsonObject toJsonObject() {
-    JsonObjectBuilder builder = Json.createObjectBuilder();
+    JsonObject jsonObject = new JsonObject();
 
-    builder.add("systemName", systemName);
-    builder.add("version", version);
-    builder.add("microservices", listToJsonArray(msList));
+    jsonObject.addProperty("systemName", systemName);
+    jsonObject.addProperty("version", version);
+    jsonObject.add("microservices", JsonSerializable.toJsonArray(microservices));
 
-    return builder.build();
+    return jsonObject;
   }
 
   /** Increment the version of the system by +0.0.1 */
+  @Deprecated
   public void incrementVersion() {
     // split version by '.'
     String[] parts = version.split("\\.");

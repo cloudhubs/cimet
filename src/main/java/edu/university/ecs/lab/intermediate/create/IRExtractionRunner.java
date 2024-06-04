@@ -32,8 +32,11 @@ public class IRExtractionRunner {
     // Create both directories needed
     ConfigUtil.createPaths();
 
+    // Initialize the irExtractionService
     IRExtractionService irExtractionService = new IRExtractionService(args[0]);
-    String outputFileName = irExtractionService.generateSystemIntermediate();
+
+    // Generate the Intermediate Representation
+    irExtractionService.generateIR();
 
 
   }

@@ -12,7 +12,11 @@ import java.util.Objects;
 
 import static edu.university.ecs.lab.common.error.Error.*;
 
-/** Model to represent the JSON configuration file */
+/**
+ * Model to represent the JSON configuration file
+ * Some additional notes, this object is p
+ *
+ */
 @Getter
 @Setter
 public class Config {

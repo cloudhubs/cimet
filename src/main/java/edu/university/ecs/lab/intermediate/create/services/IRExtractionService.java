@@ -9,7 +9,6 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import javassist.NotFoundException;
 
-import javax.json.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.System;
@@ -39,11 +38,11 @@ public class IRExtractionService {
    *
    * @return the name of the output file
    */
-  public String generateSystemIntermediate() {
+  public void generateIR() {
     // Clone remote repositories and scan through each cloned repo to extract endpoints
-    Map<String, Microservice> msDataMap = cloneAndScanServices();
+      List<Microservice> microservices = cloneAndScanServices();
 
-    if (msDataMap == null) {
+    if (microservices.isEmpty()) {
       Error.reportAndExit(Error.UNKNOWN_ERROR);
     }
 
@@ -51,13 +50,8 @@ public class IRExtractionService {
 //    updateCallDestinations(msDataMap);
 
     //  Write each service and endpoints to IR
-    try {
-      return this.writeToFile(msDataMap);
-    } catch (IOException e) {
-      Error.reportAndExit(Error.UNKNOWN_ERROR);
-    }
+      writeToFile(microservices);
 
-    return null;
   }
 
   /**
@@ -65,8 +59,8 @@ public class IRExtractionService {
    *
    * @return a map of services and their endpoints
    */
-  public Map<String, Microservice> cloneAndScanServices() {
-    Map<String, Microservice> msModelMap = new HashMap<>();
+  public List<Microservice> cloneAndScanServices() {
+    List<Microservice> microservices = new ArrayList<>();
 
     // Clone the repository present in the configuration file
     gitService.cloneRemote();
@@ -86,28 +80,27 @@ public class IRExtractionService {
 //      path = msPath.substring(basePath.length() + 1);
 //    }
 
-    msModelMap.put(rootMicroservicePath, microservice);
+      microservices.add(microservice);
   }
 
 
-    return msModelMap;
+    return microservices;
   }
 
 
   /**
    * Write each service and endpoints to intermediate representation
    *
-   * @param msMap a map of service to their information
+   * @param microservices a list of microservices extracted from repository
    */
-  private String writeToFile(Map<String, Microservice> msMap) throws IOException {
-    String outputName = this.getOutputFileName();
+  private void writeToFile(List<Microservice> microservices) {
+    String outputName = getOutputFileName();
 
-    JsonObject jout = new edu.university.ecs.lab.common.models.System(config.getSystemName(), "1", new ArrayList<>(msMap.values())).toJsonObject();
+    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
 
-    JsonReadWriteUtils.writeJsonToFile(jout, outputName);
+    JsonReadWriteUtils.writeToJSON(outputName, microserviceSystem.toJsonObject());
 
     System.out.println("Successfully wrote rest extraction to: \"" + outputName + "\"");
-    return outputName;
   }
 
   /**
@@ -142,17 +135,15 @@ public class IRExtractionService {
 
         List<JClass> controllers = new ArrayList<>();
         List<JClass> services = new ArrayList<>();
-        List<JClass> dtos = new ArrayList<>();
         List<JClass> repositories = new ArrayList<>();
-        List<JClass> entities = new ArrayList<>();
 
-        scanDirectory(localDir, controllers, services, dtos, repositories, entities);
+        scanDirectory(localDir, controllers, services, repositories);
 
         String id = ConfigUtil.getMicroserviceNameFromPath(rootMicroservicePath);
 
         Microservice model =
                 new Microservice(
-                        id, config.getBaseBranch(), config.getBaseCommit(), controllers, services, dtos, repositories, entities);
+                        id, config.getBaseBranch(), config.getBaseCommit(), controllers, services, repositories);
 
         System.out.println("Done!");
         return model;
@@ -167,17 +158,15 @@ public class IRExtractionService {
             File directory,
             List<JClass> controllers,
             List<JClass> services,
-            List<JClass> dtos,
-            List<JClass> repositories,
-            List<JClass> entities) {
+            List<JClass> repositories) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, dtos, repositories, entities);
+                    scanDirectory(file, controllers, services, repositories);
                 } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, dtos, repositories, entities);
+                    scanFile(file, controllers, services, repositories);
                 }
             }
         }
@@ -195,9 +184,7 @@ public class IRExtractionService {
             File file,
             List<JClass> controllers,
             List<JClass> services,
-            List<JClass> dtos,
-            List<JClass> repositories,
-            List<JClass> entities) {
+            List<JClass> repositories) {
         try {
             JClass jClass = SourceToObjectUtils.parseClass(file, config);
 
@@ -213,14 +200,8 @@ public class IRExtractionService {
                 case SERVICE:
                     services.add(jClass);
                     break;
-                case DTO:
-                    dtos.add(jClass);
-                    break;
                 case REPOSITORY:
                     repositories.add(jClass);
-                    break;
-                case ENTITY:
-                    entities.add(jClass);
                     break;
                 default:
                     break;
