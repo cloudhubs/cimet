@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import edu.university.ecs.lab.common.error.Error;
 
 import java.io.*;
@@ -18,7 +19,9 @@ public class JsonReadWriteUtils {
    * @param filePath the file path where the JSON should be saved
    */
   public static <T> void writeToJSON(String filePath, T object) {
-    Gson gson = new Gson();
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    gsonBuilder.setPrettyPrinting();
+    Gson gson = gsonBuilder.create();
     try (Writer writer = new BufferedWriter(new FileWriter(filePath))) {
       gson.toJson(object, writer);
     } catch (IOException e) {
