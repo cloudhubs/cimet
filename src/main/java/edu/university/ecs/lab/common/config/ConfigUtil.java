@@ -2,11 +2,14 @@ package edu.university.ecs.lab.common.config;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import edu.university.ecs.lab.common.config.models.InputConfig;
-import java.io.FileNotFoundException;
+import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
+
+import java.io.File;
 import java.io.FileReader;
 
-import static edu.university.ecs.lab.common.models.enums.ErrorCodes.BAD_CONFIG;
+import static edu.university.ecs.lab.common.config.Config.*;
+import static edu.university.ecs.lab.common.error.Error.UNKNOWN_ERROR;
 
 /** Utility class for reading and validating the input config file */
 public class ConfigUtil {
@@ -15,49 +18,46 @@ public class ConfigUtil {
   private ConfigUtil() {}
 
   /**
-   * Validate the input config file
+   * This method read's the input config and return Config object
    *
    * @param configPath path to the input config file
-   * @return the input config as an object
+   * @return Config object
    */
-  public static InputConfig validateConfig(String configPath) {
-    InputConfig inputConfig = readConfig(configPath);
-
-    if (inputConfig.getClonePath() == null) {
-      System.err.println("Config file requires attribute \"clonePath\"");
-      System.exit(BAD_CONFIG.ordinal());
-    } else if (inputConfig.getOutputPath() == null) {
-      System.err.println("Config file requires attribute \"outputPath\"");
-      System.exit(BAD_CONFIG.ordinal());
-    } else if (inputConfig.getRepositories() == null) {
-      System.err.println("Config file requires attribute \"repositories\"");
-      System.exit(BAD_CONFIG.ordinal());
-    }
-
-    // TODO ? Add in more necessary params of input config
-    // TODO validate that clonePath and outputPath are valid RELATIVE directories starting with "./"
-    // from the working directory
-
-    return inputConfig;
+  public static Config readConfig(String configPath) {
+    return JsonReadWriteUtils.readFromJSON(configPath, Config.class);
   }
 
-  /**
-   * Read the input config and return InputConfig object
-   *
-   * @param configPath path to the input config file
-   * @return InputConfig object
-   */
-  public static InputConfig readConfig(String configPath) {
-    JsonReader jsonReader = null;
+  public static String getGitRelativePath(String path) {
+    if(!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH)) {
+      Error.reportAndExit(UNKNOWN_ERROR);
+    }
+
+    return path.replace("." + File.separator + DEFAULT_CLONE_PATH, "");
+  }
+
+  public static String getMicroserviceNameFromPath(String path) {
+    if(!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH + File.separator)) {
+      Error.reportAndExit(UNKNOWN_ERROR);
+    }
+
+    return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[0];
+  }
+
+  public static String getBaseOutputPath() {
+    return "./" + DEFAULT_OUTPUT_PATH;
+  }
+
+  public static String getBaseClonePath() {
+    return "./" + DEFAULT_CLONE_PATH;
+  }
+
+  public static void createPaths() {
     try {
-      jsonReader = new JsonReader(new FileReader(configPath));
-    } catch (FileNotFoundException e) {
-      System.err.println("Config file not found: " + configPath);
-      System.exit(BAD_CONFIG.ordinal());
+      new File(getBaseOutputPath()).mkdirs();
+      new File(getBaseClonePath()).mkdirs();
+    } catch (Exception e) {
+      Error.reportAndExit(Error.UNKNOWN_ERROR);
     }
-
-    Gson gson = new Gson();
-
-    return gson.fromJson(jsonReader, InputConfig.class);
   }
+
 }

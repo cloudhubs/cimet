@@ -1,14 +1,11 @@
 package edu.university.ecs.lab.common.models;
 
+import com.google.gson.JsonObject;
 import lombok.*;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-
 /** Represents an annotation in Java */
+@Data
 @AllArgsConstructor
-@ToString
 public class Annotation implements JsonSerializable {
   /** The name of the annotation * */
   protected String annotationName;
@@ -18,15 +15,11 @@ public class Annotation implements JsonSerializable {
 
   @Override
   public JsonObject toJsonObject() {
-    return createBuilder().build();
-  }
+    JsonObject jsonObject = new JsonObject();
 
-  protected JsonObjectBuilder createBuilder() {
-    JsonObjectBuilder methodObjectBuilder = Json.createObjectBuilder();
+    jsonObject.addProperty("annotationName", getAnnotationName());
+    jsonObject.addProperty("contents", getContents());
 
-    methodObjectBuilder.add("annotationName", annotationName);
-    methodObjectBuilder.add("contents", contents);
-
-    return methodObjectBuilder;
+    return jsonObject;
   }
 }

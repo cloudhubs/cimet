@@ -1,9 +1,9 @@
 package edu.university.ecs.lab;
 
-import edu.university.ecs.lab.common.utils.FullCimetUtils;
-import edu.university.ecs.lab.delta.DeltaExtraction;
-import edu.university.ecs.lab.intermediate.create.IRExtraction;
-import edu.university.ecs.lab.intermediate.merge.IRMergeRunner;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+
+import java.io.File;
 
 public class CimetRunner {
 
@@ -15,35 +15,37 @@ public class CimetRunner {
    */
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 5) {
-      System.err.println(
-          "Required arguments /path/to/config/file <base branch> <base commit> <compare branch>"
-              + " <compare commit>");
-      return;
-    }
+//    if (args.length != 5) {
+//      System.err.println(
+//          "Required arguments /path/to/config/file <base branch> <base commit> <compare branch>"
+//              + " <compare commit>");
+//      return;
+//    }
+//
+//    String configPath = args[0];
+//    String baseBranch = args[1];
+//    String baseCommit = args[2];
+//    String compareBranch = args[3];
+//    String compareCommit = args[4];
+//
+//    // RUN IR EXTRACTION
+//    System.out.println("Starting IR Extraction...");
+//    String[] IRExtractionArgs = {configPath, baseBranch, baseCommit};
+//    IRExtraction.main(IRExtractionArgs);
+//
+//    // RUN DELTA
+//    System.out.println("Starting Delta Extraction...");
+//    String[] deltaArgs = {compareBranch, compareCommit, configPath};
+//    DeltaExtractionRunner.main(deltaArgs);
+//
+//    // RUN IR MERGE
+//    System.out.println("Starting IR Merge...");
+//    String[] IRMergeArgs = {
+//      FullCimetUtils.pathToIR, FullCimetUtils.pathToDelta, configPath, compareBranch, compareCommit
+//    };
+//    IRMergeRunner.main(IRMergeArgs);
 
-    String configPath = args[0];
-    String baseBranch = args[1];
-    String baseCommit = args[2];
-    String compareBranch = args[3];
-    String compareCommit = args[4];
-
-    // RUN IR EXTRACTION
-    System.out.println("Starting IR Extraction...");
-    String[] IRExtractionArgs = {configPath, baseBranch, baseCommit};
-    IRExtraction.main(IRExtractionArgs);
-
-    // RUN DELTA
-    System.out.println("Starting Delta Extraction...");
-    String[] deltaArgs = {compareBranch, compareCommit, configPath};
-    DeltaExtraction.main(deltaArgs);
-
-    // RUN IR MERGE
-    System.out.println("Starting IR Merge...");
-    String[] IRMergeArgs = {
-      FullCimetUtils.pathToIR, FullCimetUtils.pathToDelta, configPath, compareBranch, compareCommit
-    };
-    IRMergeRunner.main(IRMergeArgs);
-
+    CompilationUnit cu = StaticJavaParser.parse(new File("C:\\Users\\ninja\\IdeaProjects\\TemporalParser\\repos\\train-ticket-microservices-test\\ts-order-service\\src\\main\\java\\com\\cloudhubs\\trainticket\\order\\controller\\AdminOrderController.java"));
+    System.out.println(cu.toString());
   }
 }

@@ -1,50 +1,39 @@
 package edu.university.ecs.lab.common.models;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.JsonObject;
 import lombok.*;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import java.util.List;
 
-import static edu.university.ecs.lab.common.utils.ObjectToJsonUtils.listToJsonArray;
-
 /** Represents a method declaration in Java. */
+@Data
 @AllArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
 public class Method implements JsonSerializable {
   /** Name of the method */
-  protected String methodName;
+  private String methodName;
 
   // Protection Not Yet Implemented
   // protected String protection;
 
   /** List of parameters in the method as a string like: [String userId, String money] */
-  @SerializedName("parameter")
-  protected String parameterList;
+  private List<Field> parameters;
 
   /** Java return type of the method */
-  protected String returnType;
+  private String returnType;
 
   /** Method definition level annotations * */
-  protected List<Annotation> annotations;
+  private List<Annotation> annotations;
 
   @Override
   public JsonObject toJsonObject() {
-    return createBuilder().build();
+    JsonObject jsonObject = new JsonObject();
+
+    jsonObject.addProperty("methodName", methodName);
+    jsonObject.addProperty("parameter", parameters.toString());
+    jsonObject.addProperty("returnType", returnType);
+    jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
+
+    return jsonObject;
   }
 
-  protected JsonObjectBuilder createBuilder() {
-    JsonObjectBuilder methodObjectBuilder = Json.createObjectBuilder();
-
-    methodObjectBuilder.add("methodName", methodName);
-    methodObjectBuilder.add("parameter", parameterList);
-    methodObjectBuilder.add("returnType", returnType);
-    methodObjectBuilder.add("annotations", listToJsonArray(annotations));
-
-    return methodObjectBuilder;
-  }
 }
