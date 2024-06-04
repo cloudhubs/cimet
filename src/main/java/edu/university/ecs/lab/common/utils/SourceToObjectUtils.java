@@ -303,7 +303,7 @@ public class SourceToObjectUtils {
   private static ClassRole parseClassRole(List<Annotation> annotations) {
     for(Annotation annotation : annotations) {
       switch (annotation.getAnnotationName()) {
-        case "Controller":
+        case "RestController":
           return ClassRole.CONTROLLER;
         case "Service":
           return ClassRole.SERVICE;
