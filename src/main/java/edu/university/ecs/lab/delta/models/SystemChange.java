@@ -1,14 +1,14 @@
 //package edu.university.ecs.lab.delta.models;
 //
+//import com.google.gson.JsonObject;
 //import com.google.gson.annotations.SerializedName;
 //import edu.university.ecs.lab.common.models.JClass;
-//import edu.university.ecs.lab.common.models.JsonSerializable;
+//import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 //import lombok.AllArgsConstructor;
 //import lombok.Getter;
 //import lombok.Setter;
 //import org.eclipse.jgit.diff.DiffEntry;
 //
-//import javax.json.JsonObject;
 //import java.util.HashMap;
 //import java.util.Map;
 //import java.util.Objects;
@@ -30,25 +30,15 @@
 //  @SerializedName("services")
 //  private Map<String, Delta> services;
 //
-//  /** Map of local path to changed dtos */
-//  @SerializedName("dtos")
-//  private Map<String, Delta> dtos;
-//
 //  /** Map of local path to changed repositories */
 //  @SerializedName("repositories")
 //  private Map<String, Delta> repositories;
-//
-//  /** Map of local path to changed entities */
-//  @SerializedName("entities")
-//  private Map<String, Delta> entities;
 //
 //  /** Default constructor for the system change. Initializes all maps to empty. */
 //  public SystemChange() {
 //    controllers = new HashMap<>();
 //    services = new HashMap<>();
-//    dtos = new HashMap<>();
 //    repositories = new HashMap<>();
-//    entities = new HashMap<>();
 //  }
 //
 //  /**
@@ -71,14 +61,8 @@
 //      case SERVICE:
 //        services.put(localPath, newDelta);
 //        break;
-//      case DTO:
-//        dtos.put(localPath, newDelta);
-//        break;
 //      case REPOSITORY:
 //        repositories.put(localPath, newDelta);
-//        break;
-//      case ENTITY:
-//        entities.put(localPath, newDelta);
 //        break;
 //      default:
 //        System.out.println("Skipping change: " + entry.getChangeType() + localPath);

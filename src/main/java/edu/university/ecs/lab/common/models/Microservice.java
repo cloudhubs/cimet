@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import java.util.*;
@@ -13,7 +14,7 @@ import java.util.*;
 @AllArgsConstructor
 public class Microservice implements JsonSerializable {
   /** The name of the service (ex: "ts-assurance-service") */
-  private String id;
+  private String name;
 
   private String branch;
 
@@ -34,7 +35,7 @@ public class Microservice implements JsonSerializable {
   public JsonObject toJsonObject() {
     JsonObject jsonObject = new JsonObject();
 
-    jsonObject.addProperty("id", id);
+    jsonObject.addProperty("name", name);
     jsonObject.addProperty("commitId", commit);
     jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
     jsonObject.add("services", JsonSerializable.toJsonArray(services));

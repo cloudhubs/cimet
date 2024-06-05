@@ -33,6 +33,12 @@ public class IRExtractionService {
     config = ConfigUtil.readConfig(configPath);
   }
 
+    // TODO REMOVE FOR TESTING ONLY
+    public IRExtractionService(Config config) {
+        gitService = new GitService(config);
+        this.config = config;
+    }
+
   /**
    * Intermediate extraction runner, generates IR from remote repository and writes to file.
    *
@@ -43,7 +49,7 @@ public class IRExtractionService {
       List<Microservice> microservices = cloneAndScanServices();
 
     if (microservices.isEmpty()) {
-      Error.reportAndExit(Error.UNKNOWN_ERROR);
+      System.out.println("No microservices found");
     }
 
     // Scan through each endpoint to update rest call destinations
@@ -60,32 +66,60 @@ public class IRExtractionService {
    * @return a map of services and their endpoints
    */
   public List<Microservice> cloneAndScanServices() {
-    List<Microservice> microservices = new ArrayList<>();
+      List<Microservice> microservices = new ArrayList<>();
 
-    // Clone the repository present in the configuration file
-    gitService.cloneRemote();
+      // Clone the repository present in the configuration file
+      gitService.cloneRemote();
 
+      // Start scanning from the root directory
+      List<String> rootDirectories = findRootDirectories(config.getLocalClonePath());
 
-    // Get list of paths to local microservices as "./cloneDir/.../msName"
-  // Scan through each local repo and extract endpoints/calls
-  for (String rootMicroservicePath : config.getMicroservicePaths()) {
-    // Bulk of the work extracting the microservice from the cloned files
-    Microservice microservice = null;
+      // Scan each root directory for microservices
+      for (String rootDirectory : rootDirectories) {
+          Microservice microservice = recursivelyScanFiles(rootDirectory);
+          if (microservice != null) {
+              microservices.add(microservice);
+          }
+      }
 
-    microservice = recursivelyScanFiles(rootMicroservicePath);
-
-//    // Remove clonePath from path
-//    String path = msPath;
-//    if (msPath.contains(basePath) && msPath.length() > basePath.length() + 1) {
-//      path = msPath.substring(basePath.length() + 1);
-//    }
-
-      microservices.add(microservice);
+      return microservices;
   }
 
-
-    return microservices;
-  }
+    /**
+     * Recursively search for directories containing a Dockerfile.
+     *
+     * @param directory the directory to start the search from
+     * @return a list of directory paths containing a Dockerfile
+     */
+    private List<String> findRootDirectories(String directory) {
+        List<String> rootDirectories = new ArrayList<>();
+        File root = new File(directory);
+        if (root.exists() && root.isDirectory()) {
+            // Check if the current directory contains a Dockerfile
+            File[] files = root.listFiles();
+            boolean containsDockerfile = false;
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().equals("Dockerfile") && !file.getParentFile().getName().equals("train-ticket-microservices-test")) {
+                        containsDockerfile = true;
+                        break;
+                    }
+                }
+            }
+            if (containsDockerfile) {
+                rootDirectories.add("." + File.separator + root.getPath());
+                return rootDirectories;
+            } else {
+                // Recursively search for directories containing a Dockerfile
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        rootDirectories.addAll(findRootDirectories(file.getPath()));
+                    }
+                }
+            }
+        }
+        return rootDirectories;
+    }
 
 
   /**

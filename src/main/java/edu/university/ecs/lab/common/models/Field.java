@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 /** Represents a field attribute in a Java class or in our case a JClass. */

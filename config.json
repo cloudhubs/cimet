@@ -1,31 +1,6 @@
 {
   "systemName": "Train-ticket",
   "repositoryURL": "https://github.com/g-goulis/train-ticket-microservices-test.git",
-  "baseCommit": "06f3e1efe2e2539d05d91b0699cc8d9fe7be29d7",
-  "baseBranch": "main",
-  "relativeMicroservicePaths": [
-    "ts-admin-service",
-    "ts-assurance-service",
-    "ts-auth-service",
-    "ts-cancel-service",
-    "ts-config-service",
-    "ts-consign-service",
-    "ts-contacts-service",
-    "ts-delivery-service",
-    "ts-food-service",
-    "ts-gateway",
-    "ts-new-gateway",
-    "ts-notification-service",
-    "ts-order-related-service",
-    "ts-order-service",
-    "ts-preserve-service",
-    "ts-price-service",
-    "ts-rebook-service",
-    "ts-route-service",
-    "ts-security-service",
-    "ts-station-service",
-    "ts-travel-service",
-    "ts-ui-dashboard",
-    "ts-user-service"
-  ]
+  "baseCommit": "3dd8eb99b8ec16b3b93d7709bff56a45e637bfc7",
+  "baseBranch": "main"
 }

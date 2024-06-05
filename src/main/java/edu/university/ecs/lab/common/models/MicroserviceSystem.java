@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,21 +21,6 @@ public class MicroserviceSystem implements JsonSerializable {
 
   /** List of microservices in the system */
   private List<Microservice> microservices;
-
-  /**
-   * Get a map of microservices in the system as {@literal <msId (service name), Microservice>}
-   *
-   * @return the map of microservices
-   */
-  public Map<String, Microservice> getServiceMap() {
-    Map<String, Microservice> msMap = new LinkedHashMap<>();
-
-    for (Microservice ms : microservices) {
-      msMap.put(ms.getId(), ms);
-    }
-
-    return msMap;
-  }
 
   /**
    * Construct a JSON object representing the given ms system name, version, and microservice data

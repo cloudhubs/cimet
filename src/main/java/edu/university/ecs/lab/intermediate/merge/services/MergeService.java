@@ -24,8 +24,6 @@
 //  /** Path from working directory to delta file */
 //  private final String deltaPath;
 //
-//  private final String compareBranch;
-//  private final String compareCommit;
 //
 //  private final Config config;
 //

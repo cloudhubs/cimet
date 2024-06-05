@@ -3,6 +3,10 @@ package edu.university.ecs.lab.common.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.Method;
+import edu.university.ecs.lab.common.models.MethodCall;
+import edu.university.ecs.lab.common.models.serialization.MethodCallDeserializer;
+import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
 
 import java.io.*;
 
@@ -38,7 +42,9 @@ public class JsonReadWriteUtils {
    * @return an object of type T containing the data from the JSON file
    */
   public static <T> T readFromJSON(String filePath, Class<T> type) {
-    Gson gson = new Gson();
+    // Register appropriate deserializers to allow compaction of data
+
+    Gson gson = registerDeserializers();
     try (Reader reader = new BufferedReader(new FileReader(filePath))) {
       return gson.fromJson(reader, type);
     } catch (Exception e) {
@@ -46,5 +52,13 @@ public class JsonReadWriteUtils {
     }
 
     return null;
+  }
+
+  private static Gson registerDeserializers() {
+
+    return new GsonBuilder()
+            .registerTypeAdapter(Method.class, new MethodDeserializer())
+            .registerTypeAdapter(MethodCall.class, new MethodCallDeserializer())
+            .create();
   }
 }

@@ -35,7 +35,7 @@ public class Config {
   /**
    * Initial starting commit for repository
    */
-  private final String baseCommit;
+  private String baseCommit;
 
   /**
    * Initial starting commit for repository

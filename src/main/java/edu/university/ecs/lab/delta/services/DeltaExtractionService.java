@@ -27,15 +27,21 @@
 //  /** Config file, defaults to config.json */
 //  private final GitService gitService;
 //
+//  private final String commitOld;
+//
+//  private final String commitNew;
+//
 //
 //  /**
 //   * Constructor for the delta extraction service
 //   *
 //   * @param configPath file path to the configuration file
 //   */
-//  public DeltaExtractionService(String configPath) {
+//  public DeltaExtractionService(String configPath, String commitOld, String commitNew) {
 //    this.gitService = new GitService(configPath);
 //    this.config = ConfigUtil.readConfig(configPath);
+//    this.commitOld = commitOld;
+//    this.commitNew = commitNew;
 //  }
 //
 //  /**
@@ -45,14 +51,14 @@
 //    List<DiffEntry> differences = null;
 //
 //    try{
-//      differences = gitService.getDifferences(1);
+//      differences = gitService.getDifferences(commitOld, commitNew);
 //
 //    } catch (Exception e) {
 //      Error.reportAndExit(Error.GIT_FAILED);
 //    }
 //
 //    // process/write differences to delta output
-//    String outputFile = processDifferences(differences);
+////    processDifferences(differences);
 //
 //    // Advance the local commit for next delta generation
 //    if(!gitService.resetLocal(1)) {
@@ -71,45 +77,45 @@
 //   * @return the name of the output file generated
 //   * @throws IOException if a failure occurs while trying to write to the file
 //   */
-//  public String processDifferences(List<DiffEntry> diffEntries) {
-//
-//    // Filter entries
-//    List<DiffEntry> filteredEntries = filterDiffEntries(diffEntries);
-//
-//    SystemChange systemChange = new SystemChange();
-//
-//    // process each difference
-//    for (DiffEntry entry : filteredEntries) {
-//      String basePath = config.getLocalPath(inputRepo) + "/";
-//      System.out.println("Extracting changes from: " + basePath);
-//
-//      boolean isDeleted = DiffEntry.ChangeType.DELETE.equals(entry.getChangeType());
-//      String localPath = isDeleted ? basePath + entry.getOldPath() : basePath + entry.getNewPath();
-//      File classFile = new File(localPath);
-//
-//      try {
-//        JClass jClass = parseClass(classFile, config);
-//        if (jClass != null) {
-//          systemChange.addChange(jClass, entry, localPath);
-//        }
-//      } catch (IOException e) {
-//        System.err.println("Error parsing class file: " + classFile.getAbsolutePath());
-//        System.err.println(e.getMessage());
-//        System.exit(DELTA_EXTRACTION_FAIL.ordinal());
-//      }
-//
-//      System.out.println(
-//          "Change impact of type " + entry.getChangeType() + " detected in " + entry.getNewPath());
-//    }
-//
-//    String outputName = FullCimetUtils.getDeltaOutputName(branch, compareCommit);
-//
-//    JsonReadWriteUtils.writeJsonToFile(systemChange.toJsonObject(), outputName);
-//
-//    System.out.println("Delta extracted: " + outputName);
-//
-//    return outputName;
-//  }
+////  public String processDifferences(List<DiffEntry> diffEntries) {
+////
+////    // Filter entries
+////    List<DiffEntry> filteredEntries = filterDiffEntries(diffEntries);
+////
+////    SystemChange systemChange = new SystemChange();
+////
+////    // process each difference
+////    for (DiffEntry entry : filteredEntries) {
+////      String basePath = config.getLocalPath(inputRepo) + "/";
+////      System.out.println("Extracting changes from: " + basePath);
+////
+////      boolean isDeleted = DiffEntry.ChangeType.DELETE.equals(entry.getChangeType());
+////      String localPath = isDeleted ? basePath + entry.getOldPath() : basePath + entry.getNewPath();
+////      File classFile = new File(localPath);
+////
+////      try {
+////        JClass jClass = parseClass(classFile, config);
+////        if (jClass != null) {
+////          systemChange.addChange(jClass, entry, localPath);
+////        }
+////      } catch (IOException e) {
+////        System.err.println("Error parsing class file: " + classFile.getAbsolutePath());
+////        System.err.println(e.getMessage());
+////        System.exit(DELTA_EXTRACTION_FAIL.ordinal());
+////      }
+////
+////      System.out.println(
+////          "Change impact of type " + entry.getChangeType() + " detected in " + entry.getNewPath());
+////    }
+////
+////    String outputName = FullCimetUtils.getDeltaOutputName(branch, compareCommit);
+////
+////    JsonReadWriteUtils.writeJsonToFile(systemChange.toJsonObject(), outputName);
+////
+////    System.out.println("Delta extracted: " + outputName);
+////
+////    return outputName;
+////  }
 //
 //  /**
 //   * Returns only Java related files and accounts for discrepancy when

@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 /**
@@ -9,6 +10,7 @@ import lombok.*;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class MethodCall implements JsonSerializable {
   /** Name of the called method */
   private String methodName;

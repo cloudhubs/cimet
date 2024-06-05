@@ -10,6 +10,7 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import edu.university.ecs.lab.common.models.*;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 /** Static utility class for parsing a file and returning associated models from code structure. */
 public class SourceToObjectUtils {
+  private static CompilationUnit cu;
 
   /**
    * Parse a Java class file and return a JClass object. The class role will be determined by {@link
@@ -34,7 +36,6 @@ public class SourceToObjectUtils {
    * @throws IOException on parse error
    */
   public static JClass parseClass(File sourceFile, Config config) throws IOException {
-    CompilationUnit cu = null;
 
     // Parse the highest level node being compilation unit
     try {
@@ -66,16 +67,16 @@ public class SourceToObjectUtils {
                     ConfigUtil.getGitRelativePath(sourceFile.getPath()),
                     cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
                     classRole,
-                    parseMethods(cu.findAll(MethodDeclaration.class)),
+                    parseMethods(getMicroserviceName(sourceFile), cu.findAll(MethodDeclaration.class)),
                     parseFields(cu.findAll(FieldDeclaration.class)),
                     classAnnotations,
-                    parseMethodCalls(cu.findAll(MethodDeclaration.class)));
+                    parseMethodCalls(getMicroserviceName(sourceFile), cu.findAll(MethodDeclaration.class)));
 
     return jClass;
   }
 
 
-  public static List<Method> parseMethods(List<MethodDeclaration> methodDeclarations) {
+  public static List<Method> parseMethods(String microserviceName, List<MethodDeclaration> methodDeclarations) {
     // Get params and returnType
     List<Method> methods = new ArrayList<>();
 
@@ -86,17 +87,49 @@ public class SourceToObjectUtils {
         parameters.add(new Field(parameter.getNameAsString(), parameter.getTypeAsString()));
       }
 
-      methods.add(new Method(
+      Method method = new Method(
               methodDeclaration.getNameAsString(),
               parameters,
               methodDeclaration.getTypeAsString(),
-              parseAnnotations(methodDeclaration.getAnnotations())));
+              parseAnnotations(methodDeclaration.getAnnotations()));
+
+      method = convertValidEndpoints(microserviceName, methodDeclaration, method);
+
+
+      methods.add(method);
     }
 
     return methods;
   }
 
-  public static List<MethodCall> parseMethodCalls(List<MethodDeclaration> methodDeclarations) {
+  public static Method convertValidEndpoints(String microserviceName, MethodDeclaration methodDeclaration, Method method) {
+    String url = getPathFromAnnotations(methodDeclaration.getAnnotations());
+    if(method.getAnnotations().isEmpty() || url.isEmpty()) {
+      return method;
+    }
+    HttpMethod httpMethod = HttpMethod.NONE;
+    for(AnnotationExpr ae : methodDeclaration.getAnnotations()) {
+
+      switch (ae.getNameAsString()) {
+        case "GetMapping":
+          httpMethod = HttpMethod.GET;
+          break;
+        case "PostMapping":
+          httpMethod = HttpMethod.POST;
+          break;
+        case "DeleteMapping":
+          httpMethod = HttpMethod.DELETE;
+          break;
+        case "PutMapping":
+          httpMethod = HttpMethod.PUT;
+          break;
+      }
+    }
+
+    return new Endpoint(method, url, httpMethod, microserviceName);
+  }
+
+  public static List<MethodCall> parseMethodCalls(String microserviceName, List<MethodDeclaration> methodDeclarations) {
     List<MethodCall> methodCalls = new ArrayList<>();
 
     // loop through method calls
@@ -108,13 +141,39 @@ public class SourceToObjectUtils {
         String parameterContents = mce.getArguments().stream().map(Objects::toString).collect(Collectors.joining(","));
 
         if (Objects.nonNull(calledServiceName)) {
-          methodCalls.add(
-                  new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents));
+          MethodCall methodCall = new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
+
+          methodCall = convertValidRestCalls(microserviceName, mce, methodCall);
+
+          methodCalls.add(methodCall);
         }
       }
     }
 
     return methodCalls;
+  }
+
+  public static MethodCall convertValidRestCalls(String microserviceName, MethodCallExpr methodCallExpr, MethodCall methodCall) {
+    if(!methodCall.getObjectName().equals("restTemplate")) {
+      return methodCall;
+    }
+    String url = parseURL(methodCallExpr);
+    if(url.isEmpty()) {
+      return methodCall;
+    }
+
+    HttpMethod httpMethod = HttpMethod.NONE;
+    if(methodCall.getParameterContents().contains("HttpMethod.GET")) {
+      httpMethod = HttpMethod.GET;
+    } else if(methodCall.getParameterContents().contains("HttpMethod.POST")) {
+      httpMethod = HttpMethod.POST;
+    } else if(methodCall.getParameterContents().contains("HttpMethod.DELETE")) {
+      httpMethod = HttpMethod.DELETE;
+    } else if(methodCall.getParameterContents().contains("HttpMethod.PUT")) {
+      httpMethod = HttpMethod.PUT;
+    }
+
+    return new RestCall(methodCall, url, httpMethod, microserviceName);
   }
 
   private static List<Field> parseFields(List<FieldDeclaration> fieldDeclarations) {
@@ -131,28 +190,45 @@ public class SourceToObjectUtils {
     return javaFields;
   }
 
-//  private static String pathFromAnnotation(AnnotationExpr ae) {
-//    if (ae == null) {
-//      return "";
-//    }
-//
-//    if (ae.isSingleMemberAnnotationExpr()) {
-//      return StringParserUtils.simplifyEndpointURL(
-//          StringParserUtils.removeOuterQuotations(
-//              ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
-//    }
-//
-//    if (ae.isNormalAnnotationExpr() && ae.asNormalAnnotationExpr().getPairs().size() > 0) {
-//      for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
-//        if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
-//          return StringParserUtils.simplifyEndpointURL(
-//              StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
-//        }
-//      }
-//    }
-//
-//    return "";
-//  }
+  private static String getPathFromAnnotations(List<AnnotationExpr> annotationExprs) {
+    for(AnnotationExpr ae : annotationExprs) {
+      HttpMethod httpMethod = HttpMethod.NONE;
+      switch (ae.getNameAsString()) {
+        case "GetMapping":
+          httpMethod = HttpMethod.GET;
+          break;
+        case "PostMapping":
+          httpMethod = HttpMethod.POST;
+          break;
+        case "DeleteMapping":
+          httpMethod = HttpMethod.DELETE;
+          break;
+        case "PutMapping":
+          httpMethod = HttpMethod.PUT;
+          break;
+      }
+
+
+      if (ae.isSingleMemberAnnotationExpr() && httpMethod != HttpMethod.NONE) {
+        return StringParserUtils.simplifyEndpointURL(
+                StringParserUtils.removeOuterQuotations(
+                        ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
+      }
+
+      if (ae.isNormalAnnotationExpr() && ae.asNormalAnnotationExpr().getPairs().size() > 0 && httpMethod != HttpMethod.NONE) {
+        for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
+          if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
+            return StringParserUtils.simplifyEndpointURL(
+                    StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
+          }
+        }
+      }
+
+    }
+
+
+    return "";
+  }
 
   /**
    * Get the name of the object a method is being called from (callingObj.methodName())
@@ -185,7 +261,7 @@ public class SourceToObjectUtils {
    */
   // TODO: what is URL here? Is it the URL of the service? Or the URL of the method call? Rename to
   // avoid confusion
-  private static String parseURL(MethodCallExpr mce, ClassOrInterfaceDeclaration cid) {
+  private static String parseURL(MethodCallExpr mce) {
     if (mce.getArguments().isEmpty()) {
       return "";
     }
@@ -196,9 +272,9 @@ public class SourceToObjectUtils {
     if (exp.isStringLiteralExpr()) {
       return StringParserUtils.removeOuterQuotations(exp.toString());
     } else if (exp.isFieldAccessExpr()) {
-      return parseFieldValue(cid, exp.asFieldAccessExpr().getNameAsString());
+      return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
     } else if (exp.isNameExpr()) {
-      return parseFieldValue(cid, exp.asNameExpr().getNameAsString());
+      return parseFieldValue(exp.asNameExpr().getNameAsString());
     } else if (exp.isBinaryExpr()) {
       return parseUrlFromBinaryExp(exp.asBinaryExpr());
     }
@@ -206,8 +282,8 @@ public class SourceToObjectUtils {
     return "";
   }
 
-  private static String parseFieldValue(ClassOrInterfaceDeclaration cid, String fieldName) {
-    for (FieldDeclaration fd : cid.findAll(FieldDeclaration.class)) {
+  private static String parseFieldValue(String fieldName) {
+    for (FieldDeclaration fd : cu.findAll(FieldDeclaration.class)) {
       if (fd.getVariables().toString().contains(fieldName)) {
         Expression init = fd.getVariable(0).getInitializer().orElse(null);
         if (init != null) {
@@ -315,5 +391,9 @@ public class SourceToObjectUtils {
     }
 
     return ClassRole.UNKNOWN;
+  }
+
+  private static String getMicroserviceName(File sourceFile) {
+    return sourceFile.getAbsolutePath().split("\\\\")[8];
   }
 }

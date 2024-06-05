@@ -5,6 +5,8 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
@@ -15,6 +17,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,6 +40,15 @@ public class GitService {
   public GitService(String configPath) {
     this.config = ConfigUtil.readConfig(configPath);
     validateLocalExists();
+    this.repository = initRepository();
+
+  }
+
+  // TODO REMOVE THIS IS FOR TESTING ONLY
+  public GitService(Config config) {
+    this.config = config;
+    validateLocalExists();
+    cloneRemote();
     this.repository = initRepository();
 
   }
@@ -151,20 +163,20 @@ public class GitService {
    * @param relativeIndex the relative index from head that we will compare head to
    * @return the list of differences
    */
-  public List<DiffEntry> getDifferences(int relativeIndex) throws Exception {
+  public List<DiffEntry> getDifferences(String commitOld, String commitNew) throws Exception {
     List<DiffEntry> returnList = null;
 
     RevWalk revWalk = new RevWalk(repository);
-    String relativeHead = HEAD_COMMIT + "~" + relativeIndex;
-    RevCommit currentCommit = revWalk.parseCommit(repository.resolve(HEAD_COMMIT));
-    RevCommit parentCommit = revWalk.parseCommit(repository.resolve(relativeHead));
+//    String relativeHead = HEAD_COMMIT + "~" + relativeIndex;
+    RevCommit oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
+    RevCommit newCommit = revWalk.parseCommit(repository.resolve(commitNew));
 
     // Prepare tree parsers for both commits
     try (ObjectReader reader = repository.newObjectReader()) {
       CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
       CanonicalTreeParser newTreeParser = new CanonicalTreeParser();
-      oldTreeParser.reset(reader, parentCommit.getTree());
-      newTreeParser.reset(reader, currentCommit.getTree());
+      oldTreeParser.reset(reader, oldCommit.getTree());
+      newTreeParser.reset(reader, newCommit.getTree());
 
       // Compute differences
       try (Git git = new Git(repository)) {
@@ -175,6 +187,19 @@ public class GitService {
 
       }
     }
+
+    return returnList;
+  }
+
+  public Iterable<RevCommit> getLog() {
+    Iterable<RevCommit> returnList = null;
+
+    try (Git git = new Git(repository)) {
+      returnList = git.log().call();
+    } catch (Exception e) {
+        Error.reportAndExit(Error.UNKNOWN_ERROR);
+    }
+
 
     return returnList;
   }

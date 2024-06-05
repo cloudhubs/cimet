@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 /** Represents a method declaration in Java. */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Method implements JsonSerializable {
   /** Name of the method */
   private String methodName;
@@ -29,7 +31,7 @@ public class Method implements JsonSerializable {
     JsonObject jsonObject = new JsonObject();
 
     jsonObject.addProperty("methodName", methodName);
-    jsonObject.addProperty("parameter", parameters.toString());
+    jsonObject.add("parameters", JsonSerializable.toJsonArray(parameters));
     jsonObject.addProperty("returnType", returnType);
     jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
 

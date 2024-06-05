@@ -2,6 +2,7 @@
 //
 //import edu.university.ecs.lab.common.config.ConfigUtil;
 //import edu.university.ecs.lab.common.config.Config;
+//import edu.university.ecs.lab.common.error.Error;
 //import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 //
 //import java.util.*;
@@ -19,11 +20,14 @@
 //   * @param args {@literal <compareBranch> <compareCommit> [/path/to/config]}
 //   */
 //  public static void main(String[] args) throws Exception {
+////      args = new String[]{"./config.json"};
+//      if (args.length != 3) {
+//          Error.reportAndExit(Error.INVALID_ARGS);
+//      }
 //
+//    DeltaExtractionService deltaService = new DeltaExtractionService(args[0], args[1], args[2]);
 //
-//    DeltaExtractionService deltaService =
-//        new DeltaExtractionService(branch, compareCommit, config);
-//    List<String> outputNames = deltaService.generateDelta();
+//    deltaService.generateDelta();
 //
 //  }
 //}

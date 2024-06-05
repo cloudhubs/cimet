@@ -2,6 +2,7 @@ package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 import java.util.List;
@@ -72,7 +73,6 @@ public class JClass implements JsonSerializable {
     jsonObject.addProperty("classPath", getClassPath());
     jsonObject.addProperty("packageName", getPackageName());
     jsonObject.addProperty("classRole", getClassRole().name());
-//    jsonObject.addProperty("msId", getMsId());
     jsonObject.add("methods", JsonSerializable.toJsonArray(getMethods()));
     jsonObject.add("variables", JsonSerializable.toJsonArray(getFields()));
     jsonObject.add("methodCalls", JsonSerializable.toJsonArray(getMethodCalls()));
