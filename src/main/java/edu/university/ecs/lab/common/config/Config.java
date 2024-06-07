@@ -20,9 +20,6 @@ import static edu.university.ecs.lab.common.error.Error.*;
 @Getter
 @Setter
 public class Config {
-  static final String RELATIVE_PROJECT_PATH = System.getProperty("user.dir");
-  static final String DEFAULT_OUTPUT_PATH = "output";
-  static final String DEFAULT_CLONE_PATH = "clone";
   private static final String GIT_SCHEME_DOMAIN = "https://github.com/";
   private static final String GIT_PATH_EXTENSION = ".git";
 
@@ -58,7 +55,6 @@ public class Config {
 
     this.systemName = systemName;
     this.repositoryURL = repositoryURL;
-    this.relativeMicroservicePaths = relativeMicroservicePaths;
     this.baseCommit = baseCommit;
     this.baseBranch = baseBranch;
   }
@@ -80,16 +76,6 @@ public class Config {
   }
 
   /**
-   * This method returns the relative local path of a cloned repository as ./clonePath/repoName.
-   * This will be a working relative path to the repository on the local file system.
-   *
-   * @return the relative path string where that repository is cloned to
-   */
-  public String getLocalClonePath() {
-    return DEFAULT_CLONE_PATH + "/" + getRepoName();
-  }
-
-  /**
    * This method gets the repository name parsed from the repositoryURL
    *
    *
@@ -100,49 +86,5 @@ public class Config {
     int lastDotIndex = repositoryURL.lastIndexOf('.');
     return repositoryURL.substring(lastSlashIndex + 1, lastDotIndex);
   }
-
-  /**
-   * This method gets local paths to each microservice in the repository based on the config file
-   * structure.
-   *
-   * <p>Should only be called AFTER cloning the repository, as it validates the ms directories.
-   * These will be working relative paths to each microservice in the repository.
-   *
-   * @return list of paths to the microservices in the repository .<br>
-   *     <strong>Paths will be like: "./clonePath/repoName/.../serviceName"</strong>
-   */
-  public List<String> getMicroservicePaths() {
-    List<String> returnPaths = new ArrayList<>();
-
-    // Path "clonePath/repoName"
-    String relativeClonePath = getRepoName();
-
-    for (String relativeMicroservicePath : relativeMicroservicePaths) {
-
-      String updatedRelativeMicroservicePath = "." + File.separator + DEFAULT_CLONE_PATH + File.separator + getRepoName() + File.separator + relativeMicroservicePath + File.separator;
-
-      // In line validation that the relative path is a directory
-      File file = new File(updatedRelativeMicroservicePath);
-      if (file.isDirectory()) {
-        returnPaths.add(updatedRelativeMicroservicePath);
-      } else {
-        System.err.println(INVALID_REPO_PATH + " " + updatedRelativeMicroservicePath);
-      }
-    }
-
-    return returnPaths;
-  }
-
-//  /**
-//   * This method will take any file path and return a shortened version as just
-//   * <strong>"repoName/.../serviceName/.../file.java"</strong> removing the clonePath from the
-//   * beginning of the path. Will not start with a "./" or a "/".
-//   *
-//   * @return the shortened path
-//   */
-//  public String getShortPath(String fullPath) {
-//    return fullPath.substring(fullPath.indexOf(clonePath) + clonePath.length() + 1);
-//  }
-
 
 }

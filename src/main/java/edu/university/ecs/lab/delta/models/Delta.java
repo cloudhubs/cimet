@@ -21,16 +21,7 @@ public class Delta implements JsonSerializable {
   /** The type of change that occurred */
   private ChangeType changeType;
 
-  /** The commit id that the delta was generated from */
-  private String oldCommit;
-
-  /** The commit id that the delta was generated from */
-  private String newCommit;
-
-  /** The microservice id of the changed class */
-  private String microserviceName;
-
-  /** The class that was changed */
+  /** The class that was changed, null in the case of ChangeType.DELETE */
   private JClass changedClass;
 
   /**
@@ -42,9 +33,6 @@ public class Delta implements JsonSerializable {
       JsonObject jsonObject = new JsonObject();
 
       jsonObject.addProperty("changeType", changeType.name());
-      jsonObject.addProperty("oldCommit", oldCommit);
-      jsonObject.addProperty("newCommit", newCommit);
-      jsonObject.addProperty("microserviceName", microserviceName);
       jsonObject.addProperty("localPath", localPath);
       jsonObject.add("changes", changedClass.toJsonObject());
 

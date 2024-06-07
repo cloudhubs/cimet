@@ -55,6 +55,8 @@ public class SourceToObjectUtils {
       return false;
     }).collect(Collectors.toUnmodifiableList()));
 
+    String preURL = classAnnotations.stream().filter(ae -> ae.getAnnotationName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
+    preURL = preURL.replace("\"", "");
     // Null returned if not needed class and caller will skip null JClasses
     ClassRole classRole = parseClassRole(classAnnotations);
     if(classRole.equals(ClassRole.UNKNOWN)) {
@@ -67,7 +69,7 @@ public class SourceToObjectUtils {
                     ConfigUtil.getGitRelativePath(sourceFile.getPath()),
                     cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
                     classRole,
-                    parseMethods(getMicroserviceName(sourceFile), cu.findAll(MethodDeclaration.class)),
+                    parseMethods(getMicroserviceName(sourceFile), preURL,  cu.findAll(MethodDeclaration.class)),
                     parseFields(cu.findAll(FieldDeclaration.class)),
                     classAnnotations,
                     parseMethodCalls(getMicroserviceName(sourceFile), cu.findAll(MethodDeclaration.class)));
@@ -76,7 +78,7 @@ public class SourceToObjectUtils {
   }
 
 
-  public static List<Method> parseMethods(String microserviceName, List<MethodDeclaration> methodDeclarations) {
+  public static List<Method> parseMethods(String microserviceName, String preURL, List<MethodDeclaration> methodDeclarations) {
     // Get params and returnType
     List<Method> methods = new ArrayList<>();
 
@@ -93,7 +95,7 @@ public class SourceToObjectUtils {
               methodDeclaration.getTypeAsString(),
               parseAnnotations(methodDeclaration.getAnnotations()));
 
-      method = convertValidEndpoints(microserviceName, methodDeclaration, method);
+      method = convertValidEndpoints(microserviceName, preURL, methodDeclaration, method);
 
 
       methods.add(method);
@@ -102,8 +104,8 @@ public class SourceToObjectUtils {
     return methods;
   }
 
-  public static Method convertValidEndpoints(String microserviceName, MethodDeclaration methodDeclaration, Method method) {
-    String url = getPathFromAnnotations(methodDeclaration.getAnnotations());
+  public static Method convertValidEndpoints(String microserviceName, String preURL, MethodDeclaration methodDeclaration, Method method) {
+    String url = preURL + getPathFromAnnotations(methodDeclaration.getAnnotations());
     if(method.getAnnotations().isEmpty() || url.isEmpty()) {
       return method;
     }

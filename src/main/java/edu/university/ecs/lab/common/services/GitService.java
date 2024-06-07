@@ -3,10 +3,9 @@ package edu.university.ecs.lab.common.services;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
@@ -17,7 +16,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
 
 import java.io.File;
-import java.util.Iterator;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -39,17 +38,22 @@ public class GitService {
 
   public GitService(String configPath) {
     this.config = ConfigUtil.readConfig(configPath);
-    validateLocalExists();
+    cloneRemote();
+
+    // If clone was successful we can now set repo and reset local repo to config base commit
     this.repository = initRepository();
+    resetLocal(config.getBaseCommit());
 
   }
 
   // TODO REMOVE THIS IS FOR TESTING ONLY
   public GitService(Config config) {
     this.config = config;
-    validateLocalExists();
     cloneRemote();
+
+    // If clone was successful we can now set repo and reset local repo to config base commit
     this.repository = initRepository();
+    resetLocal(config.getBaseCommit());
 
   }
 
@@ -61,25 +65,22 @@ public class GitService {
    */
   public void cloneRemote() {
 
-    File file = new File("./clone/train-ticket-microservices-test");
+    // Quietly return assuming cloning already took place
+    File file = new File(FileUtils.getClonePath(config.getRepoName()));
     if(file.exists()) {
       return;
     }
 
     try {
       ProcessBuilder processBuilder =
-              new ProcessBuilder("git", "clone", config.getRepositoryURL(), config.getLocalClonePath());
+              new ProcessBuilder("git", "clone", config.getRepositoryURL(), FileUtils.getClonePath(config.getRepoName()));
       processBuilder.redirectErrorStream(true);
       Process process = processBuilder.start();
 
       int exitCode = process.waitFor();
 
 
-      if (exitCode == EXIT_SUCCESS) {
-        // If clone was successful we can now reset local repo to config base commit
-        resetLocal(config.getBaseCommit());
-
-      } else {
+      if (exitCode != EXIT_SUCCESS) {
         throw new Exception();
       }
 
@@ -96,6 +97,8 @@ public class GitService {
    * @param commitID if empty or null, defaults to HEAD
    */
   public void resetLocal(String commitID)  {
+    validateLocalExists();
+
     if(Objects.isNull(commitID) || commitID.isEmpty()) {
       commitID = HEAD_COMMIT;
     }
@@ -144,10 +147,12 @@ public class GitService {
    * @return the repository object
    */
   public Repository initRepository() {
+    validateLocalExists();
+
     Repository repository = null;
 
     try {
-      File localRepoDir = new File(config.getLocalClonePath());
+      File localRepoDir = new File(FileUtils.getClonePath(config.getRepoName()));
       repository = new FileRepositoryBuilder().setGitDir(new File(localRepoDir, ".git")).build();
 
     } catch (Exception e) {
@@ -186,6 +191,8 @@ public class GitService {
                 .call();
 
       }
+    } catch (Exception e) {
+      Error.reportAndExit(Error.GIT_FAILED);
     }
 
     return returnList;
@@ -197,7 +204,7 @@ public class GitService {
     try (Git git = new Git(repository)) {
       returnList = git.log().call();
     } catch (Exception e) {
-        Error.reportAndExit(Error.UNKNOWN_ERROR);
+        Error.reportAndExit(Error.GIT_FAILED);
     }
 
 

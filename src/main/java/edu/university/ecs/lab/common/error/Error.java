@@ -11,7 +11,8 @@ public enum Error {
     GIT_FAILED(7, "The requested git action failed for an unknown reason!"),
     INVALID_ARGS(8, "Invalid arguments!"),
     INVALID_JSON_READ(9, "Unable to read JSON from file!"),
-    INVALID_JSON_WRITE(10, "Unable to write JSON to file!");
+    INVALID_JSON_WRITE(10, "Unable to write JSON to file!"),
+    JPARSE_FAILED(10, "Failed to parse Java Code!");
 
     private final int code;
     private final String message;

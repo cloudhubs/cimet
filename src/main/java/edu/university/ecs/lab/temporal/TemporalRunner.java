@@ -29,24 +29,21 @@ public class TemporalRunner {
         }
         Collections.reverse(list);
 
-        for(int i = 0; i < list.size() - 1; i++) {
-            String commitId = list.get(i).toString().split(" ")[1];
-            config.setBaseCommit(commitId);
-            gitService.resetLocal(commitId);
-            createIRSystem(config);
-            computeGraph("./output/rest-extraction-output-[main-" + commitId.substring(0,7) + "].json", commitId.substring(0,7));
-        }
+//        for(int i = 0; i < list.size() - 1; i++) {
+//            String commitId = list.get(i).toString().split(" ")[1];
+//            config.setBaseCommit(commitId);
+//            gitService.resetLocal(commitId);
+//            createIRSystem(config);
+//            computeGraph("./output/rest-extraction-output-[main-" + commitId.substring(0,7) + "].json", commitId.substring(0,7));
+//        }
+
+        String commitId = "3dd8eb99b8ec16b3b93d7709bff56a45e637bfc7";
+        config.setBaseCommit(commitId);
+        gitService.resetLocal(commitId);
+        createIRSystem(config);
+        computeGraph("./output/rest-extraction-output-[main-" + commitId.substring(0,7) + "].json", commitId.substring(0,7));
 
     }
-
-
-
-
-
-
-
-
-
 
 
     private static void createIRSystem(Config config) {
@@ -79,7 +76,8 @@ public class TemporalRunner {
             for(Method method : endpoints) {
                 RestCall restCall = (RestCall) methodCall;
                 Endpoint endpoint = (Endpoint) method;
-                if(restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
+                if(restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())
+                    && !restCall.getMicroserviceName().equals(endpoint.getMicroserviceName())) {
                     edges.add(new Edge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
                     nodes.add(endpoint.getMicroserviceName());
                     nodes.add(restCall.getMicroserviceName());
@@ -96,7 +94,7 @@ public class TemporalRunner {
             return edge;
         }).collect(Collectors.toSet());
 
-        NetworkGraph networkGraph = new NetworkGraph("Graph", "1", true, false, nodes, edgeSet);
+        NetworkGraph networkGraph = new NetworkGraph("Graph", commitID, true, false, nodes, edgeSet);
         JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", networkGraph);
     }
 

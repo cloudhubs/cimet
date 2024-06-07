@@ -5,6 +5,7 @@ import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.*;
 import edu.university.ecs.lab.common.services.GitService;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import javassist.NotFoundException;
@@ -72,7 +73,7 @@ public class IRExtractionService {
       gitService.cloneRemote();
 
       // Start scanning from the root directory
-      List<String> rootDirectories = findRootDirectories(config.getLocalClonePath());
+      List<String> rootDirectories = findRootDirectories(FileUtils.getClonePath(config.getRepoName()));
 
       // Scan each root directory for microservices
       for (String rootDirectory : rootDirectories) {
@@ -100,14 +101,14 @@ public class IRExtractionService {
             boolean containsDockerfile = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().equals("Dockerfile") && !file.getParentFile().getName().equals("train-ticket-microservices-test")) {
+                    if (file.isFile() && (file.getName().equals("Dockerfile") || file.getName().equals("pom.xml")) && !file.getParentFile().getName().equals(config.getRepoName())) {
                         containsDockerfile = true;
                         break;
                     }
                 }
             }
             if (containsDockerfile) {
-                rootDirectories.add("." + File.separator + root.getPath());
+                rootDirectories.add(root.getPath());
                 return rootDirectories;
             } else {
                 // Recursively search for directories containing a Dockerfile
@@ -143,7 +144,7 @@ public class IRExtractionService {
    * @return the output file name
    */
   private String getOutputFileName() {
-    return ConfigUtil.getBaseOutputPath()
+    return FileUtils.getBaseOutputPath()
         + "/rest-extraction-output-["
         + config.getBaseBranch()
         + "-"
@@ -173,7 +174,7 @@ public class IRExtractionService {
 
         scanDirectory(localDir, controllers, services, repositories);
 
-        String id = ConfigUtil.getMicroserviceNameFromPath(rootMicroservicePath);
+        String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
 
         Microservice model =
                 new Microservice(
