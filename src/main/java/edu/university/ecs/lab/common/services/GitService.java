@@ -135,7 +135,7 @@ public class GitService {
    * reports and exits if it doesn't.
    */
   private void validateLocalExists() {
-    File file = new File(ConfigUtil.getBaseClonePath());
+    File file = new File(FileUtils.getBaseClonePath());
     if(!(file.exists() && file.isDirectory())) {
       Error.reportAndExit(Error.REPO_DONT_EXIST);
     }

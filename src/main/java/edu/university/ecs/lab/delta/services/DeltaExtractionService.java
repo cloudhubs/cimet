@@ -50,6 +50,9 @@ public class DeltaExtractionService {
   public void generateDelta() {
     List<DiffEntry> differences = null;
 
+    // Ensure we start at commitOld
+    gitService.resetLocal(commitOld);
+
     try{
       differences = gitService.getDifferences(commitOld, commitNew);
 

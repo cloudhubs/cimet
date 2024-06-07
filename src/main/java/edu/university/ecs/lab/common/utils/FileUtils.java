@@ -79,7 +79,6 @@ public class FileUtils {
      * @param absolutePath the absolute path to be converted
      * @return the relative path string after conversion
      */
-    @Deprecated
     public static String absoluteToRelative(String absolutePath) {
         Path currentDirectory = Paths.get(PROJECT_PATH);
         Path absoluteFilePath = Paths.get(absolutePath);

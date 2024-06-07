@@ -2,7 +2,10 @@ package edu.university.ecs.lab.intermediate.create;
 
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
+
+import java.io.File;
 
 
 /**
@@ -30,7 +33,7 @@ public class IRExtractionRunner {
     }
 
     // Create both directories needed
-    ConfigUtil.createPaths();
+    FileUtils.createPaths();
 
     // Initialize the irExtractionService
     IRExtractionService irExtractionService = new IRExtractionService(args[0]);

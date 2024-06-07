@@ -7,7 +7,6 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import edu.university.ecs.lab.common.config.Config;
-import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
@@ -66,7 +65,7 @@ public class SourceToObjectUtils {
     JClass jClass =
             new JClass(
                     sourceFile.getName(),
-                    ConfigUtil.getGitRelativePath(sourceFile.getPath()),
+                    FileUtils.absoluteToRelative(sourceFile.getAbsolutePath()),
                     cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
                     classRole,
                     parseMethods(getMicroserviceName(sourceFile), preURL,  cu.findAll(MethodDeclaration.class)),
