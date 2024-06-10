@@ -129,13 +129,12 @@ public class IRExtractionService {
    * @param microservices a list of microservices extracted from repository
    */
   private void writeToFile(List<Microservice> microservices) {
-    String outputName = getOutputFileName();
 
     MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
 
-    JsonReadWriteUtils.writeToJSON(outputName, microserviceSystem.toJsonObject());
+    JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem.toJsonObject());
 
-    System.out.println("Successfully wrote rest extraction to: \"" + outputName + "\"");
+    System.out.println("Successfully wrote rest extraction to: \"" + "IR.json" + "\"");
   }
 
   /**

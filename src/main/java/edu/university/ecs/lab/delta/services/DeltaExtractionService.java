@@ -121,13 +121,11 @@ public class DeltaExtractionService {
       System.out.println("Change impact of type " + entry.getChangeType() + " detected in " + entry.getNewPath());
     }
 
-    String outputName = FileUtils.getBaseOutputPath() + File.separator + "DeltaExtractionService.json";
+    JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);
 
-    JsonReadWriteUtils.writeToJSON(outputName, systemChange);
+    System.out.println("Delta extracted: " + "./output/Delta.json");
 
-    System.out.println("Delta extracted: " + outputName);
-
-    return outputName;
+    return "./output/Delta.json";
   }
 
   /**

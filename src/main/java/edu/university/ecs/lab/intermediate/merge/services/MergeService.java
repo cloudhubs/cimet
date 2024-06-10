@@ -45,7 +45,7 @@
             }
         }
 
-        JsonReadWriteUtils.writeToJSON("./output/merge.json", microserviceSystem);
+        JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
   }
 
     private JClass findFile(Delta delta) {

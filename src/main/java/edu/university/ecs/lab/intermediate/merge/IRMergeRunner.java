@@ -16,7 +16,7 @@
    *     {@literal <compare branch> <compare commit>}
    */
   public static void main(String[] args) throws IOException {
-      args = new String[]{"./output/rest-extraction-output-[main-3dd8eb9].json","./output/DeltaExtractionService.json", "./config.json"};
+      args = new String[]{"./output/IR.json","./output/Delta.json", "./config.json"};
       if (args.length != 3) {
           Error.reportAndExit(Error.INVALID_ARGS);
       }
