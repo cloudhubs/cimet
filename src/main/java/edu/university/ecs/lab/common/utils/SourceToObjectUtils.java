@@ -40,7 +40,7 @@ public class SourceToObjectUtils {
     try {
       cu = StaticJavaParser.parse(sourceFile);
     } catch (FileNotFoundException e) {
-      Error.reportAndExit(Error.UNKNOWN_ERROR);
+      Error.reportAndExit(Error.JPARSE_FAILED);
     }
 
     // Calculate early to determine classrole based on annotation, filter for class based only

@@ -164,7 +164,7 @@ public class IRExtractionService {
         // Validate path exists and is a directory
         File localDir = new File(rootMicroservicePath);
         if (!localDir.exists() || !localDir.isDirectory()) {
-            Error.reportAndExit(Error.UNKNOWN_ERROR);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
         List<JClass> controllers = new ArrayList<>();

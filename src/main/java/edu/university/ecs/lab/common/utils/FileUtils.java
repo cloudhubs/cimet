@@ -6,8 +6,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static edu.university.ecs.lab.common.error.Error.UNKNOWN_ERROR;
-
 /**
  * Manages all file paths and file path conversion functions.
  */
@@ -94,7 +92,7 @@ public class FileUtils {
 
     public static String getMicroserviceNameFromPath(String path) {
         if(!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH + File.separator)) {
-            Error.reportAndExit(UNKNOWN_ERROR);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
         return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[1];
@@ -105,7 +103,7 @@ public class FileUtils {
             new File(getBaseOutputPath()).mkdirs();
             new File(getBaseClonePath()).mkdirs();
         } catch (Exception e) {
-            Error.reportAndExit(Error.UNKNOWN_ERROR);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
     }
 

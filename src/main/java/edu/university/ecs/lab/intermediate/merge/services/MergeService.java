@@ -69,7 +69,7 @@
          Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
 
          if(Objects.isNull(ms)) {
-             Error.reportAndExit(Error.UNKNOWN_ERROR);
+             Error.reportAndExit(Error.NULL_ERROR);
          }
          removeFiles(delta);
          addNewFiles(delta);
@@ -80,7 +80,7 @@
       Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
 
       if(Objects.isNull(ms)) {
-          Error.reportAndExit(Error.UNKNOWN_ERROR);
+          Error.reportAndExit(Error.NULL_ERROR);
       }
 
 
@@ -104,7 +104,7 @@
         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
 
         if(Objects.isNull(ms)) {
-            Error.reportAndExit(Error.UNKNOWN_ERROR);
+            Error.reportAndExit(Error.NULL_ERROR);
         }
 
 
