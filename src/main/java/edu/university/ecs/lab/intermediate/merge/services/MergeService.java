@@ -1,176 +1,135 @@
-// package edu.university.ecs.lab.intermediate.merge.services;
-//
-// import edu.university.ecs.lab.common.config.Config;
-// import edu.university.ecs.lab.common.models.*;
-// import edu.university.ecs.lab.common.models.System;
-// import edu.university.ecs.lab.common.models.enums.ClassRole;
-// import edu.university.ecs.lab.common.utils.IRParserUtils;
-// import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-// import edu.university.ecs.lab.delta.models.Delta;
-// import edu.university.ecs.lab.delta.models.SystemChange;
-//
-// import javax.json.JsonObject;
-// import java.io.IOException;
-// import java.nio.file.Path;
-// import java.util.List;
-// import java.util.Map;
-// import java.util.Objects;
-//
-//
-// public class MergeService {
-//  /** Path from working directory to intermediate file */
-//  private final String intermediatePath;
-//
-//  /** Path from working directory to delta file */
-//  private final String deltaPath;
-//
-//
-//  private final Config config;
-//
-//  private final MicroserviceSystem system;
-//  private final SystemChange systemChange;
-//  private final Map<String, Microservice> msModelMap;
-//
-//  // TODO handle exceptions here
-//  public MergeService(
-//      String intermediatePath,
-//      String deltaPath,
-//      Config config) {
-//    this.intermediatePath = intermediatePath;
-//    this.deltaPath = deltaPath;
-//    this.config = config;
-//    this.system = JsonReadWriteUtils.readFromJSON(Path.of(intermediatePath).toAbsolutePath().toString(), MicroserviceSystem.class);
-//    this.msModelMap = system.getServiceMap();
-//
-//    this.systemChange = JsonReadWriteUtils.readFromJSON(Path.of(deltaPath).toAbsolutePath().toString(), SystemChange.class);
-//  }
-//
-//  public String mergeAndWriteToFile() {
-//
-//    updateModelMap(ClassRole.CONTROLLER, systemChange.getControllers());
-//    updateModelMap(ClassRole.SERVICE, systemChange.getServices());
-//    updateModelMap(ClassRole.REPOSITORY, systemChange.getRepositories());
-//    updateModelMap(ClassRole.DTO, systemChange.getDtos());
-//    updateModelMap(ClassRole.ENTITY, systemChange.getEntities());
-//
-//    // increment system version
-//    system.incrementVersion();
-//
-//    // save new system representation
-//    String outputFile = null;
-//    try {
-//      outputFile = writeNewIntermediate();
-//    } catch (IOException e) {
-//      java.lang.System.err.println("Failed to write new IR from merge service: " + e.getMessage());
-//      java.lang.System.exit(JSON_FILE_WRITE_ERROR.ordinal());
-//    }
-//    return outputFile;
-//  }
-//
-////  private String writeNewIntermediate() throws IOException {
-////
-////    JsonObject jout = system.toJsonObject();
-////
-////    String outputPath = config.getOutputPath();
-////
-////    String outputName =
-////        outputPath
-////            + "/rest-extraction-new-["
-////            + compareBranch
-////            + "-"
-////            + compareCommit.substring(0, 7)
-////            + "].json";
-////
-////    JsonReadWriteUtils.writeJsonToFile(jout, outputName);
-////    java.lang.System.out.println("Successfully wrote updated extraction to: \"" + outputName + "\"");
-////    return outputName;
-////  }
-//
-//  // TODO this cannot handle file moves, only add/modify/delete
-//  private void updateModelMap(ClassRole classRole, Map<String, Delta> changeMap) {
-//
-//    for (Delta delta : changeMap.values()) {
-//      String msId = delta.getMsId();
-//
-//      // check change type
-//      switch (delta.getChangeType()) {
-//        case ADD:
-//          // Add new service or add to existing service
-//          addNewFiles(classRole, msId, delta);
-//          break;
-//        case DELETE:
-//          removeFiles(classRole, msId, delta);
-//          break;
-//        case MODIFY:
-//          modifyExisting(classRole, msId, delta);
-//          break;
-//        default:
-//          java.lang.System.err.println(
-//              "Warning in merge service: Not yet implemented change type, skipping: "
-//                  + delta.getChangeType());
-//          break;
-//      }
-//    }
-//  }
-//
-//  public void addNewFiles(ClassRole classRole, String msId, Delta delta) {
-//
-//    // Check if service exists or if this is an entirely new service
-//    Microservice msModel;
-//    if (msModelMap.containsKey(msId)) {
-//      msModel = msModelMap.get(msId);
-//    } else {
-//      msModel = new Microservice(msId, delta.getCommitId());
-//    }
-//
-//    if (classRole == ClassRole.SERVICE) {
-//      updateApiDestinationsAdd((JClass) delta.getChangedClass(), msId);
-//    }
-//
-//    msModel.addChange(delta);
-//    msModelMap.put(msId, msModel);
-//  }
-//
-//  public void modifyExisting(ClassRole classRole, String msId, Delta delta) {
-//    if (!msModelMap.containsKey(msId)) {
-//      java.lang.System.err.println(
-//          "Warning in merge service: Could not find service for MODIFY "
-//              + "(service should ideally exist for this type), skipping: "
-//              + msId);
-//      return;
-//    }
-//
-//    // modification is simply file removal then an add
-//    removeFiles(classRole, msId, delta);
-//    addNewFiles(classRole, msId, delta);
-//  }
-//
-//  public void removeFiles(ClassRole classRole, String msId, Delta delta) {
-//    Microservice msModel;
-//
-//    if (msModelMap.containsKey(msId)) {
-//      msModel = msModelMap.get(msId);
-//    } else {
-//      msModel = new Microservice(msId, delta.getCommitId());
-//    }
-//
-//    if (ClassRole.CONTROLLER == classRole) {
-//      JClass controller =
-//          msModel.getControllers().stream()
-//              .filter(JClass -> JClass.matchClassPath(delta.getChangedClass()))
-//              .findFirst()
-//              .orElse(null);
-//      if (Objects.nonNull(controller)) {
-//        updateApiDestinationsDelete(controller, msId);
-//      }
-//    }
-//
-//    removeIfClassMatches(msModel.getListForRole(classRole), delta);
-//  }
-//
-//  private static <T extends JClass> void removeIfClassMatches(List<T> list, Delta delta) {
-//    list.removeIf(jClass -> jClass.matchClassPath(delta.getChangedClass()));
-//  }
+ package edu.university.ecs.lab.intermediate.merge.services;
+
+ import edu.university.ecs.lab.common.config.Config;
+ import edu.university.ecs.lab.common.config.ConfigUtil;
+ import edu.university.ecs.lab.common.error.Error;
+ import edu.university.ecs.lab.common.models.*;
+ import edu.university.ecs.lab.common.models.enums.ClassRole;
+ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
+ import edu.university.ecs.lab.delta.models.Delta;
+ import edu.university.ecs.lab.delta.models.SystemChange;
+ import java.io.IOException;
+ import java.nio.file.Path;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Objects;
+
+
+ public class MergeService {
+  private final Config config;
+  private final MicroserviceSystem microserviceSystem;
+  private final SystemChange systemChange;
+
+  // TODO handle exceptions here
+  public MergeService(
+      String intermediatePath,
+      String deltaPath,
+      String configPath) {
+    this.config = ConfigUtil.readConfig(configPath);
+    this.microserviceSystem = JsonReadWriteUtils.readFromJSON(Path.of(intermediatePath).toAbsolutePath().toString(), MicroserviceSystem.class);
+    this.systemChange = JsonReadWriteUtils.readFromJSON(Path.of(deltaPath).toAbsolutePath().toString(), SystemChange.class);
+  }
+
+  public void makeAllChanges() {
+        for(Delta d : systemChange.getChanges()) {
+            switch (d.getChangeType()) {
+                case ADD:
+                    addNewFiles(d);
+                    break;
+                case MODIFY:
+                    modifyFiles(d);
+                    break;
+                case DELETE:
+                    removeFiles(d);
+                    break;
+            }
+        }
+
+        JsonReadWriteUtils.writeToJSON("./output/merge.json", microserviceSystem);
+  }
+
+    private JClass findFile(Delta delta) {
+      for(Microservice microservice : microserviceSystem.getMicroservices()) {
+          switch(delta.getChangedClass().getClassRole()) {
+              case CONTROLLER:
+                  return microservice.getControllers().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
+              case SERVICE:
+                  return microservice.getServices().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
+              case REPOSITORY:
+                  return microservice.getRepositories().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
+
+          }
+      }
+
+      return null;
+    }
+
+
+    public void modifyFiles(Delta delta) {
+         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
+
+         if(Objects.isNull(ms)) {
+             Error.reportAndExit(Error.UNKNOWN_ERROR);
+         }
+         removeFiles(delta);
+         addNewFiles(delta);
+
+    }
+
+  public void addNewFiles(Delta delta) {
+      Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
+
+      if(Objects.isNull(ms)) {
+          Error.reportAndExit(Error.UNKNOWN_ERROR);
+      }
+
+
+      switch(delta.getChangedClass().getClassRole()) {
+          case CONTROLLER:
+               ms.getControllers().add(delta.getChangedClass());
+               break;
+          case SERVICE:
+              ms.getServices().add(delta.getChangedClass());
+              break;
+          case REPOSITORY:
+              ms.getRepositories().add(delta.getChangedClass());
+              break;
+
+      }
+      updateMicroserviceSystem(ms);
+
+  }
+
+    public void removeFiles(Delta delta) {
+        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
+
+        if(Objects.isNull(ms)) {
+            Error.reportAndExit(Error.UNKNOWN_ERROR);
+        }
+
+
+        switch(delta.getChangedClass().getClassRole()) {
+            case CONTROLLER:
+                ms.getControllers().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                break;
+            case SERVICE:
+                ms.getServices().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                break;
+            case REPOSITORY:
+                ms.getRepositories().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                break;
+
+        }
+
+        updateMicroserviceSystem(ms);
+
+    }
+
+    private void updateMicroserviceSystem(Microservice microservice) {
+      microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
+      microserviceSystem.getMicroservices().add(microservice);
+    }
+
 //
 //  private void updateApiDestinationsAdd(JClass service, String servicePath) {
 //    for (RestCall restCall : service.getRestCalls()) {
@@ -219,4 +178,4 @@
 //      }
 //    }
 //  }
-// }
+ }

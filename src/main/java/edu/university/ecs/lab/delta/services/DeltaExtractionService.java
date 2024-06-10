@@ -88,7 +88,6 @@ public class DeltaExtractionService {
     SystemChange systemChange = new SystemChange();
     systemChange.setOldCommit(commitOld);
     systemChange.setNewCommit(commitNew);
-    systemChange.setMicroserviceName(config.getRepoName());
 
     // process each difference
     for (DiffEntry entry : filteredEntries) {
@@ -97,11 +96,15 @@ public class DeltaExtractionService {
 
       boolean isDeleted = DiffEntry.ChangeType.DELETE.equals(entry.getChangeType());
       String localPath;
+      String microserviceName = "";
 
       if(isDeleted) {
           localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+          microserviceName = entry.getOldPath().substring(0, entry.getOldPath().indexOf("/"));
       } else {
           localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+          microserviceName = entry.getNewPath().substring(0, entry.getNewPath().indexOf("/"));
+
       }
 
       File classFile = new File(localPath);
@@ -109,7 +112,7 @@ public class DeltaExtractionService {
       try {
         JClass jClass = SourceToObjectUtils.parseClass(classFile, config);
         if (jClass != null) {
-          systemChange.addDelta(jClass, entry, localPath);
+          systemChange.addDelta(jClass, entry, localPath, microserviceName);
         }
       } catch (IOException e) {
         Error.reportAndExit(Error.JPARSE_FAILED);

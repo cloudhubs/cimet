@@ -76,4 +76,13 @@ public class MicroserviceSystem implements JsonSerializable {
 
     version = newVersion.toString();
   }
+
+
+//  public Microservice getMicroserviceByName(String name) {
+//    for (Microservice microservice : microservices) {
+//      if (microservice.getName().equals(name)) {
+//        return microservice;
+//      }
+//    }
+//  }
 }

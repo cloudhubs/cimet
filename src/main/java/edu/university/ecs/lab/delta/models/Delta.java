@@ -24,6 +24,8 @@ public class Delta implements JsonSerializable {
   /** The class that was changed, null in the case of ChangeType.DELETE */
   private JClass changedClass;
 
+  private String microserviceName;
+
   /**
    * Converts the delta object to a JSON object
    *
@@ -34,6 +36,7 @@ public class Delta implements JsonSerializable {
 
       jsonObject.addProperty("changeType", changeType.name());
       jsonObject.addProperty("localPath", localPath);
+      jsonObject.addProperty("microserviceName", microserviceName);
       jsonObject.add("changes", changedClass.toJsonObject());
 
     return jsonObject;

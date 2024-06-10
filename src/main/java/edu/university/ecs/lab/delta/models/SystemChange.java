@@ -18,8 +18,6 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SystemChange implements JsonSerializable {
-  /** The microservice id of the changed class */
-  private String microserviceName;
 
   /** The commit id that the delta was generated from */
   private String oldCommit;
@@ -28,13 +26,7 @@ public class SystemChange implements JsonSerializable {
   private String newCommit;
 
   /** List of changed controllers */
-  private final List<Delta> controllers = new ArrayList<>();
-
-  /** List of changed services */
-  private final List<Delta> services = new ArrayList<>();
-
-  /** List of changed repositories */
-  private final List<Delta> repositories = new ArrayList<>();
+  private final List<Delta> changes = new ArrayList<>();
 
 
 
@@ -48,23 +40,10 @@ public class SystemChange implements JsonSerializable {
    * @param localPath path to the class file as ./clonePath/repoName/service/path/to/file.java
    * @return the delta created
    */
-  public void addDelta(JClass jClass, DiffEntry entry, String localPath) {
+  public void addDelta(JClass jClass, DiffEntry entry, String localPath, String microserviceName) {
     // Switch through each class role and mark the change
-    Delta newDelta = new Delta(localPath, ChangeType.fromDiffEntry(entry), jClass);
-    switch (Objects.requireNonNull(jClass).getClassRole()) {
-      case CONTROLLER:
-        controllers.add(newDelta);
-        break;
-      case SERVICE:
-        services.add(newDelta);
-        break;
-      case REPOSITORY:
-        repositories.add(newDelta);
-        break;
-      default:
-        System.out.println("Skipping change: " + entry.getChangeType() + localPath);
-        break;
-    }
+    Delta newDelta = new Delta(localPath, ChangeType.fromDiffEntry(entry), jClass, microserviceName);
+    changes.add(newDelta);
   }
 
 
@@ -74,12 +53,9 @@ public class SystemChange implements JsonSerializable {
 
     jsonObject.addProperty("type", "system");
     jsonObject.addProperty("name", this.getClass().getSimpleName());
-    jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
-    jsonObject.add("services", JsonSerializable.toJsonArray(services));
-    jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
+    jsonObject.add("changes", JsonSerializable.toJsonArray(changes));
     jsonObject.addProperty("oldCommit", oldCommit);
     jsonObject.addProperty("newCommit", newCommit);
-    jsonObject.addProperty("microserviceName", microserviceName);
 
     return null;
   }

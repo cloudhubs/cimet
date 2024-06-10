@@ -97,7 +97,7 @@ public class FileUtils {
             Error.reportAndExit(UNKNOWN_ERROR);
         }
 
-        return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[0];
+        return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[1];
     }
 
     public static void createPaths() {
@@ -108,4 +108,5 @@ public class FileUtils {
             Error.reportAndExit(Error.UNKNOWN_ERROR);
         }
     }
+
 }
