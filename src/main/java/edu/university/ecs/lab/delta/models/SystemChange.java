@@ -28,13 +28,13 @@ public class SystemChange implements JsonSerializable {
   private String newCommit;
 
   /** List of changed controllers */
-  private List<Delta> controllers;
+  private final List<Delta> controllers = new ArrayList<>();
 
   /** List of changed services */
-  private List<Delta> services;
+  private final List<Delta> services = new ArrayList<>();
 
   /** List of changed repositories */
-  private List<Delta> repositories;
+  private final List<Delta> repositories = new ArrayList<>();
 
 
 

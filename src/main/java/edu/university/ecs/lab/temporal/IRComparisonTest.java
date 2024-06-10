@@ -44,8 +44,11 @@ public class IRComparisonTest {
            // Extract changes from one commit to the other
            deltaExtractionService = new  DeltaExtractionService("./config.json", commitIdOld, commitIdNew);
            deltaExtractionService.generateDelta();
+
             // Need IRMergeRunner - Merge the new commit changes to the old commit
-           computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
+
+
+//           computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
        }
 
        // Create IR of last commit
@@ -73,6 +76,7 @@ public class IRComparisonTest {
        irExtractionService.generateIR();
    }
 
+   @Deprecated
    private static void computeGraph(String filePath, String commitID) {
        MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(filePath, MicroserviceSystem.class);
 

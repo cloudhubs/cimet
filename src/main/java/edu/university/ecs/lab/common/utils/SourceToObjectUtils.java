@@ -65,7 +65,7 @@ public class SourceToObjectUtils {
     JClass jClass =
             new JClass(
                     sourceFile.getName(),
-                    FileUtils.absoluteToRelative(sourceFile.getAbsolutePath()),
+                    sourceFile.getPath(),
                     cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
                     classRole,
                     parseMethods(getMicroserviceName(sourceFile), preURL,  cu.findAll(MethodDeclaration.class)),

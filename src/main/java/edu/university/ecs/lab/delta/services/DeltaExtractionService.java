@@ -99,9 +99,9 @@ public class DeltaExtractionService {
       String localPath;
 
       if(isDeleted) {
-          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath();
+          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
       } else {
-          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath();
+          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
       }
 
       File classFile = new File(localPath);

@@ -56,9 +56,12 @@ public class FileUtils {
      * @param localPath the local path to be converted
      * @return the relative repo path
      */
-    @Deprecated
-    public static String pathToRepoPath(String localPath) {
-        return DOT + SEPARATOR + DEFAULT_OUTPUT_PATH;
+    public static String pathToRepoPath(String localPath, String repoName) {
+        if(localPath == null || localPath.isEmpty()) {
+            return "";
+        }
+
+        return localPath.replace(DOT + SEPARATOR +  DEFAULT_CLONE_PATH + SEPARATOR + repoName, "");
     }
 
     /**
