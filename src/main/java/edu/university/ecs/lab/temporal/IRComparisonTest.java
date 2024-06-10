@@ -8,8 +8,12 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
+import edu.university.ecs.lab.intermediate.merge.IRMergeRunner;
+import edu.university.ecs.lab.intermediate.merge.services.MergeService;
+
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,17 +42,17 @@ public class IRComparisonTest {
 
        // Loop through commit history and create delta, merge, etc...
        for(int i = 0; i < list.size() - 1; i++) {
-           String commitIdOld = list.get(i).toString().split(" ")[1];
-           String commitIdNew = list.get(i + 1).toString().split(" ")[1];
+            String commitIdOld = list.get(i).toString().split(" ")[1];
+            String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
-           // Extract changes from one commit to the other
-           deltaExtractionService = new  DeltaExtractionService("./config.json", commitIdOld, commitIdNew);
-           deltaExtractionService.generateDelta();
+            // Extract changes from one commit to the other
+            deltaExtractionService = new  DeltaExtractionService("./config.json", commitIdOld, commitIdNew);
+            deltaExtractionService.generateDelta();
 
-            // Need IRMergeRunner - Merge the new commit changes to the old commit
-
-
-//           computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
+            // Merge Delta changes to old IR to create new IR representing new commit changes
+            MergeService mergeService = new MergeService("./output/IR.json","./output/Delta.json", "./config.json");
+            mergeService.makeAllChanges();
+            //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
        }
 
        // Create IR of last commit
