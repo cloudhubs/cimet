@@ -45,7 +45,7 @@ public class IRExtractionService {
    *
    * @return the name of the output file
    */
-  public void generateIR() {
+  public void generateIR(String fileName) {
     // Clone remote repositories and scan through each cloned repo to extract endpoints
       List<Microservice> microservices = cloneAndScanServices();
 
@@ -57,7 +57,7 @@ public class IRExtractionService {
 //    updateCallDestinations(msDataMap);
 
     //  Write each service and endpoints to IR
-      writeToFile(microservices);
+      writeToFile(microservices, fileName);
 
   }
 
@@ -128,13 +128,13 @@ public class IRExtractionService {
    *
    * @param microservices a list of microservices extracted from repository
    */
-  private void writeToFile(List<Microservice> microservices) {
+  private void writeToFile(List<Microservice> microservices, String fileName) {
 
     MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
 
-    JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem.toJsonObject());
+    JsonReadWriteUtils.writeToJSON("./output" + fileName, microserviceSystem.toJsonObject());
 
-    System.out.println("Successfully wrote rest extraction to: \"" + "IR.json" + "\"");
+    System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
   }
 
   /**
