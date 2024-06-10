@@ -222,11 +222,12 @@ public class IRExtractionService {
             List<JClass> repositories) {
         try {
             JClass jClass = SourceToObjectUtils.parseClass(file, config);
-
+            
             if (jClass == null) {
                 return;
             }
 
+            //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
             // Switch through class roles and handle additional logic if needed
             switch (jClass.getClassRole()) {
                 case CONTROLLER:
@@ -245,4 +246,34 @@ public class IRExtractionService {
             System.err.println("Could not parse file due to unrecognized type: " + e.getMessage());
         }
     }
+
+    /**
+     * Removes the first two components of a given path.
+     *
+     * @param originalPath the original file path
+     * @return the modified path with the first two components removed
+     */
+    public static String removeFirstTwoComponents(String originalPath) {
+        // Split the path using both / and \ separators
+        String[] components = originalPath.split("[/\\\\]");
+        if (components.length <= 2) {
+            return originalPath; // Return the original path if it has two or fewer components
+        }
+
+        // Use the system's file separator
+        String separator = File.separator;
+
+        // Reconstruct the path starting from the third component
+        StringBuilder newPath = new StringBuilder();
+        for (int i = 2; i < components.length; i++) {
+            newPath.append(components[i]);
+            if (i < components.length - 1) {
+                newPath.append(separator); // Re-add the path separator except for the last component
+            }
+        }
+
+        return newPath.toString();
+    }
+
+
 }

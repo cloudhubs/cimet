@@ -41,6 +41,5 @@ public class IRExtractionRunner {
     // Generate the Intermediate Representation
     irExtractionService.generateIR();
 
-
   }
 }
