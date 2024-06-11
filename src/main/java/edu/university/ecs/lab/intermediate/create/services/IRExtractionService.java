@@ -132,7 +132,7 @@ public class IRExtractionService {
 
     MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
 
-    JsonReadWriteUtils.writeToJSON("./output" + fileName, microserviceSystem.toJsonObject());
+    JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
     System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
   }
