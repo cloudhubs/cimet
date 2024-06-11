@@ -71,11 +71,7 @@
           return;
       }
 
-      Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
-
-      if(Objects.isNull(ms)) {
-          ms = new Microservice(delta.getMicroserviceName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-      }
+      Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getNewMicroserviceName())).findFirst().orElse(null);
 
 
       switch(delta.getClassChange().getClassRole()) {
@@ -90,7 +86,6 @@
               break;
 
       }
-      updateMicroserviceSystem(ms);
 
   }
 
@@ -99,7 +94,7 @@
             return;
         }
 
-        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
+        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getOldMicroserviceName())).findFirst().orElse(null);
 
         if(Objects.isNull(ms)) {
             System.out.println(delta.toJsonObject());
@@ -121,55 +116,40 @@
 
         }
 
-        updateMicroserviceSystem(ms);
+        checkDeleteMicroservices(ms);
 
     }
 
-    private void updateMicroserviceSystem(Microservice microservice) {
-      microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
+    // Check if the last JClass was deleted
+    private void checkDeleteMicroservices(Microservice microservice) {
+      if(microservice.getServices().isEmpty() && microservice.getRepositories().isEmpty() && microservice.getControllers().isEmpty()) {
+          microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
+      }
+    }
+
+    private void updateMicroserviceSystem(Microservice microservice, String currentName) {
+      microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(currentName));
       microserviceSystem.getMicroservices().add(microservice);
     }
 
     private void checkModifyMicroservices(List<Delta> deltaChanges) {
       for(Delta delta : deltaChanges) {
-          if (delta.getFileType() != FileType.DIRECTORY) {
-              return;
-          }
 
           String path = delta.getChangeType().equals(ChangeType.DELETE) ? delta.getOldPath() : delta.getNewPath();
-          File file = new File(path);
+          String microserviceName = !delta.getChangeType().equals(ChangeType.ADD) ? delta.getOldMicroserviceName() : delta.getNewMicroserviceName();
 
-          // Check for parent directory change
-          if (file.isDirectory()) {
-              // If we are a directory and are being deleted
-              if (delta.getChangeType().equals(ChangeType.DELETE)) {
-                  // If we are found in the microservice system remove us
-                  String oldMicroserviceName = delta.getOldPath().substring(delta.getOldPath().lastIndexOf("\\"));
+          Microservice microservice = microserviceSystem.getMicroservices().stream().filter(microservice1 -> microservice1.getName().equals(microserviceName)).findFirst().orElse(null);
 
-                  microserviceSystem.getMicroservices().removeIf(microservice -> microservice.getName().equals(oldMicroserviceName));
-                  return;
-
-                  // If we are not deleted but we are added
-              } else if (delta.getChangeType().equals(ChangeType.ADD)) {
-                  // If we have a direct child named Docker or pom
-
-
-                  if (searchDeltas(file.getPath() + "Dockerfile") || searchDeltas(file.getPath() + "Dockerfile")) {
-                      String newMicroserviceName = delta.getNewPath().substring(delta.getNewPath().lastIndexOf("\\"));
-                      microserviceSystem.getMicroservices().add(new Microservice(newMicroserviceName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
-                  }
-              } else if(delta.getChangeType().equals(ChangeType.MODIFY)) {
-                    String oldMicroserviceName = delta.getOldPath().substring(delta.getOldPath().lastIndexOf("\\"));
-                  Microservice microservice = microserviceSystem.getMicroservices().stream().filter(microservice1 -> microservice1.getName().equals(oldMicroserviceName)).findFirst().orElse(null);
-
-                  // If we didnt find a microservice it wasnt a microservice folder affected
-                  if(Objects.isNull(microservice)) {
-                      return;
-                  }
-                  String newMicroserviceName = delta.getNewPath().substring(delta.getNewPath().lastIndexOf("\\"));
-
-                  microservice.setName(newMicroserviceName);
-                  updateMicroserviceSystem(microservice);
+          // Check microservice exists in current system
+          if (Objects.isNull(microservice)) {
+              if(delta.getChangeType().equals(ChangeType.ADD)) {
+                  Microservice newMicroservice = new Microservice(delta.getNewMicroserviceName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+                  microserviceSystem.getMicroservices().add(newMicroservice);
+              }
+          } else {
+              if(delta.getChangeType().equals(ChangeType.MODIFY) && !delta.getNewMicroserviceName().equals(delta.getOldMicroserviceName())) {
+                  microservice.setName(delta.getNewMicroserviceName());
+                  updateMicroserviceSystem(microservice, delta.getOldMicroserviceName());
               }
           }
 

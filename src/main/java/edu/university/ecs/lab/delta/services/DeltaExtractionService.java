@@ -18,6 +18,7 @@ import org.eclipse.jgit.lib.Repository;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -88,39 +89,49 @@ public class DeltaExtractionService {
     // process each difference
     for (DiffEntry entry : diffEntries) {
 
-      String oldPath;
-      String newPath;
+      if(!entry.getOldPath().contains(".java") || !entry.getNewPath().contains(".java")) {
+        continue;
+      }
+
+      String oldPath = "";
+      String newPath = "";
+      String oldMicroserviceName = "";
+      String newMicroserviceName = "";
+
       if(DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
         oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
         newPath = null;
+        oldMicroserviceName = getMicroserviceName(entry.getOldPath());
+        newMicroserviceName = null;
 
       } else if(DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
         oldPath = null;
         newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+        oldMicroserviceName = null;
+        newMicroserviceName = getMicroserviceName(entry.getNewPath());
 
       } else {
         oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
         newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+        oldMicroserviceName = getMicroserviceName(entry.getOldPath());
+        newMicroserviceName = getMicroserviceName(entry.getNewPath());
 
       }
 
       String microserviceName = null;
 
-      // Find the JClass associated with the change, null under certain cases
-      File file = newPath == null ? new File(oldPath) : new File(newPath);
 
-      JClass jClass = null;
-      if(file.isFile() && file.getPath().endsWith(".java")) {
-        jClass = getClass(entry, newPath);
-        microserviceName = getMicroserviceName(entry);
-      }
+      // Get the class, getClass checks edge cases like null newPath and non .java files
+      JClass jClass = getClass(entry, newPath);
+
+
 
       // If the class isn't ours and it isn't a folder or Docker or Pom
-      if(Objects.isNull(jClass) && !file.isFile() && !file.getName().equals("DockerFile") && !file.getName().equals("pom.xml")) {
-        continue;
-      }
+//      if(Objects.isNull(jClass) && !entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && !file.getName().equals("DockerFile") && !file.getName().equals("pom.xml")) {
+//        continue;
+//      }
 
-      systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, microserviceName));
+      systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, oldMicroserviceName, newMicroserviceName));
 
     }
 
@@ -152,7 +163,7 @@ public class DeltaExtractionService {
 
   private JClass getClass(DiffEntry diffEntry, String localPath) {
     // If the DiffEntry type is DELETE then we cannot pare at this HEAD, it is now gone
-    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType()) || !(new File(localPath).toPath().endsWith(".java"))) {
       return null;
     } else {
       // Otherwise we can parse the new file as we have reset the head to where the file exists
@@ -172,22 +183,12 @@ public class DeltaExtractionService {
   }
 
   // TODO Add to FileUtils
-  private String getMicroserviceName(DiffEntry diffEntry) {
-    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-      return diffEntry.getOldPath().substring(0, diffEntry.getOldPath().indexOf("/"));
-    } else {
-      return diffEntry.getNewPath().substring(0, diffEntry.getNewPath().indexOf("/"));
-    }
+  private String getMicroserviceName(String path) {
+      return path.substring(0, path.indexOf("/"));
   }
 
-  private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String microserviceName) {
-    FileType fileType = FileType.DIRECTORY;
-    String path = newPath == null ? oldPath : newPath;
-    if(new File(path).isFile()) {
-      fileType = FileType.FILE;
-    }
-
-    return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), fileType, jClass, microserviceName);
+  private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String oldMicroserviceName, String newMicroserviceName) {
+    return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass, oldMicroserviceName, newMicroserviceName);
   }
 
 }

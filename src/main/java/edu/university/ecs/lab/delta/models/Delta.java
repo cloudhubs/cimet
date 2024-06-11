@@ -25,13 +25,16 @@ public class Delta implements JsonSerializable {
   private ChangeType changeType;
 
   /** The type of file that was changed */
-  private FileType fileType;
+//  private FileType fileType;
 
   /** The class that was changed, null in the case of ChangeType.DELETE || FileType.FOLDER */
   private JClass classChange;
 
   /** The name of the associated microservice */
-  private String microserviceName;
+  private String oldMicroserviceName;
+
+/** The name of the associated microservice */
+private String newMicroserviceName;
 
   /**
    * Converts the delta object to a JSON object
@@ -44,8 +47,10 @@ public class Delta implements JsonSerializable {
       jsonObject.addProperty("changeType", changeType.name());
       jsonObject.addProperty("oldPath", oldPath);
       jsonObject.addProperty("newPath", newPath);
-      jsonObject.addProperty("fileType", fileType.name());
-      jsonObject.addProperty("microserviceName", microserviceName);
+//      jsonObject.addProperty("fileType", fileType.name());
+      jsonObject.addProperty("oldMicroserviceName", oldMicroserviceName);
+      jsonObject.addProperty("newMicroserviceName", newMicroserviceName);
+
       jsonObject.add("classChange", classChange.toJsonObject());
 
 
