@@ -4,14 +4,16 @@
  import edu.university.ecs.lab.common.config.ConfigUtil;
  import edu.university.ecs.lab.common.error.Error;
  import edu.university.ecs.lab.common.models.*;
- import edu.university.ecs.lab.common.models.enums.ClassRole;
  import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
  import edu.university.ecs.lab.delta.models.Delta;
  import edu.university.ecs.lab.delta.models.SystemChange;
- import java.io.IOException;
+ import edu.university.ecs.lab.delta.models.enums.ChangeType;
+ import edu.university.ecs.lab.delta.models.enums.FileType;
+
+ import java.io.File;
  import java.nio.file.Path;
+ import java.util.ArrayList;
  import java.util.List;
- import java.util.Map;
  import java.util.Objects;
 
 
@@ -31,16 +33,26 @@
   }
 
   public void makeAllChanges() {
+      System.out.println("Merging to new IR!");
+
+      if(Objects.isNull(systemChange.getChanges())) {
+          JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
+          return;
+      }
+
+      // First we make necessary changes to microservices
+      checkModifyMicroservices(systemChange.getChanges());
+
         for(Delta d : systemChange.getChanges()) {
             switch (d.getChangeType()) {
                 case ADD:
-                    addNewFiles(d);
+                    addFile(d);
                     break;
                 case MODIFY:
                     modifyFiles(d);
                     break;
                 case DELETE:
-                    removeFiles(d);
+                    removeFile(d);
                     break;
             }
         }
@@ -48,51 +60,33 @@
         JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
   }
 
-    private JClass findFile(Delta delta) {
-      for(Microservice microservice : microserviceSystem.getMicroservices()) {
-          switch(delta.getChangedClass().getClassRole()) {
-              case CONTROLLER:
-                  return microservice.getControllers().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
-              case SERVICE:
-                  return microservice.getServices().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
-              case REPOSITORY:
-                  return microservice.getRepositories().stream().filter(jClass -> jClass.getClassPath().equals(delta.getChangedClass().getClassPath())).findFirst().orElse(null);
-
-          }
-      }
-
-      return null;
-    }
-
 
     public void modifyFiles(Delta delta) {
-         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
-
-         if(Objects.isNull(ms)) {
-             Error.reportAndExit(Error.NULL_ERROR);
-         }
-         removeFiles(delta);
-         addNewFiles(delta);
-
+         removeFile(delta);
+         addFile(delta);
     }
 
-  public void addNewFiles(Delta delta) {
+  public void addFile(Delta delta) {
+      if(Objects.isNull(delta.getClassChange())) {
+          return;
+      }
+
       Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
 
       if(Objects.isNull(ms)) {
-          Error.reportAndExit(Error.NULL_ERROR);
+          ms = new Microservice(delta.getMicroserviceName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
       }
 
 
-      switch(delta.getChangedClass().getClassRole()) {
+      switch(delta.getClassChange().getClassRole()) {
           case CONTROLLER:
-               ms.getControllers().add(delta.getChangedClass());
+               ms.getControllers().add(delta.getClassChange());
                break;
           case SERVICE:
-              ms.getServices().add(delta.getChangedClass());
+              ms.getServices().add(delta.getClassChange());
               break;
           case REPOSITORY:
-              ms.getRepositories().add(delta.getChangedClass());
+              ms.getRepositories().add(delta.getClassChange());
               break;
 
       }
@@ -100,23 +94,29 @@
 
   }
 
-    public void removeFiles(Delta delta) {
+    public void removeFile(Delta delta) {
+        if(Objects.isNull(delta.getClassChange())) {
+            return;
+        }
+
         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(delta.getMicroserviceName())).findFirst().orElse(null);
 
         if(Objects.isNull(ms)) {
+            System.out.println(delta.toJsonObject());
             Error.reportAndExit(Error.NULL_ERROR);
         }
 
+        JClass jClass = microserviceSystem.getClassByPath(delta.getNewPath());
 
-        switch(delta.getChangedClass().getClassRole()) {
+        switch(jClass.getClassRole()) {
             case CONTROLLER:
-                ms.getControllers().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                ms.getControllers().remove(jClass);
                 break;
             case SERVICE:
-                ms.getServices().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                ms.getServices().remove(jClass);
                 break;
             case REPOSITORY:
-                ms.getRepositories().removeIf(jClass -> jClass.getClassPath().equals(delta.getLocalPath()));
+                ms.getRepositories().remove(jClass);
                 break;
 
         }
@@ -129,6 +129,67 @@
       microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
       microserviceSystem.getMicroservices().add(microservice);
     }
+
+    private void checkModifyMicroservices(List<Delta> deltaChanges) {
+      for(Delta delta : deltaChanges) {
+          if (delta.getFileType() != FileType.DIRECTORY) {
+              return;
+          }
+
+          String path = delta.getChangeType().equals(ChangeType.DELETE) ? delta.getOldPath() : delta.getNewPath();
+          File file = new File(path);
+
+          // Check for parent directory change
+          if (file.isDirectory()) {
+              // If we are a directory and are being deleted
+              if (delta.getChangeType().equals(ChangeType.DELETE)) {
+                  // If we are found in the microservice system remove us
+                  String oldMicroserviceName = delta.getOldPath().substring(delta.getOldPath().lastIndexOf("\\"));
+
+                  microserviceSystem.getMicroservices().removeIf(microservice -> microservice.getName().equals(oldMicroserviceName));
+                  return;
+
+                  // If we are not deleted but we are added
+              } else if (delta.getChangeType().equals(ChangeType.ADD)) {
+                  // If we have a direct child named Docker or pom
+
+
+                  if (searchDeltas(file.getPath() + "Dockerfile") || searchDeltas(file.getPath() + "Dockerfile")) {
+                      String newMicroserviceName = delta.getNewPath().substring(delta.getNewPath().lastIndexOf("\\"));
+                      microserviceSystem.getMicroservices().add(new Microservice(newMicroserviceName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+                  }
+              } else if(delta.getChangeType().equals(ChangeType.MODIFY)) {
+                    String oldMicroserviceName = delta.getOldPath().substring(delta.getOldPath().lastIndexOf("\\"));
+                  Microservice microservice = microserviceSystem.getMicroservices().stream().filter(microservice1 -> microservice1.getName().equals(oldMicroserviceName)).findFirst().orElse(null);
+
+                  // If we didnt find a microservice it wasnt a microservice folder affected
+                  if(Objects.isNull(microservice)) {
+                      return;
+                  }
+                  String newMicroserviceName = delta.getNewPath().substring(delta.getNewPath().lastIndexOf("\\"));
+
+                  microservice.setName(newMicroserviceName);
+                  updateMicroserviceSystem(microservice);
+              }
+          }
+
+      }
+
+    }
+
+    // If the parent of this filePath is the p
+    private boolean searchDeltas(String filePath) {
+
+      for(Delta delta : systemChange.getChanges()) {
+          if(delta.getNewPath().equals(filePath)) {
+              return true;
+          }
+      }
+
+      return false;
+
+    }
+
 
 //
 //  private void updateApiDestinationsAdd(JClass service, String servicePath) {

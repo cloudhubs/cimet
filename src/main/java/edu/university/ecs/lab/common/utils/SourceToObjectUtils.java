@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.common.utils;
 
+import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
@@ -34,7 +35,7 @@ public class SourceToObjectUtils {
    * @return the JClass object representing the file
    * @throws IOException on parse error
    */
-  public static JClass parseClass(File sourceFile, Config config) throws IOException {
+  public static JClass parseClass(File sourceFile, Config config) {
 
     // Parse the highest level node being compilation unit
     try {

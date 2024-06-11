@@ -4,11 +4,15 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
+import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
+import edu.university.ecs.lab.delta.models.enums.ChangeType;
+import edu.university.ecs.lab.delta.models.enums.FileType;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Repository;
 
@@ -61,71 +65,69 @@ public class DeltaExtractionService {
     }
 
     // Advance the local commit for parsing
-    if(!gitService.resetLocal(1)) {
-      System.out.println("No additional commits to fast forward to!");
-    }
+    gitService.resetLocal(commitNew);
 
     // process/write differences to delta output
-    processDifferences(differences);
+    generateDelta(differences);
 
   }
 
   /**
    * Process the differences between the local and remote repository and write the differences to a
-   * file. Differences can be generated from {@link GitFetchUtils#fetchRemoteDifferences(Repository,
-   * String)}
+   * file.
    *
    * @param diffEntries the list of differences extracted
-   * @param inputRepo the input repo to handle
-   * @return the name of the output file generated
-   * @throws IOException if a failure occurs while trying to write to the file
    */
-  public String processDifferences(List<DiffEntry> diffEntries) {
+  public void generateDelta(List<DiffEntry> diffEntries) {
 
-    // Filter entries
-    List<DiffEntry> filteredEntries = filterDiffEntries(diffEntries);
-
+    // Set up a new SystemChangeObject
     SystemChange systemChange = new SystemChange();
     systemChange.setOldCommit(commitOld);
     systemChange.setNewCommit(commitNew);
 
     // process each difference
-    for (DiffEntry entry : filteredEntries) {
-      String basePath = FileUtils.getClonePath(config.getRepoName()) + File.separator;
-      System.out.println("Extracting changes from: " + basePath);
+    for (DiffEntry entry : diffEntries) {
 
-      boolean isDeleted = DiffEntry.ChangeType.DELETE.equals(entry.getChangeType());
-      String localPath;
-      String microserviceName = "";
+      String oldPath;
+      String newPath;
+      if(DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
+        oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+        newPath = null;
 
-      if(isDeleted) {
-          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
-          microserviceName = entry.getOldPath().substring(0, entry.getOldPath().indexOf("/"));
+      } else if(DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
+        oldPath = null;
+        newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+
       } else {
-          localPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
-          microserviceName = entry.getNewPath().substring(0, entry.getNewPath().indexOf("/"));
+        oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+        newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
 
       }
 
-      File classFile = new File(localPath);
+      String microserviceName = null;
 
-      try {
-        JClass jClass = SourceToObjectUtils.parseClass(classFile, config);
-        if (jClass != null) {
-          systemChange.addDelta(jClass, entry, localPath, microserviceName);
-        }
-      } catch (IOException e) {
-        Error.reportAndExit(Error.JPARSE_FAILED);
+      // Find the JClass associated with the change, null under certain cases
+      File file = newPath == null ? new File(oldPath) : new File(newPath);
+
+      JClass jClass = null;
+      if(file.isFile() && file.getPath().endsWith(".java")) {
+        jClass = getClass(entry, newPath);
+        microserviceName = getMicroserviceName(entry);
       }
 
-      System.out.println("Change impact of type " + entry.getChangeType() + " detected in " + entry.getNewPath());
+      // If the class isn't ours and it isn't a folder or Docker or Pom
+      if(Objects.isNull(jClass) && !file.isFile() && !file.getName().equals("DockerFile") && !file.getName().equals("pom.xml")) {
+        continue;
+      }
+
+      systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, microserviceName));
+
     }
 
     JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);
 
-    System.out.println("Delta extracted: " + "./output/Delta.json");
+    System.out.println("Delta extracted: from " + commitOld + " to " + commitNew + " at ./output/Delta.json");
 
-    return "./output/Delta.json";
   }
 
   /**
@@ -135,17 +137,57 @@ public class DeltaExtractionService {
    * @param diffEntries the diff entry list to filter
    * @return filtered list of diff entries
    */
-  private List<DiffEntry> filterDiffEntries(List<DiffEntry> diffEntries) {
-    return diffEntries.stream()
-            .filter(
-                    diffEntry -> {
-                      if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-                        return diffEntry.getOldPath().endsWith(".java");
-                      } else {
-                        return diffEntry.getNewPath().endsWith(".java");
-                      }
-                    })
-            .collect(Collectors.toUnmodifiableList());
+//  private List<DiffEntry> filterDiffEntries(List<DiffEntry> diffEntries) {
+//    return diffEntries.stream()
+//            .filter(
+//                    diffEntry -> {
+//                      if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+//                        return diffEntry.getOldPath().endsWith(".java");
+//                      } else {
+//                        return diffEntry.getNewPath().endsWith(".java");
+//                      }
+//                    })
+//            .collect(Collectors.toUnmodifiableList());
+//  }
+
+  private JClass getClass(DiffEntry diffEntry, String localPath) {
+    // If the DiffEntry type is DELETE then we cannot pare at this HEAD, it is now gone
+    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+      return null;
+    } else {
+      // Otherwise we can parse the new file as we have reset the head to where the file exists
+      return SourceToObjectUtils.parseClass(new File(localPath), config);
+
+
+    }
+  }
+
+  // TODO Add to FileUtils
+  private String getLocalPath(DiffEntry diffEntry) {
+    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+      return FileUtils.getClonePath(config.getRepoName()) + File.separator + diffEntry.getOldPath().replace("/", File.separator);
+    } else {
+      return FileUtils.getClonePath(config.getRepoName()) + File.separator + diffEntry.getNewPath().replace("/", File.separator);
+    }
+  }
+
+  // TODO Add to FileUtils
+  private String getMicroserviceName(DiffEntry diffEntry) {
+    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
+      return diffEntry.getOldPath().substring(0, diffEntry.getOldPath().indexOf("/"));
+    } else {
+      return diffEntry.getNewPath().substring(0, diffEntry.getNewPath().indexOf("/"));
+    }
+  }
+
+  private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String microserviceName) {
+    FileType fileType = FileType.DIRECTORY;
+    String path = newPath == null ? oldPath : newPath;
+    if(new File(path).isFile()) {
+      fileType = FileType.FILE;
+    }
+
+    return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), fileType, jClass, microserviceName);
   }
 
 }

@@ -3,9 +3,9 @@ package edu.university.ecs.lab.common.models;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /** Represents the intermediate structure of a microservice system. */
 @Data
@@ -78,11 +78,12 @@ public class MicroserviceSystem implements JsonSerializable {
   }
 
 
-//  public Microservice getMicroserviceByName(String name) {
-//    for (Microservice microservice : microservices) {
-//      if (microservice.getName().equals(name)) {
-//        return microservice;
-//      }
-//    }
-//  }
+  public JClass getClassByPath(String path) {
+    List<JClass> allClasses = new ArrayList<>();
+    allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toUnmodifiableList()));
+    allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).collect(Collectors.toUnmodifiableList()));
+    allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getRepositories().stream()).collect(Collectors.toUnmodifiableList()));
+
+    return allClasses.stream().filter(jClass -> jClass.getClassPath().equals(path)).findFirst().orElse(null);
+  }
 }

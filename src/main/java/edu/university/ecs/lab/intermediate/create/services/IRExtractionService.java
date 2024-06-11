@@ -11,7 +11,6 @@ import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import javassist.NotFoundException;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.System;
 import java.util.*;
 
@@ -132,7 +131,7 @@ public class IRExtractionService {
 
     MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
 
-    JsonReadWriteUtils.writeToJSON("./output" + fileName, microserviceSystem.toJsonObject());
+    JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
     System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
   }
@@ -177,7 +176,7 @@ public class IRExtractionService {
 
         Microservice model =
                 new Microservice(
-                        id, config.getBaseBranch(), config.getBaseCommit(), controllers, services, repositories);
+                        id, controllers, services, repositories);
 
         System.out.println("Done!");
         return model;
@@ -219,7 +218,6 @@ public class IRExtractionService {
             List<JClass> controllers,
             List<JClass> services,
             List<JClass> repositories) {
-        try {
             JClass jClass = SourceToObjectUtils.parseClass(file, config);
             
             if (jClass == null) {
@@ -241,8 +239,6 @@ public class IRExtractionService {
                 default:
                     break;
             }
-        } catch (IOException e) {
-            System.err.println("Could not parse file due to unrecognized type: " + e.getMessage());
-        }
+
     }
 }

@@ -1,6 +1,6 @@
 {
   "systemName": "Train-ticket",
   "repositoryURL": "https://github.com/g-goulis/train-ticket-microservices-test.git",
-  "baseCommit": "77feb2fe5598252de2dabeae247a51ed6eb9def9",
+  "baseCommit": "e4bc4782ea983ef015ea352eed0d142d8ad78fb3",
   "baseBranch": "main"
 }

@@ -16,10 +16,10 @@ public class Microservice implements JsonSerializable {
   /** The name of the service (ex: "ts-assurance-service") */
   private String name;
 
-  private String branch;
-
-  /** The commit id of the service as cloned */
-  private String commit;
+//  private String branch;
+//
+//  /** The commit id of the service as cloned */
+//  private String commit;
 
   /** Controller classes belonging to the microservice. */
   private List<JClass> controllers;
@@ -36,7 +36,7 @@ public class Microservice implements JsonSerializable {
     JsonObject jsonObject = new JsonObject();
 
     jsonObject.addProperty("name", name);
-    jsonObject.addProperty("commitId", commit);
+//    jsonObject.addProperty("commitId", commit);
     jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
     jsonObject.add("services", JsonSerializable.toJsonArray(services));
     jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
