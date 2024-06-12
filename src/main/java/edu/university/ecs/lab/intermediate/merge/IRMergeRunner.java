@@ -25,6 +25,6 @@
 
     MergeService mergeService = new MergeService(args[0], args[1], args[2]);
 
-    mergeService.makeAllChanges();
+    mergeService.generateMergeIR();
   }
  }

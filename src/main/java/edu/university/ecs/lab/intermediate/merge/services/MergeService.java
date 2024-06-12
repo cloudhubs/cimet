@@ -15,6 +15,7 @@
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Objects;
+ import java.util.stream.Collectors;
 
 
  public class MergeService {
@@ -32,16 +33,18 @@
     this.systemChange = JsonReadWriteUtils.readFromJSON(Path.of(deltaPath).toAbsolutePath().toString(), SystemChange.class);
   }
 
-  public void makeAllChanges() {
+  public void generateMergeIR() {
       System.out.println("Merging to new IR!");
 
+      // TODO optimize
+      // If no changes are present we will write back out same IR
       if(Objects.isNull(systemChange.getChanges())) {
           JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
           return;
       }
 
       // First we make necessary changes to microservices
-      checkModifyMicroservices(systemChange.getChanges());
+      updateMicroservices(systemChange.getChanges());
 
         for(Delta d : systemChange.getChanges()) {
             switch (d.getChangeType()) {
@@ -116,41 +119,48 @@
 
         }
 
-        checkDeleteMicroservices(ms);
+//        checkDeleteMicroservices(ms);
 
     }
 
     // Check if the last JClass was deleted
-    private void checkDeleteMicroservices(Microservice microservice) {
-      if(microservice.getServices().isEmpty() && microservice.getRepositories().isEmpty() && microservice.getControllers().isEmpty()) {
-          microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
-      }
-    }
+//    private void checkDeleteMicroservices(Microservice microservice) {
+//      if(microservice.getServices().isEmpty() && microservice.getRepositories().isEmpty() && microservice.getControllers().isEmpty()) {
+//          microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
+//      }
+//    }
 
-    private void updateMicroserviceSystem(Microservice microservice, String currentName) {
-      microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(currentName));
-      microserviceSystem.getMicroservices().add(microservice);
-    }
+    // Check for the creation / deletion of microservices depending on actions done to pom.xml/dockerfile
+    private void updateMicroservices(List<Delta> deltaChanges) {
 
-    private void checkModifyMicroservices(List<Delta> deltaChanges) {
-      for(Delta delta : deltaChanges) {
+      // Loop through changes to pom.xml files
+      for(Delta delta : deltaChanges.stream().filter(delta -> delta.getOldPath().endsWith("pom.xml") || delta.getNewPath().endsWith("pom.xml")).collect(Collectors.toUnmodifiableList())) {
 
-          String path = delta.getChangeType().equals(ChangeType.DELETE) ? delta.getOldPath() : delta.getNewPath();
-          String microserviceName = !delta.getChangeType().equals(ChangeType.ADD) ? delta.getOldMicroserviceName() : delta.getNewMicroserviceName();
+          Microservice microservice;
+          switch (delta.getChangeType()) {
+              case ADD:
+                  microservice = new Microservice(delta.getNewMicroserviceName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+                  // Here we must check if any orphans are waiting on this creation
+                  microserviceSystem.adopt(microservice, delta.getNewMicroserviceName());
+                  microserviceSystem.getMicroservices().add(microservice);
+                  break;
 
-          Microservice microservice = microserviceSystem.getMicroservices().stream().filter(microservice1 -> microservice1.getName().equals(microserviceName)).findFirst().orElse(null);
-
-          // Check microservice exists in current system
-          if (Objects.isNull(microservice)) {
-              if(delta.getChangeType().equals(ChangeType.ADD)) {
-                  Microservice newMicroservice = new Microservice(delta.getNewMicroserviceName(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-                  microserviceSystem.getMicroservices().add(newMicroservice);
-              }
-          } else {
-              if(delta.getChangeType().equals(ChangeType.MODIFY) && !delta.getNewMicroserviceName().equals(delta.getOldMicroserviceName())) {
+              case MODIFY:
+                  microservice = microserviceSystem.findMicroserviceByName(delta.getOldMicroserviceName());
+                  microserviceSystem.getMicroservices().remove(microservice);
                   microservice.setName(delta.getNewMicroserviceName());
-                  updateMicroserviceSystem(microservice, delta.getOldMicroserviceName());
-              }
+                  // Here we must check if any orphans are waiting on this creation
+                  microserviceSystem.adopt(microservice, delta.getNewPath());
+                  microserviceSystem.getMicroservices().add(microservice);
+                  break;
+
+              case DELETE:
+                  microservice = microserviceSystem.findMicroserviceByName(delta.getOldMicroserviceName());
+                  // Here we must orphan all the classes of this microservice
+                  microserviceSystem.orphanize(microservice);
+                  microserviceSystem.getMicroservices().remove(microservice);
+                  break;
+
           }
 
       }

@@ -51,7 +51,7 @@ public class IRComparisonTest {
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
             MergeService mergeService = new MergeService("./output/IR.json","./output/Delta.json", "./config.json");
-            mergeService.makeAllChanges();
+            mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
        }
 

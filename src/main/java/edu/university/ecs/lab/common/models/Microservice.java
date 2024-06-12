@@ -44,4 +44,18 @@ public class Microservice implements JsonSerializable {
     return jsonObject;
   }
 
+  public void addJClass(JClass jClass) {
+    switch (jClass.getClassRole()) {
+      case CONTROLLER:
+        controllers.add(jClass);
+        break;
+      case SERVICE:
+        services.add(jClass);
+        break;
+      case REPOSITORY:
+        repositories.add(jClass);
+        break;
+    }
+  }
+
 }

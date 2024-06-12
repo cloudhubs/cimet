@@ -5,6 +5,7 @@ import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /** Represents the intermediate structure of a microservice system. */
@@ -22,6 +23,9 @@ public class MicroserviceSystem implements JsonSerializable {
   /** List of microservices in the system */
   private List<Microservice> microservices;
 
+  /** List of present classes who have no microservice */
+  private List<JClass> orphans;
+
   /**
    * Construct a JSON object representing the given ms system name, version, and microservice data
    * map.
@@ -35,6 +39,7 @@ public class MicroserviceSystem implements JsonSerializable {
     jsonObject.addProperty("systemName", systemName);
     jsonObject.addProperty("version", version);
     jsonObject.add("microservices", JsonSerializable.toJsonArray(microservices));
+    jsonObject.add("orphans", JsonSerializable.toJsonArray(orphans));
 
     return jsonObject;
   }
@@ -75,6 +80,48 @@ public class MicroserviceSystem implements JsonSerializable {
     }
 
     version = newVersion.toString();
+  }
+
+  /**
+   * Returns the microservice that matches the passed name
+   *
+   * @param name the name to search for
+   * @return microservice whose name matches or null if not found
+   */
+  public Microservice findMicroserviceByName(String name) {
+    return getMicroservices().stream().filter(microservice -> microservice.getName().equals(name)).findFirst().orElse(null);
+  }
+
+
+  /**
+   * Given an existing microservice, if it must now be orphanized
+   * then all JClasses belonging to that service will be added to
+   * the system's pool of orphans for later use
+   *
+   * @param microservice the microservice to orphanize
+   */
+  public void orphanize(Microservice microservice) {
+    orphans.addAll(microservice.getControllers());
+    orphans.addAll(microservice.getServices());
+    orphans.addAll(microservice.getRepositories());
+  }
+
+  /**
+   * Given a new or modified microservice, we must adopt awaiting
+   * orphans based on their file paths containing the pom.xml's
+   * parsed microservice name (indicating they are in the same
+   *
+   * @param microservice the microservice adopting orphans
+   */
+  public void adopt(Microservice microservice, String microserviceName) {
+    for (JClass jClass : getOrphans()) {
+      // Match the pattern "<whatever>\\<microserviceName>\\<className>.java"
+      if(Pattern.matches(".*\\\\" + microserviceName + "\\\\.*\\.java", jClass.getClassPath())) {
+        microservice.addJClass(jClass);
+      }
+
+    }
+
   }
 
 

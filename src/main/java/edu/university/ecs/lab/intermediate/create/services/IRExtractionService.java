@@ -129,7 +129,7 @@ public class IRExtractionService {
    */
   private void writeToFile(List<Microservice> microservices, String fileName) {
 
-    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices);
+    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new ArrayList<>());
 
     JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
