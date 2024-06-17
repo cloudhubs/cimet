@@ -32,15 +32,13 @@ public class SystemChange implements JsonSerializable {
     /**
      * List of changed controllers
      */
-    private final List<Delta> changes = new ArrayList<>();
+    private List<Delta> changes = new ArrayList<>();
 
 
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("type", "system");
-        jsonObject.addProperty("name", this.getClass().getSimpleName());
         jsonObject.add("changes", JsonSerializable.toJsonArray(changes));
         jsonObject.addProperty("oldCommit", oldCommit);
         jsonObject.addProperty("newCommit", newCommit);

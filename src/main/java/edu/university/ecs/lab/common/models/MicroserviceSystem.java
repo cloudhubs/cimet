@@ -49,7 +49,7 @@ public class MicroserviceSystem implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("name", name);
-        jsonObject.addProperty("version", commitID);
+        jsonObject.addProperty("commitID", commitID);
         jsonObject.add("microservices", JsonSerializable.toJsonArray(microservices));
         jsonObject.add("orphans", JsonSerializable.toJsonArray(orphans));
 

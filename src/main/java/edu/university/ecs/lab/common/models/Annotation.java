@@ -16,7 +16,7 @@ public class Annotation implements JsonSerializable {
     /**
      * The name of the annotation *
      */
-    protected String annotationName;
+    protected String name;
 
     /**
      * The contents of the annotation *
@@ -27,7 +27,7 @@ public class Annotation implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("annotationName", getAnnotationName());
+        jsonObject.addProperty("name", getName());
         jsonObject.addProperty("contents", getContents());
 
         return jsonObject;

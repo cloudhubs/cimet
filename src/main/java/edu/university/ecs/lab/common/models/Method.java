@@ -20,7 +20,7 @@ public class Method implements JsonSerializable {
     /**
      * Name of the method
      */
-    private String methodName;
+    private String name;
 
     // Protection Not Yet Implemented
     // protected String protection;
@@ -44,7 +44,7 @@ public class Method implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("methodName", methodName);
+        jsonObject.addProperty("name", name);
         jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
         jsonObject.add("parameters", JsonSerializable.toJsonArray(parameters));
         jsonObject.addProperty("returnType", returnType);

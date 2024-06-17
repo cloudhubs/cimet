@@ -27,8 +27,8 @@ public class Field implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("fieldName", getName());
-        jsonObject.addProperty("fieldType", getType());
+        jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("type", getType());
 
         return jsonObject;
     }

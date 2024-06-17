@@ -25,7 +25,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
 
     private Method jsonToMethod(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         Method method = new Method();
-        method.setMethodName(json.get("name").getAsString());
+        method.setName(json.get("name").getAsString());
         method.setReturnType(json.get("returnType").getAsString());
 
         Set<Annotation> annotations = new HashSet<Annotation>();

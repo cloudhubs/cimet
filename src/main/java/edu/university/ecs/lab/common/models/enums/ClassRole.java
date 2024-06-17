@@ -3,8 +3,6 @@ package edu.university.ecs.lab.common.models.enums;
 import edu.university.ecs.lab.common.models.JClass;
 import lombok.Getter;
 
-import java.io.File;
-
 /**
  * Enum to represent the role of a class in a system
  */
@@ -46,24 +44,4 @@ public enum ClassRole {
         return null;
     }
 
-    /**
-     * Get the class role from the source file path
-     *
-     * @param sourceFile the source file to parse the path of
-     * @return the class role from the source file
-     */
-    public static ClassRole fromSourceFile(File sourceFile) {
-        String fileName = sourceFile.getName().toLowerCase();
-        String parentPath = sourceFile.getParent().toLowerCase();
-
-        if (fileName.contains("controller")) {
-            return ClassRole.CONTROLLER;
-        } else if (fileName.contains("service")) {
-            return ClassRole.SERVICE;
-        } else if (fileName.contains("repository")) {
-            return ClassRole.REPOSITORY;
-        } else {
-            return ClassRole.UNKNOWN;
-        }
-    }
 }

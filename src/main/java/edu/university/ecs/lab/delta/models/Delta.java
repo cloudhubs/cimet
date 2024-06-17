@@ -12,10 +12,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class Delta implements JsonSerializable {
-    /**
-     * Relative path to the changed file. This DIFFERS from {@link JClass#getClassPath()} as the
-     * jClass path starts at the repoName and this is a working relative path to the file.
-     */
+
     private String oldPath;
 
     private String newPath;
@@ -29,19 +26,9 @@ public class Delta implements JsonSerializable {
 //  private FileType fileType;
 
     /**
-     * The class that was changed, null in the case of ChangeType.DELETE || FileType.FOLDER
+     * The class that was changed,
      */
     private JClass classChange;
-
-    /**
-     * The name of the associated microservice
-     */
-    private String oldMicroserviceName;
-
-    /**
-     * The name of the associated microservice
-     */
-    private String newMicroserviceName;
 
     /**
      * Converts the delta object to a JSON object
@@ -54,10 +41,6 @@ public class Delta implements JsonSerializable {
         jsonObject.addProperty("changeType", changeType.name());
         jsonObject.addProperty("oldPath", oldPath);
         jsonObject.addProperty("newPath", newPath);
-//      jsonObject.addProperty("fileType", fileType.name());
-        jsonObject.addProperty("oldMicroserviceName", oldMicroserviceName);
-        jsonObject.addProperty("newMicroserviceName", newMicroserviceName);
-
         jsonObject.add("classChange", classChange.toJsonObject());
 
 

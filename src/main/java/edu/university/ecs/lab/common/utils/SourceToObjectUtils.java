@@ -53,7 +53,7 @@ public class SourceToObjectUtils {
         }).collect(Collectors.toUnmodifiableList()));
 
         // calculate the preEndpointURL from RequestMapping annotation
-        String preURL = classAnnotations.stream().filter(ae -> ae.getAnnotationName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
+        String preURL = classAnnotations.stream().filter(ae -> ae.getName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
         preURL = preURL.replace("\"", "");
 
         ClassRole classRole = parseClassRole(classAnnotations);
@@ -427,7 +427,7 @@ public class SourceToObjectUtils {
     private static ClassRole parseClassRole(Set<Annotation> annotations) {
         ClassRole classRole = ClassRole.UNKNOWN;
         for (Annotation annotation : annotations) {
-            switch (annotation.getAnnotationName()) {
+            switch (annotation.getName()) {
                 case "RestController":
                     classRole = ClassRole.CONTROLLER;
                     break;

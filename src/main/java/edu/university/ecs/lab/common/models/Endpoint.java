@@ -36,7 +36,7 @@ public class Endpoint extends Method {
     }
 
     public Endpoint(Method method, String url, HttpMethod httpMethod, String microserviceName) {
-        super(method.getMethodName(), method.getParameters(), method.getReturnType(), method.getAnnotations());
+        super(method.getName(), method.getParameters(), method.getReturnType(), method.getAnnotations());
         this.url = url;
         this.httpMethod = httpMethod;
         this.microserviceName = microserviceName;

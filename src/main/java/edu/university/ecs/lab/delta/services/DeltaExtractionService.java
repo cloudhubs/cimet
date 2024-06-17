@@ -143,7 +143,7 @@ public class DeltaExtractionService {
 
             // If the class isn't ours and it isn't a folder or Docker or Pom
 
-            systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, "", ""));
+            systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass));
 
         }
 
@@ -160,8 +160,8 @@ public class DeltaExtractionService {
     }
 
 
-    private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String oldMicroserviceName, String newMicroserviceName) {
-        return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass, oldMicroserviceName, newMicroserviceName);
+    private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass) {
+        return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass);
     }
 
 }
