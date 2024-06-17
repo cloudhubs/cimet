@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.*;
 
 /**
@@ -11,10 +13,14 @@ import java.util.*;
  * hold all information in that class.
  */
 @Data
-@AllArgsConstructor
+//@AllArgsConstructor
+@EqualsAndHashCode
 public class Microservice implements JsonSerializable {
   /** The name of the service (ex: "ts-assurance-service") */
   private String name;
+
+  /** The path to the folder that represents the microservice */
+  private String path;
 
 //  private String branch;
 //
@@ -22,13 +28,34 @@ public class Microservice implements JsonSerializable {
 //  private String commit;
 
   /** Controller classes belonging to the microservice. */
-  private List<JClass> controllers;
+  private final Set<JClass> controllers;
 
   /** Service classes to the microservice. */
-  private List<JClass> services;
+  private final Set<JClass> services;
 
   /** Repository classes belonging to the microservice. */
-  private List<JClass> repositories;
+  private final Set<JClass> repositories;
+
+  /** Repository classes belonging to the microservice. */
+  private final Set<JClass> entities;
+
+  public Microservice(String name, String path) {
+    this.name = name;
+    this.path = path;
+    this.controllers = new HashSet<>();
+    this.services = new HashSet<>();
+    this.repositories = new HashSet<>();
+    this.entities = new HashSet<>();
+  }
+
+  public Microservice(String name, String path, Set<JClass> controllers, Set<JClass> services, Set<JClass> repositories, Set<JClass> entities) {
+    this.name = name;
+    this.path = path;
+    this.controllers = controllers;
+    this.services = services;
+    this.repositories = repositories;
+    this.entities = entities;
+  }
 
 
   @Override
@@ -36,8 +63,10 @@ public class Microservice implements JsonSerializable {
     JsonObject jsonObject = new JsonObject();
 
     jsonObject.addProperty("name", name);
+    jsonObject.addProperty("path", path);
 //    jsonObject.addProperty("commitId", commit);
     jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
+    jsonObject.add("entities", JsonSerializable.toJsonArray(entities));
     jsonObject.add("services", JsonSerializable.toJsonArray(services));
     jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
 
@@ -55,7 +84,52 @@ public class Microservice implements JsonSerializable {
       case REPOSITORY:
         repositories.add(jClass);
         break;
+      case ENTITY:
+        entities.add(jClass);
+        break;
     }
+  }
+
+  public void removeClass(String path) {
+    List<JClass> classes = getClasses();
+    JClass removeClass = null;
+
+    for(JClass jClass : classes) {
+      if(jClass.getClassPath().equals(path)) {
+        removeClass = jClass;
+        break;
+      }
+    }
+
+    if(removeClass == null) {
+      System.out.println("REMOVECLASS NOT FOUND");
+      return;
+    }
+
+    switch (removeClass.getClassRole()) {
+      case CONTROLLER:
+        controllers.remove(removeClass);
+        break;
+      case SERVICE:
+        services.remove(removeClass);
+        break;
+      case REPOSITORY:
+        repositories.remove(removeClass);
+        break;
+      case ENTITY:
+        entities.remove(removeClass);
+        break;
+    }
+  }
+
+  public List<JClass> getClasses() {
+    List<JClass> classes = new ArrayList<>();
+    classes.addAll(controllers);
+    classes.addAll(services);
+    classes.addAll(repositories);
+    classes.addAll(entities);
+
+    return classes;
   }
 
 }

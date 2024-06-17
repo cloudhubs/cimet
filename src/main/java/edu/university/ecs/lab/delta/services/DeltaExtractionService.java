@@ -89,49 +89,63 @@ public class DeltaExtractionService {
     // process each difference
     for (DiffEntry entry : diffEntries) {
 
-      if(!entry.getOldPath().contains(".java") || !entry.getNewPath().contains(".java")) {
+      if(commitNew.startsWith("a78")) {
+        System.out.println("RENAME" + entry);
+      }
+
+      // If its not a java file and doesnt end with pom.xml
+      String path = entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) ? entry.getOldPath() : entry.getNewPath();
+
+      // If paths doesnt end with java or (path doesnt end with java or pom)
+      if(!path.endsWith(".java") && !path.endsWith("pom.xml")) {
         continue;
       }
 
       String oldPath = "";
       String newPath = "";
-      String oldMicroserviceName = "";
-      String newMicroserviceName = "";
 
       if(DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
         oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
         newPath = null;
-        oldMicroserviceName = getMicroserviceName(entry.getOldPath());
-        newMicroserviceName = null;
 
       } else if(DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
         oldPath = null;
         newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
-        oldMicroserviceName = null;
-        newMicroserviceName = getMicroserviceName(entry.getNewPath());
 
       } else {
         oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
         newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
-        oldMicroserviceName = getMicroserviceName(entry.getOldPath());
-        newMicroserviceName = getMicroserviceName(entry.getNewPath());
 
       }
 
       String microserviceName = null;
 
 
-      // Get the class, getClass checks edge cases like null newPath and non .java files
-      JClass jClass = getClass(entry, newPath);
+      // Get the class, if we are a delete the file for parsing no longer exists
+      // If we are a pom.xml we cannot parse
+      JClass jClass = null;
+      if(!path.endsWith("pom.xml")) {
+
+        if(!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
+
+          jClass = getClass(newPath);
+
+          // If we try to parse and it is still null, for ADD we will skip
+          if(jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
+            continue;
+          }
+
+          // For MODIFY we will let pass since it might be modifying a previously accepted file
+
+        }
+
+      }
 
 
 
       // If the class isn't ours and it isn't a folder or Docker or Pom
-//      if(Objects.isNull(jClass) && !entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && !file.getName().equals("DockerFile") && !file.getName().equals("pom.xml")) {
-//        continue;
-//      }
 
-      systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, oldMicroserviceName, newMicroserviceName));
+      systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass, "", ""));
 
     }
 
@@ -161,16 +175,9 @@ public class DeltaExtractionService {
 //            .collect(Collectors.toUnmodifiableList());
 //  }
 
-  private JClass getClass(DiffEntry diffEntry, String localPath) {
-    // If the DiffEntry type is DELETE then we cannot pare at this HEAD, it is now gone
-    if(DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType()) || !(new File(localPath).toPath().endsWith(".java"))) {
-      return null;
-    } else {
-      // Otherwise we can parse the new file as we have reset the head to where the file exists
-      return SourceToObjectUtils.parseClass(new File(localPath), config);
+  private JClass getClass(String localPath) {
+    return SourceToObjectUtils.parseClass(new File(localPath), config);
 
-
-    }
   }
 
   // TODO Add to FileUtils
@@ -183,9 +190,9 @@ public class DeltaExtractionService {
   }
 
   // TODO Add to FileUtils
-  private String getMicroserviceName(String path) {
-      return path.substring(0, path.indexOf("/"));
-  }
+//  private String getMicroserviceName(String path) {
+//      return (!path.contains("/")) ? "" : path.substring(0, path.indexOf("/"));
+//  }
 
   private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String oldMicroserviceName, String newMicroserviceName) {
     return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass, oldMicroserviceName, newMicroserviceName);

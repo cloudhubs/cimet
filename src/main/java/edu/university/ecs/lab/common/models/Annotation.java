@@ -7,6 +7,7 @@ import lombok.*;
 /** Represents an annotation in Java */
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Annotation implements JsonSerializable {
   /** The name of the annotation * */
   protected String annotationName;

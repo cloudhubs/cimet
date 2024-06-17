@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 /** Represents the intermediate structure of a microservice system. */
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode
 public class MicroserviceSystem implements JsonSerializable {
   public static final String INITIAL_VERSION = "1.0";
 
@@ -21,10 +22,10 @@ public class MicroserviceSystem implements JsonSerializable {
   private String version;
 
   /** List of microservices in the system */
-  private List<Microservice> microservices;
+  private Set<Microservice> microservices;
 
   /** List of present classes who have no microservice */
-  private List<JClass> orphans;
+  private Set<JClass> orphans;
 
   /**
    * Construct a JSON object representing the given ms system name, version, and microservice data
@@ -104,6 +105,7 @@ public class MicroserviceSystem implements JsonSerializable {
     orphans.addAll(microservice.getControllers());
     orphans.addAll(microservice.getServices());
     orphans.addAll(microservice.getRepositories());
+    orphans.addAll(microservice.getEntities());
   }
 
   /**
@@ -113,14 +115,19 @@ public class MicroserviceSystem implements JsonSerializable {
    *
    * @param microservice the microservice adopting orphans
    */
-  public void adopt(Microservice microservice, String microserviceName) {
+  public void adopt(Microservice microservice) {
+    Set<JClass> updatedOrphans = new HashSet<>(getOrphans());
+
     for (JClass jClass : getOrphans()) {
-      // Match the pattern "<whatever>\\<microserviceName>\\<className>.java"
-      if(Pattern.matches(".*\\\\" + microserviceName + "\\\\.*\\.java", jClass.getClassPath())) {
+      // If the microservice is in the same folder as the path to the microservice
+      if(jClass.getClassPath().contains(microservice.getPath())) {
         microservice.addJClass(jClass);
+        updatedOrphans.remove(jClass);
       }
 
     }
+
+    setOrphans(updatedOrphans);
 
   }
 
@@ -130,7 +137,10 @@ public class MicroserviceSystem implements JsonSerializable {
     allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toUnmodifiableList()));
     allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).collect(Collectors.toUnmodifiableList()));
     allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getRepositories().stream()).collect(Collectors.toUnmodifiableList()));
+    allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getEntities().stream()).collect(Collectors.toUnmodifiableList()));
 
     return allClasses.stream().filter(jClass -> jClass.getClassPath().equals(path)).findFirst().orElse(null);
   }
+
+
 }

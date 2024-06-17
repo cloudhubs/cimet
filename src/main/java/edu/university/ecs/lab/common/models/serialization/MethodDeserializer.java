@@ -9,6 +9,8 @@ import edu.university.ecs.lab.common.models.enums.HttpMethod;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MethodDeserializer implements JsonDeserializer<Method> {
 
@@ -27,13 +29,13 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         method.setMethodName(json.get("methodName").getAsString());
         method.setReturnType(json.get("returnType").getAsString());
 
-        ArrayList<Annotation> annotations = new ArrayList<Annotation>();
+        Set<Annotation> annotations = new HashSet<Annotation>();
         for (JsonElement annotationJson : json.get("annotations").getAsJsonArray()) {
             annotations.add(context.deserialize(annotationJson, Annotation.class));
         }
         method.setAnnotations(annotations);
 
-        ArrayList<Field> fields = new ArrayList<Field>();
+        Set<Field> fields = new HashSet<Field>();
         for (JsonElement fieldJson : json.get("parameters").getAsJsonArray()) {
             fields.add(context.deserialize(fieldJson, Field.class));
         }

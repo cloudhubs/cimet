@@ -10,9 +10,8 @@ public enum ClassRole {
   CONTROLLER(JClass.class),
   SERVICE(JClass.class),
   REPOSITORY(JClass.class),
-  UNKNOWN(null),
-  /** Only for metrics reporting, not a real class role */
-  TOTAL(null);
+  ENTITY(JClass.class),
+  UNKNOWN(null);
 
   /** Get the associated class type for a role */
   @Getter private final Class<? extends JClass> classType;

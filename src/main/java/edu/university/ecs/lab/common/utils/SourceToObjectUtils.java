@@ -17,9 +17,7 @@ import edu.university.ecs.lab.common.models.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /** Static utility class for parsing a file and returning associated models from code structure. */
@@ -45,7 +43,7 @@ public class SourceToObjectUtils {
     }
 
     // Calculate early to determine classrole based on annotation, filter for class based only
-    List<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
+    Set<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
       if(annotationExpr.getParentNode().isPresent()) {
         Node n = annotationExpr.getParentNode().get();
         if(n instanceof ClassOrInterfaceDeclaration) {
@@ -78,13 +76,13 @@ public class SourceToObjectUtils {
   }
 
 
-  public static List<Method> parseMethods(String microserviceName, String preURL, List<MethodDeclaration> methodDeclarations) {
+  public static Set<Method> parseMethods(String microserviceName, String preURL, List<MethodDeclaration> methodDeclarations) {
     // Get params and returnType
-    List<Method> methods = new ArrayList<>();
+    Set<Method> methods = new HashSet<>();
 
 
     for(MethodDeclaration methodDeclaration : methodDeclarations) {
-      List<Field> parameters = new ArrayList<>();
+      Set<Field> parameters = new HashSet<>();
       for (Parameter parameter : methodDeclaration.getParameters()) {
         parameters.add(new Field(parameter.getNameAsString(), parameter.getTypeAsString()));
       }
@@ -131,8 +129,8 @@ public class SourceToObjectUtils {
     return new Endpoint(method, url, httpMethod, microserviceName);
   }
 
-  public static List<MethodCall> parseMethodCalls(String microserviceName, List<MethodDeclaration> methodDeclarations) {
-    List<MethodCall> methodCalls = new ArrayList<>();
+  public static Set<MethodCall> parseMethodCalls(String microserviceName, List<MethodDeclaration> methodDeclarations) {
+    Set<MethodCall> methodCalls = new HashSet<>();
 
     // loop through method calls
     for(MethodDeclaration methodDeclaration : methodDeclarations) {
@@ -178,8 +176,8 @@ public class SourceToObjectUtils {
     return new RestCall(methodCall, url, httpMethod, microserviceName);
   }
 
-  private static List<Field> parseFields(List<FieldDeclaration> fieldDeclarations) {
-    List<Field> javaFields = new ArrayList<>();
+  private static Set<Field> parseFields(List<FieldDeclaration> fieldDeclarations) {
+    Set<Field> javaFields = new HashSet<>();
 
     // loop through class declarations
     for (FieldDeclaration fd : fieldDeclarations) {
@@ -354,8 +352,8 @@ public class SourceToObjectUtils {
 
 
 
-  private static List<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
-    List<Annotation> annotations = new ArrayList<>();
+  private static Set<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
+    Set<Annotation> annotations = new HashSet<>();
 
     for (AnnotationExpr ae : annotationExprs) {
       Annotation annotation;
@@ -378,24 +376,29 @@ public class SourceToObjectUtils {
     return annotations;
   }
 
-  private static ClassRole parseClassRole(List<Annotation> annotations) {
+  private static ClassRole parseClassRole(Set<Annotation> annotations) {
+    ClassRole classRole = ClassRole.UNKNOWN;
     for(Annotation annotation : annotations) {
       switch (annotation.getAnnotationName()) {
         case "RestController":
-          return ClassRole.CONTROLLER;
+          classRole = ClassRole.CONTROLLER;
+          break;
         case "Service":
-          return ClassRole.SERVICE;
+          classRole = ClassRole.SERVICE;
+          break;
         case "Repository":
-          return ClassRole.REPOSITORY;
-        default:
-          return ClassRole.UNKNOWN;
+          classRole = ClassRole.REPOSITORY;
+          break;
+        case "Entity":
+          classRole = ClassRole.ENTITY;
+          break;
       }
     }
 
-    return ClassRole.UNKNOWN;
+    return classRole;
   }
 
   private static String getMicroserviceName(File sourceFile) {
-    return sourceFile.getAbsolutePath().split("\\\\")[8];
+    return sourceFile.getPath().split("\\\\")[3];
   }
 }

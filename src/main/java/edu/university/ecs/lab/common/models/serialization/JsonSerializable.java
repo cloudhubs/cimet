@@ -8,11 +8,12 @@ import java.util.List;
 public interface JsonSerializable {
   JsonObject toJsonObject();
 
-  static JsonArray toJsonArray(List<? extends JsonSerializable> list) {
+  static JsonArray toJsonArray(Iterable<? extends JsonSerializable> list) {
     JsonArray jsonArray = new JsonArray();
     for (JsonSerializable item : list) {
       jsonArray.add(item.toJsonObject());
     }
     return jsonArray;
   }
+
 }

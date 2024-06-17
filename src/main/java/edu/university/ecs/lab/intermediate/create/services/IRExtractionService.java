@@ -46,7 +46,7 @@ public class IRExtractionService {
    */
   public void generateIR(String fileName) {
     // Clone remote repositories and scan through each cloned repo to extract endpoints
-      List<Microservice> microservices = cloneAndScanServices();
+      Set<Microservice> microservices = cloneAndScanServices();
 
     if (microservices.isEmpty()) {
       System.out.println("No microservices found");
@@ -65,8 +65,8 @@ public class IRExtractionService {
    *
    * @return a map of services and their endpoints
    */
-  public List<Microservice> cloneAndScanServices() {
-      List<Microservice> microservices = new ArrayList<>();
+  public Set<Microservice> cloneAndScanServices() {
+      Set<Microservice> microservices = new HashSet<>();
 
       // Clone the repository present in the configuration file
       gitService.cloneRemote();
@@ -100,7 +100,7 @@ public class IRExtractionService {
             boolean containsDockerfile = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && (file.getName().equals("Dockerfile") || file.getName().equals("pom.xml")) && !file.getParentFile().getName().equals(config.getRepoName())) {
+                    if (file.isFile()  && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
                         containsDockerfile = true;
                         break;
                     }
@@ -127,9 +127,9 @@ public class IRExtractionService {
    *
    * @param microservices a list of microservices extracted from repository
    */
-  private void writeToFile(List<Microservice> microservices, String fileName) {
+  private void writeToFile(Set<Microservice> microservices, String fileName) {
 
-    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new ArrayList<>());
+    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new HashSet<>());
 
     JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
@@ -166,17 +166,18 @@ public class IRExtractionService {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        List<JClass> controllers = new ArrayList<>();
-        List<JClass> services = new ArrayList<>();
-        List<JClass> repositories = new ArrayList<>();
+        Set<JClass> controllers = new HashSet<>();
+        Set<JClass> services = new HashSet<>();
+        Set<JClass> repositories = new HashSet<>();
+        Set<JClass> entities = new HashSet<>();
 
-        scanDirectory(localDir, controllers, services, repositories);
+
+        scanDirectory(localDir, controllers, services, repositories, entities);
 
         String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
 
         Microservice model =
-                new Microservice(
-                        id, controllers, services, repositories);
+                new Microservice(id, rootMicroservicePath, controllers, services, repositories, entities);
 
         System.out.println("Done!");
         return model;
@@ -189,17 +190,18 @@ public class IRExtractionService {
      */
     public void scanDirectory(
             File directory,
-            List<JClass> controllers,
-            List<JClass> services,
-            List<JClass> repositories) {
+            Set<JClass> controllers,
+            Set<JClass> services,
+            Set<JClass> repositories,
+            Set<JClass> entities) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories);
+                    scanDirectory(file, controllers, services, repositories, entities);
                 } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, repositories);
+                    scanFile(file, controllers, services, repositories, entities);
                 }
             }
         }
@@ -215,9 +217,10 @@ public class IRExtractionService {
      */
     public void scanFile(
             File file,
-            List<JClass> controllers,
-            List<JClass> services,
-            List<JClass> repositories) {
+            Set<JClass> controllers,
+            Set<JClass> services,
+            Set<JClass> repositories,
+            Set<JClass> entities) {
             JClass jClass = SourceToObjectUtils.parseClass(file, config);
             
             if (jClass == null) {
@@ -235,6 +238,9 @@ public class IRExtractionService {
                     break;
                 case REPOSITORY:
                     repositories.add(jClass);
+                    break;
+                case ENTITY:
+                    entities.add(jClass);
                     break;
                 default:
                     break;

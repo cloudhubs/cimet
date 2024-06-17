@@ -35,7 +35,7 @@ public class IRComparisonTest {
            list.add(iterator.next());
        }
        Collections.reverse(list);
-
+        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
        // Create IR of first commit
        createIRSystem(config, "IR.json");
 
@@ -56,12 +56,15 @@ public class IRComparisonTest {
        }
 
        // Create IR of last commit
+       config.setBaseCommit(list.get(list.size()-1).toString().split(" ")[1]);
        createIRSystem(config, "IRCompare.json");
 
        // Compare two IR's for equivalence
        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
        MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
-       boolean b = Objects.equals(microserviceSystem1, microserviceSystem2);
+       boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);
+
+
 
        // Output results
        System.out.println(b);

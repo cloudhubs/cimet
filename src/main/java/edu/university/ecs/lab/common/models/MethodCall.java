@@ -11,6 +11,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class MethodCall implements JsonSerializable {
   /** Name of the called method */
   private String methodName;

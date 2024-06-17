@@ -6,6 +6,7 @@ import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a class in Java. It holds all information regarding that class including all method
@@ -13,6 +14,7 @@ import java.util.List;
  */
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode
 public class JClass implements JsonSerializable {
   /** Name of the class e.g. Food */
   private String className;
@@ -30,16 +32,16 @@ public class JClass implements JsonSerializable {
   private ClassRole classRole;
 
   /** List of methods in the class */
-  private List<Method> methods;
+  private Set<Method> methods;
 
   /** List of class variables e.g. (private String username;) */
-  private List<Field> fields;
+  private Set<Field> fields;
 
   /** Class level annotations * */
-  private List<Annotation> annotations;
+  private Set<Annotation> annotations;
 
   /** List of method invocations made from within this class e.g. obj.method() */
-  private List<MethodCall> methodCalls;
+  private Set<MethodCall> methodCalls;
 
 
   public void setClassName(String className) {
@@ -69,14 +71,14 @@ public class JClass implements JsonSerializable {
   public JsonObject toJsonObject() {
     JsonObject jsonObject = new JsonObject();
 
+    jsonObject.addProperty("packageName", getPackageName());
     jsonObject.addProperty("className", getClassName());
     jsonObject.addProperty("classPath", getClassPath());
-    jsonObject.addProperty("packageName", getPackageName());
     jsonObject.addProperty("classRole", getClassRole().name());
-    jsonObject.add("methods", JsonSerializable.toJsonArray(getMethods()));
-    jsonObject.add("variables", JsonSerializable.toJsonArray(getFields()));
-    jsonObject.add("methodCalls", JsonSerializable.toJsonArray(getMethodCalls()));
     jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
+    jsonObject.add("fields", JsonSerializable.toJsonArray(getFields()));
+    jsonObject.add("methods", JsonSerializable.toJsonArray(getMethods()));
+    jsonObject.add("methodCalls", JsonSerializable.toJsonArray(getMethodCalls()));
 
     return jsonObject;
   }

@@ -4,37 +4,34 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
 public class NetworkGraph implements JsonSerializable {
-    private static final List<String> SERVICES = Arrays.asList("ts-admin-service",
-            "ts-assurance-service",
-            "ts-auth-service",
-            "ts-cancel-service",
-            "ts-config-service",
-            "ts-consign-service",
-            "ts-contacts-service",
-            "ts-delivery-service",
-            "ts-food-service",
-            "ts-gateway",
-            "ts-new-gateway",
-            "ts-notification-service",
-            "ts-order-related-service",
-            "ts-order-service",
-            "ts-preserve-service",
-            "ts-price-service",
-            "ts-rebook-service",
-            "ts-route-service",
-            "ts-security-service",
-            "ts-station-service",
-            "ts-travel-service",
-            "ts-ui-dashboard",
-            "ts-user-service");
+//    private static final List<String> SERVICES = Arrays.asList("ts-admin-service",
+//            "ts-assurance-service",
+//            "ts-auth-service",
+//            "ts-cancel-service",
+//            "ts-config-service",
+//            "ts-consign-service",
+//            "ts-contacts-service",
+//            "ts-delivery-service",
+//            "ts-food-service",
+//            "ts-gateway",
+//            "ts-new-gateway",
+//            "ts-notification-service",
+//            "ts-order-related-service",
+//            "ts-order-service",
+//            "ts-preserve-service",
+//            "ts-price-service",
+//            "ts-rebook-service",
+//            "ts-route-service",
+//            "ts-security-service",
+//            "ts-station-service",
+//            "ts-travel-service",
+//            "ts-ui-dashboard",
+//            "ts-user-service");
 
     private final String label;
     private final String timestamp;

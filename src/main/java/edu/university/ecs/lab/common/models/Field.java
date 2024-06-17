@@ -7,6 +7,7 @@ import lombok.*;
 /** Represents a field attribute in a Java class or in our case a JClass. */
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Field implements JsonSerializable {
   /** Java class type of the class variable e.g. String */
   private String fieldType;
@@ -18,8 +19,8 @@ public class Field implements JsonSerializable {
   public JsonObject toJsonObject() {
     JsonObject jsonObject = new JsonObject();
 
-    jsonObject.addProperty("fieldType", getFieldType());
     jsonObject.addProperty("fieldName", getFieldName());
+    jsonObject.addProperty("fieldType", getFieldType());
 
     return jsonObject;
   }
