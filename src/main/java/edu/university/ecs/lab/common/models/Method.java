@@ -2,42 +2,54 @@ package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.Set;
 
-/** Represents a method declaration in Java. */
+/**
+ * Represents a method declaration in Java.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 public class Method implements JsonSerializable {
-  /** Name of the method */
-  private String methodName;
+    /**
+     * Name of the method
+     */
+    private String methodName;
 
-  // Protection Not Yet Implemented
-  // protected String protection;
+    // Protection Not Yet Implemented
+    // protected String protection;
 
-  /** List of parameters in the method as a string like: [String userId, String money] */
-  private Set<Field> parameters;
+    /**
+     * List of parameters in the method as a string like: [String userId, String money]
+     */
+    private Set<Field> parameters;
 
-  /** Java return type of the method */
-  private String returnType;
+    /**
+     * Java return type of the method
+     */
+    private String returnType;
 
-  /** Method definition level annotations * */
-  private Set<Annotation> annotations;
+    /**
+     * Method definition level annotations *
+     */
+    private Set<Annotation> annotations;
 
-  @Override
-  public JsonObject toJsonObject() {
-    JsonObject jsonObject = new JsonObject();
+    @Override
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
 
-    jsonObject.addProperty("methodName", methodName);
-    jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
-    jsonObject.add("parameters", JsonSerializable.toJsonArray(parameters));
-    jsonObject.addProperty("returnType", returnType);
+        jsonObject.addProperty("methodName", methodName);
+        jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
+        jsonObject.add("parameters", JsonSerializable.toJsonArray(parameters));
+        jsonObject.addProperty("returnType", returnType);
 
-    return jsonObject;
-  }
+        return jsonObject;
+    }
 
 }

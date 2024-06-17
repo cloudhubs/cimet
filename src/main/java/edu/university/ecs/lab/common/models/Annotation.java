@@ -2,26 +2,34 @@ package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-/** Represents an annotation in Java */
+/**
+ * Represents an annotation in Java
+ */
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Annotation implements JsonSerializable {
-  /** The name of the annotation * */
-  protected String annotationName;
+    /**
+     * The name of the annotation *
+     */
+    protected String annotationName;
 
-  /** The contents of the annotation * */
-  protected String contents;
+    /**
+     * The contents of the annotation *
+     */
+    protected String contents;
 
-  @Override
-  public JsonObject toJsonObject() {
-    JsonObject jsonObject = new JsonObject();
+    @Override
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
 
-    jsonObject.addProperty("annotationName", getAnnotationName());
-    jsonObject.addProperty("contents", getContents());
+        jsonObject.addProperty("annotationName", getAnnotationName());
+        jsonObject.addProperty("contents", getContents());
 
-    return jsonObject;
-  }
+        return jsonObject;
+    }
 }

@@ -10,33 +10,37 @@ import java.io.IOException;
 import java.io.Reader;
 
 
-/** Utility class for parsing IR and delta files previously created. */
+/**
+ * Utility class for parsing IR and delta files previously created.
+ */
 public class IRParserUtils {
-  /** Gson parser */
-  private static final Gson gson =
-          new GsonBuilder().create();
+    /**
+     * Gson parser
+     */
+    private static final Gson gson =
+            new GsonBuilder().create();
 
-  /**
-   * Read in an IR (original or merged/new) file and parse it into a MsSystem object.
-   *
-   * @param irFileName the file path/name of the IR file to parse
-   * @return the parsed MsSystem object
-   * @throws IOException if an I/O error occurs
-   */
-  public static MicroserviceSystem parseIRSystem(String irFileName) {
-    MicroserviceSystem microserviceSystem = null;
-    try {
-      Reader irReader = new FileReader(irFileName);
-      microserviceSystem = gson.fromJson(irReader, MicroserviceSystem.class);
-      irReader.close();
-    } catch (FileNotFoundException e) {
-      java.lang.System.err.println("IR File not Found: " + irFileName);
-    } catch (IOException e) {
-      java.lang.System.err.println("Error reading IR file: " + irFileName);
+    /**
+     * Read in an IR (original or merged/new) file and parse it into a MsSystem object.
+     *
+     * @param irFileName the file path/name of the IR file to parse
+     * @return the parsed MsSystem object
+     * @throws IOException if an I/O error occurs
+     */
+    public static MicroserviceSystem parseIRSystem(String irFileName) {
+        MicroserviceSystem microserviceSystem = null;
+        try {
+            Reader irReader = new FileReader(irFileName);
+            microserviceSystem = gson.fromJson(irReader, MicroserviceSystem.class);
+            irReader.close();
+        } catch (FileNotFoundException e) {
+            java.lang.System.err.println("IR File not Found: " + irFileName);
+        } catch (IOException e) {
+            java.lang.System.err.println("Error reading IR file: " + irFileName);
+        }
+
+        return microserviceSystem;
     }
-
-    return microserviceSystem;
-  }
 
 //  /**
 //   * Read in a delta file and parse it into a SystemChange object.

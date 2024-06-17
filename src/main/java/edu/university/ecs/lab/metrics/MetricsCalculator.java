@@ -1,27 +1,19 @@
 package edu.university.ecs.lab.metrics;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.List;
-
 import com.google.gson.Gson;
-
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.NetworkGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
-import edu.university.ecs.lab.metrics.models.metrics.CyclicDependency;
-import edu.university.ecs.lab.metrics.models.metrics.GreedyMicroservice;
-import edu.university.ecs.lab.metrics.models.metrics.HubLikeMicroservice;
-import edu.university.ecs.lab.metrics.models.metrics.ServiceChain;
-import edu.university.ecs.lab.metrics.models.metrics.WrongCuts;
-import edu.university.ecs.lab.metrics.services.CyclicDependencyService;
-import edu.university.ecs.lab.metrics.services.GreedyService;
-import edu.university.ecs.lab.metrics.services.HubLikeService;
-import edu.university.ecs.lab.metrics.services.ServiceChainService;
-import edu.university.ecs.lab.metrics.services.WrongCutsService;
+import edu.university.ecs.lab.metrics.models.metrics.*;
+import edu.university.ecs.lab.metrics.services.*;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 public class MetricsCalculator {
     public static void main(String[] args) {
@@ -30,23 +22,23 @@ public class MetricsCalculator {
 
         // Create IR of first commit
         createIRSystem(config, "IR.json");
-        
+
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
-        
+
         NetworkGraph sdg = new NetworkGraph();
         sdg.createGraph(currentSystem);
-        
+
         writeObjectToJsonFile(sdg, "networkgraph.json");
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
         writeObjectToJsonFile(greedyMicroservices, "greedy.json");
-        
+
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
         writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
-        
+
         ServiceChainService chainService = new ServiceChainService();
         List<ServiceChain> allChains = chainService.getServiceChains(sdg);
         writeObjectToJsonFile(allChains, "servicechain.json");
@@ -74,7 +66,7 @@ public class MetricsCalculator {
     public static <T> void writeObjectToJsonFile(T object, String filename) {
         Gson gson = new Gson();
         String json = gson.toJson(object);
-        
+
         try (FileWriter fileWriter = new FileWriter("./output/" + filename)) {
             fileWriter.write(json);
         } catch (IOException e) {

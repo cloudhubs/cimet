@@ -1,11 +1,11 @@
 package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.*;
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.MethodCall;
+import edu.university.ecs.lab.common.models.RestCall;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
 

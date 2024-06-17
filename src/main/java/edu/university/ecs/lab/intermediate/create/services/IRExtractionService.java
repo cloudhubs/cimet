@@ -3,7 +3,9 @@ package edu.university.ecs.lab.intermediate.create.services;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.Microservice;
+import edu.university.ecs.lab.common.models.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
@@ -11,8 +13,10 @@ import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import javassist.NotFoundException;
 
 import java.io.File;
-import java.lang.System;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -20,18 +24,20 @@ import java.util.*;
  * are allowed to exit the program with an error code if an error occurs.
  */
 public class IRExtractionService {
-  /** Service to handle cloning from git */
-  private final GitService gitService;
+    /**
+     * Service to handle cloning from git
+     */
+    private final GitService gitService;
 
-  private final Config config;
+    private final Config config;
 
-  /**
-   * @param configPath path to configuration file
-   */
-  public IRExtractionService(String configPath) {
-    gitService = new GitService(configPath);
-    config = ConfigUtil.readConfig(configPath);
-  }
+    /**
+     * @param configPath path to configuration file
+     */
+    public IRExtractionService(String configPath) {
+        gitService = new GitService(configPath);
+        config = ConfigUtil.readConfig(configPath);
+    }
 
     // TODO REMOVE FOR TESTING ONLY
     public IRExtractionService(Config config) {
@@ -39,51 +45,51 @@ public class IRExtractionService {
         this.config = config;
     }
 
-  /**
-   * Intermediate extraction runner, generates IR from remote repository and writes to file.
-   *
-   * @return the name of the output file
-   */
-  public void generateIR(String fileName) {
-    // Clone remote repositories and scan through each cloned repo to extract endpoints
-      Set<Microservice> microservices = cloneAndScanServices();
+    /**
+     * Intermediate extraction runner, generates IR from remote repository and writes to file.
+     *
+     * @return the name of the output file
+     */
+    public void generateIR(String fileName) {
+        // Clone remote repositories and scan through each cloned repo to extract endpoints
+        Set<Microservice> microservices = cloneAndScanServices();
 
-    if (microservices.isEmpty()) {
-      System.out.println("No microservices found");
-    }
+        if (microservices.isEmpty()) {
+            System.out.println("No microservices found");
+        }
 
-    // Scan through each endpoint to update rest call destinations
+        // Scan through each endpoint to update rest call destinations
 //    updateCallDestinations(msDataMap);
 
-    //  Write each service and endpoints to IR
-      writeToFile(microservices, fileName);
+        //  Write each service and endpoints to IR
+        writeToFile(microservices, fileName);
 
-  }
+    }
 
-  /**
-   * Clone remote repositories and scan through each local repo and extract endpoints/calls
-   *
-   * @return a map of services and their endpoints
-   */
-  public Set<Microservice> cloneAndScanServices() {
-      Set<Microservice> microservices = new HashSet<>();
+    /**
+     * Clone remote repositories and scan through each local repo and extract endpoints/calls
+     *
+     * @return a map of services and their endpoints
+     */
+    public Set<Microservice> cloneAndScanServices() {
+        Set<Microservice> microservices = new HashSet<>();
 
-      // Clone the repository present in the configuration file
-      gitService.cloneRemote();
+        // Clone the repository present in the configuration file
+        gitService.cloneRemote();
 
-      // Start scanning from the root directory
-      List<String> rootDirectories = findRootDirectories(FileUtils.getClonePath(config.getRepoName()));
+        // Start scanning from the root directory
+        List<String> rootDirectories = findRootDirectories(FileUtils.getClonePath(config.getRepoName()));
 
-      // Scan each root directory for microservices
-      for (String rootDirectory : rootDirectories) {
-          Microservice microservice = recursivelyScanFiles(rootDirectory);
-          if (microservice != null) {
-              microservices.add(microservice);
-          }
-      }
+        // Scan each root directory for microservices
+        for (String rootDirectory : rootDirectories) {
+            Microservice microservice = recursivelyScanFiles(rootDirectory);
+            if (microservice != null) {
+                microservices.add(microservice);
+            }
+        }
 
-      return microservices;
-  }
+        return microservices;
+    }
 
     /**
      * Recursively search for directories containing a Dockerfile.
@@ -100,7 +106,7 @@ public class IRExtractionService {
             boolean containsDockerfile = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile()  && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
+                    if (file.isFile() && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
                         containsDockerfile = true;
                         break;
                     }
@@ -122,40 +128,40 @@ public class IRExtractionService {
     }
 
 
-  /**
-   * Write each service and endpoints to intermediate representation
-   *
-   * @param microservices a list of microservices extracted from repository
-   */
-  private void writeToFile(Set<Microservice> microservices, String fileName) {
+    /**
+     * Write each service and endpoints to intermediate representation
+     *
+     * @param microservices a list of microservices extracted from repository
+     */
+    private void writeToFile(Set<Microservice> microservices, String fileName) {
 
-    MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new HashSet<>());
+        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new HashSet<>());
 
-    JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
+        JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
-    System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
-  }
+        System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
+    }
 
-  /**
-   * Get name of output file for the IR
-   *
-   * @return the output file name
-   */
-  private String getOutputFileName() {
-    return FileUtils.getBaseOutputPath()
-        + "/rest-extraction-output-["
-        + config.getBaseBranch()
-        + "-"
-        + config.getBaseCommit().substring(0, 7)
-        + "].json";
-  }
+    /**
+     * Get name of output file for the IR
+     *
+     * @return the output file name
+     */
+    private String getOutputFileName() {
+        return FileUtils.getBaseOutputPath()
+                + "/rest-extraction-output-["
+                + config.getBaseBranch()
+                + "-"
+                + config.getBaseCommit().substring(0, 7)
+                + "].json";
+    }
 
     /**
      * Recursively scan the files in the given repository path and extract the endpoints and
      * dependencies for a single microservice.
      *
-     * @throws NotFoundException if the service name is not found in the repository paths
      * @return model of a single service containing the extracted endpoints and dependencies
+     * @throws NotFoundException if the service name is not found in the repository paths
      */
     public Microservice recursivelyScanFiles(String rootMicroservicePath) {
 //        System.out.println("Scanning repository '" + rootMicroservicePath + "'...");
@@ -212,8 +218,8 @@ public class IRExtractionService {
      *
      * @param file the file to scan
      * @apiNote CURRENT LIMITATION: We detect controllers/services/dtos/repositories/entities based on
-     *     literally having that string within the file name. This is a naive approach and should be
-     *     improved.
+     * literally having that string within the file name. This is a naive approach and should be
+     * improved.
      */
     public void scanFile(
             File file,
@@ -221,30 +227,30 @@ public class IRExtractionService {
             Set<JClass> services,
             Set<JClass> repositories,
             Set<JClass> entities) {
-            JClass jClass = SourceToObjectUtils.parseClass(file, config);
-            
-            if (jClass == null) {
-                return;
-            }
+        JClass jClass = SourceToObjectUtils.parseClass(file, config);
 
-            //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
-            // Switch through class roles and handle additional logic if needed
-            switch (jClass.getClassRole()) {
-                case CONTROLLER:
-                    controllers.add(jClass);
-                    break;
-                case SERVICE:
-                    services.add(jClass);
-                    break;
-                case REPOSITORY:
-                    repositories.add(jClass);
-                    break;
-                case ENTITY:
-                    entities.add(jClass);
-                    break;
-                default:
-                    break;
-            }
+        if (jClass == null) {
+            return;
+        }
+
+        //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
+        // Switch through class roles and handle additional logic if needed
+        switch (jClass.getClassRole()) {
+            case CONTROLLER:
+                controllers.add(jClass);
+                break;
+            case SERVICE:
+                services.add(jClass);
+                break;
+            case REPOSITORY:
+                repositories.add(jClass);
+                break;
+            case ENTITY:
+                entities.add(jClass);
+                break;
+            default:
+                break;
+        }
 
     }
 }

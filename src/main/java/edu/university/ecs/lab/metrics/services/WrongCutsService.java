@@ -1,25 +1,20 @@
 package edu.university.ecs.lab.metrics.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.university.ecs.lab.common.models.Edge;
 import edu.university.ecs.lab.common.models.NetworkGraph;
 import edu.university.ecs.lab.metrics.models.metrics.WrongCuts;
+
+import java.util.*;
 
 public class WrongCutsService {
     public List<WrongCuts> identifyAndReportWrongCuts(NetworkGraph graph) {
         List<Set<String>> wrongCutsList = detectWrongCuts(graph);
         List<WrongCuts> wrongCutsObjects = new ArrayList<>();
-        
+
         for (Set<String> wrongCut : wrongCutsList) {
             wrongCutsObjects.add(new WrongCuts(wrongCut));
         }
-        
+
         return wrongCutsObjects;
     }
 

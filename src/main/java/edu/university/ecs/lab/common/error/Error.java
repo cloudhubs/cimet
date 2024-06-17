@@ -1,5 +1,8 @@
 package edu.university.ecs.lab.common.error;
 
+import lombok.Getter;
+
+@Getter
 public enum Error {
     UNKNOWN_ERROR(1, "Unknown error has occured!"),
     NULL_ERROR(1, "Input cannot be null!"),
@@ -20,14 +23,6 @@ public enum Error {
     Error(int code, String message) {
         this.code = code;
         this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public static void reportAndExit(Error error) {

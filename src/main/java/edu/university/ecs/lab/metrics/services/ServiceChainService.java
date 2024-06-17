@@ -4,12 +4,7 @@ import edu.university.ecs.lab.common.models.Edge;
 import edu.university.ecs.lab.common.models.NetworkGraph;
 import edu.university.ecs.lab.metrics.models.metrics.ServiceChain;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ServiceChainService {
 

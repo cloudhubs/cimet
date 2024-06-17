@@ -12,7 +12,7 @@ public class ComparisonTest {
         MicroserviceSystem ms1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
         MicroserviceSystem ms2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
 
-        for(Microservice m1 : ms1.getMicroservices()) {
+        for (Microservice m1 : ms1.getMicroservices()) {
             boolean microserviceFound = false;
             outer1:
             {

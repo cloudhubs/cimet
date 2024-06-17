@@ -55,11 +55,11 @@ public class FileUtils {
      * @return the relative repo path
      */
     public static String pathToRepoPath(String localPath, String repoName) {
-        if(localPath == null || localPath.isEmpty()) {
+        if (localPath == null || localPath.isEmpty()) {
             return "";
         }
 
-        return localPath.replace(DOT + SEPARATOR +  DEFAULT_CLONE_PATH + SEPARATOR + repoName, "");
+        return localPath.replace(DOT + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR + repoName, "");
     }
 
     /**
@@ -91,7 +91,7 @@ public class FileUtils {
     }
 
     public static String getMicroserviceNameFromPath(String path) {
-        if(!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH + File.separator)) {
+        if (!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH + File.separator)) {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 

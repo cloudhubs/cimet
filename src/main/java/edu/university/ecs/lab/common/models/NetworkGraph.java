@@ -1,19 +1,13 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -73,40 +67,40 @@ public class NetworkGraph implements JsonSerializable {
         return jsonObject;
     }
 
-    public void createGraph(MicroserviceSystem microserviceSystem){
+    public void createGraph(MicroserviceSystem microserviceSystem) {
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
-        this.directed= true;
+        this.directed = true;
         this.multigraph = false;
 
         List<RestCall> restCalls = new ArrayList<>();
 
-        for (Microservice microservice : microserviceSystem.getMicroservices()){
+        for (Microservice microservice : microserviceSystem.getMicroservices()) {
             for (JClass service : microservice.getServices()) {
-            restCalls.addAll(service.getMethodCalls().stream()
-            .filter(methodCall -> methodCall instanceof RestCall)
-            .map(methodCall -> (RestCall)methodCall)
-            .collect(Collectors.toList()));
+                restCalls.addAll(service.getMethodCalls().stream()
+                        .filter(methodCall -> methodCall instanceof RestCall)
+                        .map(methodCall -> (RestCall) methodCall)
+                        .collect(Collectors.toList()));
             }
         }
 
         List<Endpoint> endpoints = new ArrayList<>();
 
-        for (Microservice microservice : microserviceSystem.getMicroservices()){
+        for (Microservice microservice : microserviceSystem.getMicroservices()) {
             for (JClass service : microservice.getControllers()) {
-            endpoints.addAll(service.getMethods().stream()
-            .filter(methods -> methods instanceof Endpoint)
-            .map(methods -> (Endpoint)methods)
-            .collect(Collectors.toList()));
+                endpoints.addAll(service.getMethods().stream()
+                        .filter(methods -> methods instanceof Endpoint)
+                        .map(methods -> (Endpoint) methods)
+                        .collect(Collectors.toList()));
             }
         }
 
         List<Edge> edgesList = new ArrayList<>();
         this.nodes = new HashSet<>();
 
-        for (RestCall restCall : restCalls){
-            for(Endpoint endpoint: endpoints){
-                if(restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
+        for (RestCall restCall : restCalls) {
+            for (Endpoint endpoint : endpoints) {
+                if (restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
                     edgesList.add(new Edge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
                     this.nodes.add(endpoint.getMicroserviceName());
                     this.nodes.add(restCall.getMicroserviceName());
@@ -117,8 +111,8 @@ public class NetworkGraph implements JsonSerializable {
         this.edges = new HashSet<>();
 
         Map<Edge, Long> edgeDuplicateMap = edgesList.stream()
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
         this.edges = edgeDuplicateMap.entrySet().stream().map(entry -> {
             Edge edge = entry.getKey();
             edge.setWeight(Math.toIntExact(entry.getValue()));

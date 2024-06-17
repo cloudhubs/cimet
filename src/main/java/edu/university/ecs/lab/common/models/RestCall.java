@@ -12,38 +12,38 @@ import lombok.Data;
 @Data
 public class RestCall extends MethodCall {
 
-  /**
-   * The URL of the rest call e.g. /api/v1/users/login, May have dynamic parameters
-   * which are converted to {?}
-   */
-  private String url;
+    /**
+     * The URL of the rest call e.g. /api/v1/users/login, May have dynamic parameters
+     * which are converted to {?}
+     */
+    private String url;
 
-  /**
-   * The httpMethod of the api endpoint e.g. GET, POST, PUT see semantics.models.enums.httpMethod
-   */
-  private HttpMethod httpMethod;
+    /**
+     * The httpMethod of the api endpoint e.g. GET, POST, PUT see semantics.models.enums.httpMethod
+     */
+    private HttpMethod httpMethod;
 
-  private String microserviceName;
+    private String microserviceName;
 
-  public RestCall(String methodName, String objectName, String calledFrom, String parameterContents) {
-    super(methodName, objectName, calledFrom, parameterContents);
-  }
+    public RestCall(String methodName, String objectName, String calledFrom, String parameterContents) {
+        super(methodName, objectName, calledFrom, parameterContents);
+    }
 
-  public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod, String microserviceName) {
-    super(methodCall.getMethodName(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
-    this.url = url;
-    this.httpMethod = httpMethod;
-    this.microserviceName = microserviceName;
-  }
+    public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod, String microserviceName) {
+        super(methodCall.getMethodName(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
+        this.url = url;
+        this.httpMethod = httpMethod;
+        this.microserviceName = microserviceName;
+    }
 
-  public JsonObject toJsonObject() {
-    JsonObject jsonObject = super.toJsonObject();
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = super.toJsonObject();
 
-    jsonObject.addProperty("url", url);
-    jsonObject.addProperty("httpMethod", httpMethod.name());
-    jsonObject.addProperty("microserviceName", microserviceName);
+        jsonObject.addProperty("url", url);
+        jsonObject.addProperty("httpMethod", httpMethod.name());
+        jsonObject.addProperty("microserviceName", microserviceName);
 
-    return jsonObject;
-  }
+        return jsonObject;
+    }
 
 }
