@@ -16,7 +16,9 @@ public class GreedyMicroservice implements JsonSerializable {
         this.greedyMicroservices = greedyMicroservices;
     }
 
-    @Override
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 

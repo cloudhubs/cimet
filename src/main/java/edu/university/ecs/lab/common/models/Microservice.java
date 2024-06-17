@@ -56,6 +56,9 @@ public class Microservice implements JsonSerializable {
         this.entities = new HashSet<>();
     }
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

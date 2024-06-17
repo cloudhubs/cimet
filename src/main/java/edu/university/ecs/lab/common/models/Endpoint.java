@@ -2,6 +2,7 @@ package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -42,6 +43,9 @@ public class Endpoint extends Method {
         this.microserviceName = microserviceName;
     }
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = super.toJsonObject();

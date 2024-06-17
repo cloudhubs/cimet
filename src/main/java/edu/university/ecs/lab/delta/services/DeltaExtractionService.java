@@ -17,39 +17,47 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Service for extracting the differences between a local and remote repository and generating delta
+ * Service for extracting the differences between two commits of a repository
  */
 public class DeltaExtractionService {
 
     /**
-     * Config file, defaults to config.json
+     * Config object representing the contents of the config file
      */
     private final Config config;
 
     /**
-     * Config file, defaults to config.json
+     * GitService instance for interacting with the local repository
      */
     private final GitService gitService;
 
+    /**
+     * The old commit for comparison
+     */
     private final String commitOld;
 
+    /**
+     * The new commit for comparison
+     */
     private final String commitNew;
 
 
     /**
-     * Constructor for the delta extraction service
+     * Constructor for the DeltaExtractionService
      *
-     * @param configPath file path to the configuration file
+     * @param configPath path to the config file
+     * @param commitOld old commit for comparison
+     * @param commitNew new commit for comparison
      */
     public DeltaExtractionService(String configPath, String commitOld, String commitNew) {
-        this.gitService = new GitService(configPath);
         this.config = ConfigUtil.readConfig(configPath);
+        this.gitService = new GitService(configPath);
         this.commitOld = commitOld;
         this.commitNew = commitNew;
     }
 
     /**
-     * Generate delta between base branch and base branch + 1
+     * Generates Delta file representing changes between commitOld and commitNew
      */
     public void generateDelta() {
         List<DiffEntry> differences = null;
@@ -68,7 +76,7 @@ public class DeltaExtractionService {
         gitService.resetLocal(commitNew);
 
         // process/write differences to delta output
-        generateDelta(differences);
+        processDelta(differences);
 
     }
 
@@ -76,9 +84,9 @@ public class DeltaExtractionService {
      * Process the differences between the local and remote repository and write the differences to a
      * file.
      *
-     * @param diffEntries the list of differences extracted
+     * @param diffEntries the list of differences extracted by GitService
      */
-    public void generateDelta(List<DiffEntry> diffEntries) {
+    public void processDelta(List<DiffEntry> diffEntries) {
 
         // Set up a new SystemChangeObject
         SystemChange systemChange = new SystemChange();
@@ -117,8 +125,6 @@ public class DeltaExtractionService {
 
             }
 
-            String microserviceName = null;
-
 
             // Get the class, if we are a delete the file for parsing no longer exists
             // If we are a pom.xml we cannot parse
@@ -127,7 +133,7 @@ public class DeltaExtractionService {
 
                 if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 
-                    jClass = getClass(newPath);
+                    jClass = SourceToObjectUtils.parseClass(new File(newPath), config);
 
                     // If we try to parse and it is still null, for ADD we will skip
                     if (jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
@@ -143,7 +149,7 @@ public class DeltaExtractionService {
 
             // If the class isn't ours and it isn't a folder or Docker or Pom
 
-            systemChange.getChanges().add(createDelta(oldPath, newPath, entry, jClass));
+            systemChange.getChanges().add(new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass));
 
         }
 
@@ -153,15 +159,5 @@ public class DeltaExtractionService {
 
     }
 
-
-    private JClass getClass(String localPath) {
-        return SourceToObjectUtils.parseClass(new File(localPath), config);
-
-    }
-
-
-    private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass) {
-        return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass);
-    }
 
 }

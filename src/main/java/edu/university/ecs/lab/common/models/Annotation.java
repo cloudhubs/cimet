@@ -23,6 +23,9 @@ public class Annotation implements JsonSerializable {
      */
     protected String contents;
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

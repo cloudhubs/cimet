@@ -2,6 +2,9 @@ package edu.university.ecs.lab.delta.models.enums;
 
 import org.eclipse.jgit.diff.DiffEntry;
 
+/**
+ * Enumerated type for defining the types of changes used by jgit
+ */
 public enum ChangeType {
     ADD,
     MODIFY,

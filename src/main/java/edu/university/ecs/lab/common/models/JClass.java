@@ -61,9 +61,7 @@ public class JClass implements JsonSerializable {
 
 
     /**
-     * Convert a single JClass to a JsonObject
-     *
-     * @return Converted JsonObject of JClass object
+     * see {@link JsonSerializable#toJsonObject()}
      */
     @Override
     public JsonObject toJsonObject() {

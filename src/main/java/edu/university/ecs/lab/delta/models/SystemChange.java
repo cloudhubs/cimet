@@ -10,9 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a system change in the system. It holds all changes made to the system in the form of
- * deltas. Maps are of the form {@literal <localPath
- * (./clonePath/repoName/service/path/to/file.java), Delta>}.
+ * This class represents the overall change in the IR from oldCommit
+ * to newCommit as a list of Deltas see {@link Delta}
  */
 @Data
 @AllArgsConstructor
@@ -20,22 +19,24 @@ import java.util.List;
 public class SystemChange implements JsonSerializable {
 
     /**
-     * The commit id that the delta was generated from
+     * The old commitID
      */
     private String oldCommit;
 
     /**
-     * The commit id that the delta was generated from
+     * The new commitID
      */
     private String newCommit;
 
     /**
-     * List of changed controllers
+     * List of delta changes
      */
     private List<Delta> changes = new ArrayList<>();
 
 
-    @Override
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
@@ -43,6 +44,6 @@ public class SystemChange implements JsonSerializable {
         jsonObject.addProperty("oldCommit", oldCommit);
         jsonObject.addProperty("newCommit", newCommit);
 
-        return null;
+        return jsonObject;
     }
 }

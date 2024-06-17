@@ -36,6 +36,9 @@ public class MethodCall implements JsonSerializable {
      */
     private String parameterContents;
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

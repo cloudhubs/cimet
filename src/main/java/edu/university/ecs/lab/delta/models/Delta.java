@@ -5,16 +5,28 @@ import edu.university.ecs.lab.common.models.JClass;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+/**
+ * This class represents a single Delta change between two commits.
+ * In the case of ChangeType.DELETE @see {@link ChangeType} the
+ * classChange will respectively be null as the instance of this class
+ * is no longer locally present for parsing at the new commit
+ */
+@Data
 @AllArgsConstructor
 public class Delta implements JsonSerializable {
 
+    /**
+     * The new path to the file changed/added
+     * Note: The path may be null in the event of an add
+     */
     private String oldPath;
 
+    /**
+     * The old path to the file changed/added
+     * Note: The path may be null in the event of an delete
+     */
     private String newPath;
 
     /**
@@ -22,18 +34,13 @@ public class Delta implements JsonSerializable {
      */
     private ChangeType changeType;
 
-    /** The type of file that was changed */
-//  private FileType fileType;
-
     /**
-     * The class that was changed,
+     * The class that was added or changed
      */
     private JClass classChange;
 
     /**
-     * Converts the delta object to a JSON object
-     *
-     * @return the JSON object representation of the delta
+     * see {@link JsonSerializable#toJsonObject()}
      */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
@@ -42,7 +49,6 @@ public class Delta implements JsonSerializable {
         jsonObject.addProperty("oldPath", oldPath);
         jsonObject.addProperty("newPath", newPath);
         jsonObject.add("classChange", classChange.toJsonObject());
-
 
         return jsonObject;
     }

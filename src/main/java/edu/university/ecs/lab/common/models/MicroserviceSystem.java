@@ -39,10 +39,7 @@ public class MicroserviceSystem implements JsonSerializable {
     private Set<JClass> orphans;
 
     /**
-     * Construct a JSON object representing the given ms system name, version, and microservice data
-     * map.
-     *
-     * @return the constructed JSON object
+     * see {@link JsonSerializable#toJsonObject()}
      */
     @Override
     public JsonObject toJsonObject() {

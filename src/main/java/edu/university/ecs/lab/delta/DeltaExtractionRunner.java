@@ -4,16 +4,13 @@ import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 
 /**
- * Service for extracting the differences between a local and remote repository. TODO: notice how
- * {@link DeltaExtractionService#generateDelta()} returns a set of file names, we should make this
- * all 1 file for the multi-repo case.
+ * This class acts as a runner implementation for extracting a Delta file
  */
 public class DeltaExtractionRunner {
     /**
-     * Compares the branch specified in the Rest Extraction file to a commit on the remote repository
-     * branch name specified in the arguments and generates the delta file.
+     * This method compares two commits on the specified branch in the config
      *
-     * @param args {@literal <compareBranch> <compareCommit> [/path/to/config]}
+     * @param args {@literal [/path/to/config] <oldCommit> <newCommit> }
      */
     public static void main(String[] args) throws Exception {
         args = new String[]{"./config.json", "06f3e1efe2e2539d05d91b0699cc8d9fe7be29d7", "82949fa07dcf82f66641f5807d629d15bab663a6"};

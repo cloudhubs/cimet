@@ -46,7 +46,9 @@ public class NetworkGraph implements JsonSerializable {
     private Set<String> nodes;
     private Set<Edge> edges;
 
-
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

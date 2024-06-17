@@ -40,6 +40,9 @@ public class Method implements JsonSerializable {
      */
     private Set<Annotation> annotations;
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

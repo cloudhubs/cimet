@@ -23,6 +23,9 @@ public class Field implements JsonSerializable {
      */
     private String name;
 
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();

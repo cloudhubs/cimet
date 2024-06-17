@@ -16,7 +16,9 @@ public class HubLikeMicroservice implements JsonSerializable {
         this.hublikeMicroservices = hublikeMicroservices;
     }
 
-    @Override
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
