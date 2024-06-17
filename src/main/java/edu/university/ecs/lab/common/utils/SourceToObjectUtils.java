@@ -396,6 +396,6 @@ public class SourceToObjectUtils {
   }
 
   private static String getMicroserviceName(File sourceFile) {
-    return sourceFile.getAbsolutePath().split("\\\\")[8];
+    return sourceFile.getPath().split("\\\\")[3];
   }
 }

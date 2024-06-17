@@ -17,8 +17,8 @@ public class MicroserviceSystem implements JsonSerializable {
   /** The name of the system */
   private String systemName;
 
-  /** The version of the system like v0.0.1 */
-  private String version;
+  /** The commit ID of the system */
+  private String commitID;
 
   /** List of microservices in the system */
   private List<Microservice> microservices;
@@ -37,7 +37,7 @@ public class MicroserviceSystem implements JsonSerializable {
     JsonObject jsonObject = new JsonObject();
 
     jsonObject.addProperty("systemName", systemName);
-    jsonObject.addProperty("version", version);
+    jsonObject.addProperty("version", commitID);
     jsonObject.add("microservices", JsonSerializable.toJsonArray(microservices));
     jsonObject.add("orphans", JsonSerializable.toJsonArray(orphans));
 
@@ -48,7 +48,7 @@ public class MicroserviceSystem implements JsonSerializable {
   @Deprecated
   public void incrementVersion() {
     // split version by '.'
-    String[] parts = version.split("\\.");
+    String[] parts = commitID.split("\\.");
 
     // cast version string parts to integer
     int[] versionParts = new int[parts.length];
@@ -79,7 +79,7 @@ public class MicroserviceSystem implements JsonSerializable {
       }
     }
 
-    version = newVersion.toString();
+    commitID = newVersion.toString();
   }
 
   /**
