@@ -27,6 +27,19 @@ import java.util.stream.Collectors;
 public class SourceToObjectUtils {
     private static CompilationUnit cu;
     private static String microserviceName;
+    private static String packageName;
+
+    private static void generateStaticValues(File sourceFile) {
+        // Parse the highest level node being compilation unit
+        try {
+            cu = StaticJavaParser.parse(sourceFile);
+        } catch (FileNotFoundException e) {
+            Error.reportAndExit(Error.JPARSE_FAILED);
+        }
+        microserviceName = getMicroserviceName(sourceFile);
+        packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
+
+    }
 
     /**
      * This method parses a Java class file and return a JClass object.
@@ -35,13 +48,7 @@ public class SourceToObjectUtils {
      * @return the JClass object representing the file
      */
     public static JClass parseClass(File sourceFile, Config config) {
-
-        // Parse the highest level node being compilation unit
-        try {
-            cu = StaticJavaParser.parse(sourceFile);
-        } catch (FileNotFoundException e) {
-            Error.reportAndExit(Error.JPARSE_FAILED);
-        }
+        generateStaticValues(sourceFile);
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
         Set<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
@@ -62,14 +69,11 @@ public class SourceToObjectUtils {
             return null;
         }
 
-        // Assign static microservice name
-        microserviceName = getMicroserviceName(sourceFile);
-
         // Build the JClass
         return new JClass(
             sourceFile.getName(),
             sourceFile.getPath(),
-            cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
+            packageName,
             classRole,
             parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
             parseFields(cu.findAll(FieldDeclaration.class)),

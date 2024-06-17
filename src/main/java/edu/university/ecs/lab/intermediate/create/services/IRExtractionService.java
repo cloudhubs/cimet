@@ -10,7 +10,6 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
-import javassist.NotFoundException;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,7 +47,6 @@ public class IRExtractionService {
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
-     * @return the name of the output file
      */
     public void generateIR(String fileName) {
         // Clone remote repositories and scan through each cloned repo to extract endpoints
@@ -161,7 +159,6 @@ public class IRExtractionService {
      * dependencies for a single microservice.
      *
      * @return model of a single service containing the extracted endpoints and dependencies
-     * @throws NotFoundException if the service name is not found in the repository paths
      */
     public Microservice recursivelyScanFiles(String rootMicroservicePath) {
 //        System.out.println("Scanning repository '" + rootMicroservicePath + "'...");
@@ -217,9 +214,6 @@ public class IRExtractionService {
      * Scan the given file for endpoints and calls to other services.
      *
      * @param file the file to scan
-     * @apiNote CURRENT LIMITATION: We detect controllers/services/dtos/repositories/entities based on
-     * literally having that string within the file name. This is a naive approach and should be
-     * improved.
      */
     public void scanFile(
             File file,

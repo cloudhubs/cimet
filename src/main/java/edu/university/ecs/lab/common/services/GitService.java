@@ -62,7 +62,6 @@ public class GitService {
      * This method clones a remote repository to the local file system. Postcondition: the repository
      * has been cloned to the local file system.
      *
-     * @throws Exception if Git clone failed
      */
     public void cloneRemote() {
 

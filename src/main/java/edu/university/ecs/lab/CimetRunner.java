@@ -11,7 +11,6 @@ public class CimetRunner {
      * Main method for full report TODO adapt for case of already having the initial IR (the previous
      * merged/newIR) aka not running IRExtraction
      *
-     * @param args /path/to/config/file <base branch> <base commit> <compare branch> <compare commit>
      */
     public static void main(String[] args) throws Exception {
 

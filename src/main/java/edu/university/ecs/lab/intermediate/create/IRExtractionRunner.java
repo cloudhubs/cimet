@@ -20,8 +20,6 @@ public class IRExtractionRunner {
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
-     * @param args [/path/to/config/file] <branch> <commit>
-     * @apiNote defaults to config.json in the project directory.
      */
     public static void main(String[] args) throws Exception {
         args = new String[]{"./config.json"};
