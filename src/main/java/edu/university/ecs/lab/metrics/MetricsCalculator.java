@@ -50,6 +50,10 @@ public class MetricsCalculator {
         CyclicDependencyService cycles = new CyclicDependencyService();
         List<CyclicDependency> cycleDepencies = cycles.findCyclicDependencies(sdg);
         writeObjectToJsonFile(cycleDepencies, "cyclicdependencies.json");
+        
+        NoHealthcheck healthcheck = new NoHealthcheck();
+        System.out.println(healthcheck.checkHealthcheck("./check.yaml"));
+
     }
 
     private static void createIRSystem(Config config, String fileName) {
