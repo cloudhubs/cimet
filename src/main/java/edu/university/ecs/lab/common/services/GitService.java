@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Service for managing local repositories including the cloning
+ * Service for managing local repository including the cloning
  * and resetting the current commit.
  */
 public class GitService {
@@ -32,6 +32,9 @@ public class GitService {
      */
     private final Config config;
 
+    /**
+     * Repository object for jgit usage
+     */
     private final Repository repository;
 
     public GitService(String configPath) {
@@ -160,11 +163,14 @@ public class GitService {
         return repository;
     }
 
+
     /**
-     * Get the differences between local branch defined by config and branch + 1.
+     * Get the differences between commitOld and commitNew
      *
-     * @param relativeIndex the relative index from head that we will compare head to
-     * @return the list of differences
+     * @param commitOld the old commit ID
+     * @param commitNew the new commit ID
+     * @return the list of differences as DiffEntrys
+     * @throws Exception
      */
     public List<DiffEntry> getDifferences(String commitOld, String commitNew) throws Exception {
         List<DiffEntry> returnList = null;

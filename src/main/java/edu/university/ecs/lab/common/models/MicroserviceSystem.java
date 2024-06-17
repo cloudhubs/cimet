@@ -6,11 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents the intermediate structure of a microservice system.
@@ -24,7 +21,7 @@ public class MicroserviceSystem implements JsonSerializable {
     /**
      * The name of the system
      */
-    private String systemName;
+    private String name;
 
     /**
      * The commit ID of the system
@@ -32,12 +29,12 @@ public class MicroserviceSystem implements JsonSerializable {
     private String commitID;
 
     /**
-     * List of microservices in the system
+     * Set of microservices in the system
      */
     private Set<Microservice> microservices;
 
     /**
-     * List of present classes who have no microservice
+     * Set of present classes who have no microservice
      */
     private Set<JClass> orphans;
 
@@ -51,52 +48,12 @@ public class MicroserviceSystem implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("systemName", systemName);
+        jsonObject.addProperty("name", name);
         jsonObject.addProperty("version", commitID);
         jsonObject.add("microservices", JsonSerializable.toJsonArray(microservices));
         jsonObject.add("orphans", JsonSerializable.toJsonArray(orphans));
 
         return jsonObject;
-    }
-
-    /**
-     * Increment the version of the system by +0.0.1
-     */
-    @Deprecated
-    public void incrementVersion() {
-        // split version by '.'
-        String[] parts = commitID.split("\\.");
-
-        // cast version string parts to integer
-        int[] versionParts = new int[parts.length];
-        for (int i = 0; i < parts.length; i++) {
-            versionParts[i] = Integer.parseInt(parts[i]);
-        }
-
-        // increment end digit
-        versionParts[versionParts.length - 1]++;
-
-        // end digit > 9? increment middle and reset end digit to 0
-        if (versionParts[versionParts.length - 1] == 10) {
-            versionParts[versionParts.length - 1] = 0;
-            versionParts[versionParts.length - 2]++;
-
-            // middle digit > 9, increment start digit (major version) and reset middle to 0
-            if (versionParts[versionParts.length - 2] == 10) {
-                versionParts[versionParts.length - 2] = 0;
-                versionParts[0]++;
-            }
-        }
-
-        StringBuilder newVersion = new StringBuilder();
-        for (int i = 0; i < versionParts.length; i++) {
-            newVersion.append(versionParts[i]);
-            if (i < versionParts.length - 1) {
-                newVersion.append('.');
-            }
-        }
-
-        commitID = newVersion.toString();
     }
 
     /**
@@ -126,8 +83,8 @@ public class MicroserviceSystem implements JsonSerializable {
 
     /**
      * Given a new or modified microservice, we must adopt awaiting
-     * orphans based on their file paths containing the pom.xml's
-     * parsed microservice name (indicating they are in the same
+     * orphans based on their file paths containing the microservices
+     * (folder) path
      *
      * @param microservice the microservice adopting orphans
      */
@@ -136,7 +93,7 @@ public class MicroserviceSystem implements JsonSerializable {
 
         for (JClass jClass : getOrphans()) {
             // If the microservice is in the same folder as the path to the microservice
-            if (jClass.getClassPath().contains(microservice.getPath())) {
+            if (jClass.getPath().contains(microservice.getPath())) {
                 microservice.addJClass(jClass);
                 updatedOrphans.remove(jClass);
             }
@@ -146,17 +103,5 @@ public class MicroserviceSystem implements JsonSerializable {
         setOrphans(updatedOrphans);
 
     }
-
-
-    public JClass getClassByPath(String path) {
-        List<JClass> allClasses = new ArrayList<>();
-        allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toUnmodifiableList()));
-        allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).collect(Collectors.toUnmodifiableList()));
-        allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getRepositories().stream()).collect(Collectors.toUnmodifiableList()));
-        allClasses.addAll(getMicroservices().stream().flatMap(microservice -> microservice.getEntities().stream()).collect(Collectors.toUnmodifiableList()));
-
-        return allClasses.stream().filter(jClass -> jClass.getClassPath().equals(path)).findFirst().orElse(null);
-    }
-
 
 }

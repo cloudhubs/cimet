@@ -3,6 +3,7 @@ package edu.university.ecs.lab.common.models;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  * a call to an endpoint mapping.
  */
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class RestCall extends MethodCall {
 
     /**
@@ -23,6 +25,9 @@ public class RestCall extends MethodCall {
      */
     private HttpMethod httpMethod;
 
+    /**
+     * The name of the microservice this RestCall is called from
+     */
     private String microserviceName;
 
     public RestCall(String methodName, String objectName, String calledFrom, String parameterContents) {
@@ -30,7 +35,7 @@ public class RestCall extends MethodCall {
     }
 
     public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod, String microserviceName) {
-        super(methodCall.getMethodName(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
+        super(methodCall.getName(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
         this.url = url;
         this.httpMethod = httpMethod;
         this.microserviceName = microserviceName;

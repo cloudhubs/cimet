@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a class in Java. It holds all information regarding that class including all method
@@ -18,14 +20,14 @@ import java.util.Set;
 @EqualsAndHashCode
 public class JClass implements JsonSerializable {
     /**
-     * Name of the class e.g. Food
+     * Name of the class
      */
-    private String className;
+    private String name;
 
     /**
-     * Path like repoName/.../serviceName/.../file.java
+     * Path to the class
      */
-    private String classPath;
+    private String path;
 
     /**
      * Full java package name of the class e.g. com.cloudhubs.trainticket.food.entity
@@ -33,49 +35,30 @@ public class JClass implements JsonSerializable {
     private String packageName;
 
     /**
-     * Role of the class in the microservice system. See {@link ClassRole} for possibilities. Will
-     * match with subtype where applicable
+     * Role of the class in the microservice system. See {@link ClassRole}
      */
     private ClassRole classRole;
 
     /**
-     * List of methods in the class
+     * Set of methods in the class
      */
     private Set<Method> methods;
 
     /**
-     * List of class variables e.g. (private String username;)
+     * Set of class fields
      */
     private Set<Field> fields;
 
     /**
-     * Class level annotations *
+     * Set of class level annotations
      */
     private Set<Annotation> annotations;
 
     /**
-     * List of method invocations made from within this class e.g. obj.method()
+     * Set of method invocations made from within this class
      */
     private Set<MethodCall> methodCalls;
 
-
-    public void setClassName(String className) {
-        this.className = className.replace(".java", "");
-    }
-
-    /** Uniquely identify a class as an object of a given service */
-//  public String getId() {
-//    return classRole.name() + ":" + msId + "#" + className;
-//  }
-
-    /**
-     * Set the class path of the class. This will replace all "\\" with "/" for readability.
-     *
-     * @param classPath The class path to set
-     */
-    public void setClassPath(String classPath) {
-        this.classPath = classPath.replaceAll("\\\\", "/");
-    }
 
     /**
      * Convert a single JClass to a JsonObject
@@ -87,8 +70,8 @@ public class JClass implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("packageName", getPackageName());
-        jsonObject.addProperty("className", getClassName());
-        jsonObject.addProperty("classPath", getClassPath());
+        jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("path", getPath());
         jsonObject.addProperty("classRole", getClassRole().name());
         jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
         jsonObject.add("fields", JsonSerializable.toJsonArray(getFields()));
@@ -99,13 +82,28 @@ public class JClass implements JsonSerializable {
     }
 
     /**
-     * Check if the given class is the same as this class. This is true if they have the same
-     * classPath.
-     *
-     * @param other The class to compare with
-     * @return True if the classes are the same, false otherwise
+     * This method returns all endpoints found in the methods of this class,
+     * grouped under the same list as an Endpoint is an extension of a Method
+     * see {@link Endpoint}
+     * @return set of all endpoints
      */
-    public boolean matchClassPath(JClass other) {
-        return this.getClassPath().equals(other.getClassPath());
+    public Set<Endpoint> getEndpoints() {
+        if(!getClassRole().equals(ClassRole.CONTROLLER) || getMethods().isEmpty()) {
+            return new HashSet<>();
+        }
+        return methods.stream().filter(method -> method instanceof Endpoint).map(method -> (Endpoint) method).collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * This method returns all restCalls found in the methodCalls of this class,
+     * grouped under the same list as an RestCall is an extension of a MethodCall
+     * see {@link RestCall}
+     * @return set of all restCalls
+     */
+    public Set<RestCall> getRestCalls() {
+        if(!getClassRole().equals(ClassRole.SERVICE) || getMethodCalls().isEmpty()) {
+            return new HashSet<>();
+        }
+        return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableSet());
     }
 }

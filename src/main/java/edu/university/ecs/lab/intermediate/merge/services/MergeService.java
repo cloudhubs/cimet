@@ -12,9 +12,15 @@ import edu.university.ecs.lab.delta.models.SystemChange;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
+/**
+ * This class is used for creating new IR's from old IR + Delta
+ * and provides all functionality related to updating the old
+ * IR
+ */
 public class MergeService {
     private final Config config;
     private final MicroserviceSystem microserviceSystem;
@@ -30,6 +36,9 @@ public class MergeService {
         this.systemChange = JsonReadWriteUtils.readFromJSON(Path.of(deltaPath).toAbsolutePath().toString(), SystemChange.class);
     }
 
+    /**
+     * This method generates the new IR from the old IR + Delta file
+     */
     public void generateMergeIR() {
         System.out.println("Merging to new IR!");
 
@@ -69,6 +78,11 @@ public class MergeService {
     }
 
 
+    /**
+     * This method modifies a JClass based on a Delta change
+     *
+     * @param delta the delta change for modifying
+     */
     public void modifyFiles(Delta delta) {
         // Here the path is irrelevant since it does not change
         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getOldPath()))).findFirst().orElse(null);
@@ -78,7 +92,7 @@ public class MergeService {
             // Check the orphan pool
             for (JClass orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
-                if (orphan.getClassPath().equals(delta.getOldPath())) {
+                if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
 
                     // Only add it back if we parsed a valid JClass (not null)
@@ -92,11 +106,11 @@ public class MergeService {
             return;
         }
 
-        List<JClass> classes = ms.getClasses();
+        Set<JClass> classes = ms.getClasses();
 
         for (JClass jClass : classes) {
-            if (jClass.getClassPath().equals(delta.getOldPath())) {
-                ms.removeClass(delta.getOldPath());
+            if (jClass.getPath().equals(delta.getOldPath())) {
+                ms.removeJClass(delta.getOldPath());
 
                 // Only add it back if we parsed a valid JClass (not null)
                 if (delta.getClassChange() != null) {
@@ -117,6 +131,11 @@ public class MergeService {
 
     }
 
+    /**
+     * This method adds a JClass based on a Delta change
+     *
+     * @param delta the delta change for adding
+     */
     public void addFile(Delta delta) {
 
 
@@ -134,6 +153,11 @@ public class MergeService {
 
     }
 
+    /**
+     * This method removes a JClass based on a Delta change
+     *
+     * @param delta the delta change for removal
+     */
     public void removeFile(Delta delta) {
         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getOldPath()))).findFirst().orElse(null);
 
@@ -142,7 +166,7 @@ public class MergeService {
             // Check the orphan pool
             for (JClass orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
-                if (orphan.getClassPath().equals(delta.getOldPath())) {
+                if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
                     return;
                 }
@@ -150,19 +174,18 @@ public class MergeService {
             return;
         }
 
-        ms.removeClass(delta.getOldPath());
+        ms.removeJClass(delta.getOldPath());
 
 
     }
 
-    // Check if the last JClass was deleted
-//    private void checkDeleteMicroservices(Microservice microservice) {
-//      if(microservice.getServices().isEmpty() && microservice.getRepositories().isEmpty() && microservice.getControllers().isEmpty()) {
-//          microserviceSystem.getMicroservices().removeIf(microservice1 -> microservice1.getName().equals(microservice.getName()));
-//      }
-//    }
 
-    // Check for the creation / deletion of microservices depending on actions done to pom.xml/dockerfile
+    /**
+     * Method for updating MicroserviceSystem structure (microservices) based on
+     * pom.xml changes in Delta file
+     *
+     * @param deltaChanges the delta changes to search
+     */
     private void updateMicroservices(List<Delta> deltaChanges) {
 
         List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null ? delta.getNewPath() : delta.getOldPath()).endsWith("pom.xml")).collect(Collectors.toUnmodifiableList());
@@ -198,69 +221,6 @@ public class MergeService {
         }
 
     }
-
-    // If the parent of this filePath is the p
-    private boolean searchDeltas(String filePath) {
-
-        for (Delta delta : systemChange.getChanges()) {
-            if (delta.getNewPath().equals(filePath)) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-
-
-//
-//  private void updateApiDestinationsAdd(JClass service, String servicePath) {
-//    for (RestCall restCall : service.getRestCalls()) {
-//      for (Microservice ms : msModelMap.values()) {
-//        if (!ms.getId().equals(servicePath)) {
-//          for (JClass controller : ms.getControllers()) {
-//            // Reassign controller if it is in the deltas
-//            String classPath = controller.getClassPath();
-//            JClass deltaController =
-//                systemChange.getControllers().values().stream()
-//                    .filter(delta -> delta.getChangedClass().getClassPath().equals(classPath))
-//                    .map(delta -> (JClass) delta.getChangedClass())
-//                    .findFirst()
-//                    .orElse(null);
-//
-//            if (Objects.nonNull(deltaController)) {
-//              controller = deltaController;
-//            }
-//
-//            for (Endpoint endpoint : controller.getEndpoints()) {
-//              if (endpoint.matchCall(restCall)) {
-//                restCall.setDestination(controller);
-//                endpoint.addCall(restCall, service);
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-//  }
-//
-//  private void updateApiDestinationsDelete(JClass controller, String servicePath) {
-//    for (Endpoint endpoint : controller.getEndpoints()) {
-//      for (Microservice ms : msModelMap.values()) {
-//        if (!ms.getId().equals(servicePath)) {
-//          for (JClass service : ms.getServices()) {
-//            for (RestCall restCall : service.getRestCalls()) {
-//              if (endpoint.matchCall(restCall)
-//                  && !restCall.pointsToDeletedFile()
-//                  && !"".equals(restCall.getDestFile())) {
-//                restCall.setDestinationAsDeleted();
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-//  }
 
     private String getMicroserviceNameFromPath(String path) {
         for (Microservice microservice : microserviceSystem.getMicroservices()) {

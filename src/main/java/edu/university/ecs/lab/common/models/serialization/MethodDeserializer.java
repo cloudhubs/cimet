@@ -25,7 +25,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
 
     private Method jsonToMethod(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         Method method = new Method();
-        method.setMethodName(json.get("methodName").getAsString());
+        method.setMethodName(json.get("name").getAsString());
         method.setReturnType(json.get("returnType").getAsString());
 
         Set<Annotation> annotations = new HashSet<Annotation>();
@@ -46,7 +46,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
 
     private Method jsonToEndpoint(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         Method method = jsonToMethod(json, context);
-        String microserviceName = json.get("microserviceName").getAsString();
+        String microserviceName = json.get("name").getAsString();
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
 

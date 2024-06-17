@@ -153,43 +153,12 @@ public class DeltaExtractionService {
 
     }
 
-    /**
-     * Returns only Java related files and accounts for discrepancy when
-     * dealing with deleted files whose "new path" does not exist.
-     *
-     * @param diffEntries the diff entry list to filter
-     * @return filtered list of diff entries
-     */
-//  private List<DiffEntry> filterDiffEntries(List<DiffEntry> diffEntries) {
-//    return diffEntries.stream()
-//            .filter(
-//                    diffEntry -> {
-//                      if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-//                        return diffEntry.getOldPath().endsWith(".java");
-//                      } else {
-//                        return diffEntry.getNewPath().endsWith(".java");
-//                      }
-//                    })
-//            .collect(Collectors.toUnmodifiableList());
-//  }
+
     private JClass getClass(String localPath) {
         return SourceToObjectUtils.parseClass(new File(localPath), config);
 
     }
 
-    // TODO Add to FileUtils
-    private String getLocalPath(DiffEntry diffEntry) {
-        if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-            return FileUtils.getClonePath(config.getRepoName()) + File.separator + diffEntry.getOldPath().replace("/", File.separator);
-        } else {
-            return FileUtils.getClonePath(config.getRepoName()) + File.separator + diffEntry.getNewPath().replace("/", File.separator);
-        }
-    }
-
-    // TODO Add to FileUtils
-//  private String getMicroserviceName(String path) {
-//      return (!path.contains("/")) ? "" : path.substring(0, path.indexOf("/"));
-//  }
 
     private Delta createDelta(String oldPath, String newPath, DiffEntry entry, JClass jClass, String oldMicroserviceName, String newMicroserviceName) {
         return new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass, oldMicroserviceName, newMicroserviceName);

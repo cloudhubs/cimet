@@ -21,7 +21,7 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
 
     private MethodCall jsonToMethodCall(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         MethodCall methodCall = new MethodCall();
-        methodCall.setMethodName(json.get("methodName").getAsString());
+        methodCall.setName(json.get("methodName").getAsString());
         methodCall.setCalledFrom(json.get("calledFrom").getAsString());
         methodCall.setObjectName(json.get("objectName").getAsString());
         methodCall.setParameterContents(json.get("parameterContents").getAsString());

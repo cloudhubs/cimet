@@ -26,7 +26,7 @@ public class Method implements JsonSerializable {
     // protected String protection;
 
     /**
-     * List of parameters in the method as a string like: [String userId, String money]
+     * Set of fields representing parameters
      */
     private Set<Field> parameters;
 
@@ -36,7 +36,7 @@ public class Method implements JsonSerializable {
     private String returnType;
 
     /**
-     * Method definition level annotations *
+     * Method definition level annotations
      */
     private Set<Annotation> annotations;
 

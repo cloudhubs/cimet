@@ -2,12 +2,11 @@ package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,7 +14,7 @@ import java.util.Set;
  * hold all information in that class.
  */
 @Data
-//@AllArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class Microservice implements JsonSerializable {
     /**
@@ -27,11 +26,6 @@ public class Microservice implements JsonSerializable {
      * The path to the folder that represents the microservice
      */
     private String path;
-
-//  private String branch;
-//
-//  /** The commit id of the service as cloned */
-//  private String commit;
 
     /**
      * Controller classes belonging to the microservice.
@@ -62,23 +56,12 @@ public class Microservice implements JsonSerializable {
         this.entities = new HashSet<>();
     }
 
-    public Microservice(String name, String path, Set<JClass> controllers, Set<JClass> services, Set<JClass> repositories, Set<JClass> entities) {
-        this.name = name;
-        this.path = path;
-        this.controllers = controllers;
-        this.services = services;
-        this.repositories = repositories;
-        this.entities = entities;
-    }
-
-
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("name", name);
         jsonObject.addProperty("path", path);
-//    jsonObject.addProperty("commitId", commit);
         jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
         jsonObject.add("entities", JsonSerializable.toJsonArray(entities));
         jsonObject.add("services", JsonSerializable.toJsonArray(services));
@@ -104,19 +87,26 @@ public class Microservice implements JsonSerializable {
         }
     }
 
-    public void removeClass(String path) {
-        List<JClass> classes = getClasses();
+    /**
+     * This method removes a JClass from the microservice
+     * by looking up it's path
+     *
+     * @param path the path to search for removal
+     */
+
+    public void removeJClass(String path) {
+        Set<JClass> classes = getClasses();
         JClass removeClass = null;
 
         for (JClass jClass : classes) {
-            if (jClass.getClassPath().equals(path)) {
+            if (jClass.getPath().equals(path)) {
                 removeClass = jClass;
                 break;
             }
         }
 
+        // If we cannot find the class no problem, we will skip it quietly
         if (removeClass == null) {
-            System.out.println("REMOVECLASS NOT FOUND");
             return;
         }
 
@@ -136,8 +126,12 @@ public class Microservice implements JsonSerializable {
         }
     }
 
-    public List<JClass> getClasses() {
-        List<JClass> classes = new ArrayList<>();
+    /**
+     * This method returns all classes of the microservice in a new set
+     * @return the set of all JClasses
+     */
+    public Set<JClass> getClasses() {
+        Set<JClass> classes = new HashSet<>();
         classes.addAll(controllers);
         classes.addAll(services);
         classes.addAll(repositories);

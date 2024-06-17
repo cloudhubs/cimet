@@ -16,19 +16,19 @@ public class Field implements JsonSerializable {
     /**
      * Java class type of the class variable e.g. String
      */
-    private String fieldType;
+    private String type;
 
     /**
-     * Name of the class variable e.g. username
+     * Name of the class variable
      */
-    private String fieldName;
+    private String name;
 
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("fieldName", getFieldName());
-        jsonObject.addProperty("fieldType", getFieldType());
+        jsonObject.addProperty("fieldName", getName());
+        jsonObject.addProperty("fieldType", getType());
 
         return jsonObject;
     }

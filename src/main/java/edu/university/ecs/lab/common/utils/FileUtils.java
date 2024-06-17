@@ -17,6 +17,11 @@ public class FileUtils {
     private static final String DOT = ".";
 
     /**
+     * Private constructor to prevent instantiation.
+     */
+    private FileUtils() {}
+
+    /**
      * This method returns the relative path of the cloned repository directory as ./DEFAULT_CLONE_PATH/repoName.
      * This will be a working relative path to the repository directory on the local file system.
      *
@@ -98,6 +103,9 @@ public class FileUtils {
         return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[1];
     }
 
+    /**
+     * This method creates the default output and clone paths
+     */
     public static void createPaths() {
         try {
             new File(getBaseOutputPath()).mkdirs();

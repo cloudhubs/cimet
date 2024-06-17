@@ -8,8 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Represents a method call in Java. Method call looks like: objectName.methodName() inside of
- * calledFrom
+ * Represents a method call in Java.
  */
 @Data
 @AllArgsConstructor
@@ -19,7 +18,7 @@ public class MethodCall implements JsonSerializable {
     /**
      * Name of the called method
      */
-    private String methodName;
+    private String name;
 
     /**
      * Name of object this method call is from (Maybe a static class instance, just whatever is before
@@ -41,7 +40,7 @@ public class MethodCall implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("methodName", getMethodName());
+        jsonObject.addProperty("name", getName());
         jsonObject.addProperty("objectName", getObjectName());
         jsonObject.addProperty("calledFrom", getCalledFrom());
         jsonObject.addProperty("parameterContents", getParameterContents());

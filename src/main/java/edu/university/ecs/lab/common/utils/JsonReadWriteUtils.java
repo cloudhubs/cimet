@@ -11,7 +11,7 @@ import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
 import java.io.*;
 
 /**
- * Utility class for writing JSON to a file.
+ * Utility class for reading and writing JSON to a file.
  */
 public class JsonReadWriteUtils {
     /**
@@ -59,6 +59,10 @@ public class JsonReadWriteUtils {
         return null;
     }
 
+    /**
+     * Function for register custom deserializers when reading JSON from a file
+     * @return
+     */
     private static Gson registerDeserializers() {
 
         return new GsonBuilder()

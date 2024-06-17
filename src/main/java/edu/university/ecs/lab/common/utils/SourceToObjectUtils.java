@@ -15,7 +15,6 @@ import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -27,15 +26,13 @@ import java.util.stream.Collectors;
  */
 public class SourceToObjectUtils {
     private static CompilationUnit cu;
+    private static String microserviceName;
 
     /**
-     * Parse a Java class file and return a JClass object. The class role will be determined by {@link
-     * ClassRole#fromSourceFile(File)} and the returned object will be of correct {@link JClass}
-     * subclass type where applicable.
+     * This method parses a Java class file and return a JClass object.
      *
      * @param sourceFile the file to parse
      * @return the JClass object representing the file
-     * @throws IOException on parse error
      */
     public static JClass parseClass(File sourceFile, Config config) {
 
@@ -46,7 +43,7 @@ public class SourceToObjectUtils {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
 
-        // Calculate early to determine classrole based on annotation, filter for class based only
+        // Calculate early to determine classrole based on annotation, filter for class based annotations only
         Set<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
             if (annotationExpr.getParentNode().isPresent()) {
                 Node n = annotationExpr.getParentNode().get();
@@ -55,30 +52,41 @@ public class SourceToObjectUtils {
             return false;
         }).collect(Collectors.toUnmodifiableList()));
 
+        // calculate the preEndpointURL from RequestMapping annotation
         String preURL = classAnnotations.stream().filter(ae -> ae.getAnnotationName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
         preURL = preURL.replace("\"", "");
-        // Null returned if not needed class and caller will skip null JClasses
+
         ClassRole classRole = parseClassRole(classAnnotations);
+        // Return unknown classRoles where annotation not found
         if (classRole.equals(ClassRole.UNKNOWN)) {
             return null;
         }
 
-        JClass jClass =
-                new JClass(
-                        sourceFile.getName(),
-                        sourceFile.getPath(),
-                        cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
-                        classRole,
-                        parseMethods(getMicroserviceName(sourceFile), preURL, cu.findAll(MethodDeclaration.class)),
-                        parseFields(cu.findAll(FieldDeclaration.class)),
-                        classAnnotations,
-                        parseMethodCalls(getMicroserviceName(sourceFile), cu.findAll(MethodDeclaration.class)));
+        // Assign static microservice name
+        microserviceName = getMicroserviceName(sourceFile);
 
-        return jClass;
+        // Build the JClass
+        return new JClass(
+            sourceFile.getName(),
+            sourceFile.getPath(),
+            cu.findAll(PackageDeclaration.class).get(0).getNameAsString(),
+            classRole,
+            parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
+            parseFields(cu.findAll(FieldDeclaration.class)),
+            classAnnotations,
+            parseMethodCalls(cu.findAll(MethodDeclaration.class)));
+
     }
 
 
-    public static Set<Method> parseMethods(String microserviceName, String preURL, List<MethodDeclaration> methodDeclarations) {
+    /**
+     * This method parses methodDeclarations list and returns a Set of Method models
+     *
+     * @param preURL the preURL
+     * @param methodDeclarations the list of methodDeclarations to be parsed
+     * @return a set of Method models representing the MethodDeclarations
+     */
+    public static Set<Method> parseMethods(String preURL, List<MethodDeclaration> methodDeclarations) {
         // Get params and returnType
         Set<Method> methods = new HashSet<>();
 
@@ -95,7 +103,7 @@ public class SourceToObjectUtils {
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()));
 
-            method = convertValidEndpoints(microserviceName, preURL, methodDeclaration, method);
+            method = convertValidEndpoints(preURL, methodDeclaration, method);
 
 
             methods.add(method);
@@ -104,7 +112,15 @@ public class SourceToObjectUtils {
         return methods;
     }
 
-    public static Method convertValidEndpoints(String microserviceName, String preURL, MethodDeclaration methodDeclaration, Method method) {
+    /**
+     * This method converts a valid Method to an Endpoint
+     *
+     * @param preURL the preURL
+     * @param methodDeclaration the MethodDeclaration associated with Method
+     * @param method the Method to be converted
+     * @return returns method if it is invalid, otherwise a new Endpoint
+     */
+    public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
         String url = preURL + getPathFromAnnotations(methodDeclaration.getAnnotations());
         if (method.getAnnotations().isEmpty() || url.isEmpty()) {
             return method;
@@ -131,7 +147,13 @@ public class SourceToObjectUtils {
         return new Endpoint(method, url, httpMethod, microserviceName);
     }
 
-    public static Set<MethodCall> parseMethodCalls(String microserviceName, List<MethodDeclaration> methodDeclarations) {
+    /**
+     * This method parses methodDeclarations list and returns a Set of MethodCall models
+     *
+     * @param methodDeclarations the list of methodDeclarations to be parsed
+     * @return a set of MethodCall models representing MethodCallExpressions found in the MethodDeclarations
+     */
+    public static Set<MethodCall> parseMethodCalls(List<MethodDeclaration> methodDeclarations) {
         Set<MethodCall> methodCalls = new HashSet<>();
 
         // loop through method calls
@@ -145,7 +167,7 @@ public class SourceToObjectUtils {
                 if (Objects.nonNull(calledServiceName)) {
                     MethodCall methodCall = new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
 
-                    methodCall = convertValidRestCalls(microserviceName, mce, methodCall);
+                    methodCall = convertValidRestCalls(mce, methodCall);
 
                     methodCalls.add(methodCall);
                 }
@@ -155,7 +177,14 @@ public class SourceToObjectUtils {
         return methodCalls;
     }
 
-    public static MethodCall convertValidRestCalls(String microserviceName, MethodCallExpr methodCallExpr, MethodCall methodCall) {
+    /**
+     * This method converts a valid MethodCall to an RestCall
+     *
+     * @param methodCallExpr the MethodDeclaration associated with Method
+     * @param methodCall the MethodCall to be converted
+     * @return returns methodCall if it is invalid, otherwise a new RestCall
+     */
+    public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
         if (!methodCall.getObjectName().equals("restTemplate")) {
             return methodCall;
         }
@@ -178,6 +207,12 @@ public class SourceToObjectUtils {
         return new RestCall(methodCall, url, httpMethod, microserviceName);
     }
 
+    /**
+     * This method converts a list of FieldDeclarations to a set of Field models
+     *
+     * @param fieldDeclarations the field declarations to parse
+     * @return the set of Field models
+     */
     private static Set<Field> parseFields(List<FieldDeclaration> fieldDeclarations) {
         Set<Field> javaFields = new HashSet<>();
 
@@ -192,6 +227,12 @@ public class SourceToObjectUtils {
         return javaFields;
     }
 
+    /**
+     * This method gets url path from a list of annotation expressions
+     *
+     * @param annotationExprs the annotation expressions to parse
+     * @return the string url
+     */
     private static String getPathFromAnnotations(List<AnnotationExpr> annotationExprs) {
         for (AnnotationExpr ae : annotationExprs) {
             HttpMethod httpMethod = HttpMethod.NONE;
@@ -235,7 +276,6 @@ public class SourceToObjectUtils {
     /**
      * Get the name of the object a method is being called from (callingObj.methodName())
      *
-     * @param scope the scope to search
      * @return the name of the object the method is being called from
      */
     private static String getCallingObjectName(MethodCallExpr mce) {
@@ -258,11 +298,8 @@ public class SourceToObjectUtils {
      * Find the URL from the given method call expression.
      *
      * @param mce the method call to extract url from
-     * @param cid the class or interface to search
      * @return the URL found
      */
-    // TODO: what is URL here? Is it the URL of the service? Or the URL of the method call? Rename to
-    // avoid confusion
     private static String parseURL(MethodCallExpr mce) {
         if (mce.getArguments().isEmpty()) {
             return "";
@@ -297,7 +334,6 @@ public class SourceToObjectUtils {
         return "";
     }
 
-    // TODO: kind of resolved, probably not every case considered
     private static String parseUrlFromBinaryExp(BinaryExpr exp) {
         StringBuilder returnString = new StringBuilder();
         Expression left = exp.getLeft();
@@ -325,7 +361,6 @@ public class SourceToObjectUtils {
         return returnString.toString(); // URL not found in subtree
     }
 
-    // TODO format to what? add comments please
     private static String formatURL(StringLiteralExpr stringLiteralExpr) {
         String str = stringLiteralExpr.toString();
         str = str.replace("http://", "");
@@ -353,6 +388,12 @@ public class SourceToObjectUtils {
     }
 
 
+    /**
+     * This method parses a list of annotation expressions and returns a set of Annotation models
+     *
+     * @param annotationExprs the annotation expressions to parse
+     * @return the Set of Annotation models
+     */
     private static Set<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
         Set<Annotation> annotations = new HashSet<>();
 
@@ -377,6 +418,12 @@ public class SourceToObjectUtils {
         return annotations;
     }
 
+    /**
+     * This method searches a set of Annotation models and returns a ClassRole found
+     *
+     * @param annotations the set of annotations to search
+     * @return the ClassRole determined
+     */
     private static ClassRole parseClassRole(Set<Annotation> annotations) {
         ClassRole classRole = ClassRole.UNKNOWN;
         for (Annotation annotation : annotations) {
@@ -399,6 +446,7 @@ public class SourceToObjectUtils {
         return classRole;
     }
 
+    //TODO Generalize and move out
     private static String getMicroserviceName(File sourceFile) {
         return sourceFile.getPath().split("\\\\")[3];
     }
