@@ -37,7 +37,9 @@ public class SourceToObjectUtils {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
         microserviceName = getMicroserviceName(sourceFile);
-        packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
+        if(!cu.findAll(PackageDeclaration.class).isEmpty()) {
+            packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
+        }
 
     }
 
