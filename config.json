@@ -1,7 +1,6 @@
 {
   "systemName": "Train-ticket",
-  "repositoryURL": "https://github.com/sqshq/piggymetrics.git",
-  "baseCommit": "6bb2cf9ddbca980b664d3edbb6ff775d75369278",
-  "baseBranch": "master"
+  "repositoryURL": "https://github.com/g-goulis/train-ticket-microservices-test.git",
+  "baseCommit": "e87a1ca49b3c817037885fb0250537dbb10467e1",
+  "baseBranch": "main"
 }
-
