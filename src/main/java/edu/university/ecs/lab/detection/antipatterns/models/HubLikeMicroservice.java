@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.metrics.models.metrics;
+package edu.university.ecs.lab.detection.antipatterns.models;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-public class GreedyMicroservice implements JsonSerializable {
-    private Set<String> greedyMicroservices = new HashSet<>();
+public class HubLikeMicroservice implements JsonSerializable {
+    private Set<String> hublikeMicroservices = new HashSet<>();
 
-    public GreedyMicroservice(Set<String> greedyMicroservices) {
-        this.greedyMicroservices = greedyMicroservices;
+    public HubLikeMicroservice(Set<String> hublikeMicroservices) {
+        this.hublikeMicroservices = hublikeMicroservices;
     }
 
     /**
@@ -23,9 +23,9 @@ public class GreedyMicroservice implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         Gson gson = new Gson();
-        String greedy = gson.toJson(greedyMicroservices);
+        String hublike = gson.toJson(hublikeMicroservices);
 
-        jsonObject.addProperty("greedy microservices", greedy);
+        jsonObject.addProperty("hub-like microservices", hublike);
 
         return jsonObject;
     }

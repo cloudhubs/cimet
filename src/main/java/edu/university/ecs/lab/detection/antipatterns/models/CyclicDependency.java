@@ -1,4 +1,5 @@
-package edu.university.ecs.lab.metrics.models.metrics;
+package edu.university.ecs.lab.detection.antipatterns.models;
+
 
 import lombok.Data;
 

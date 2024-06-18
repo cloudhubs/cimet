@@ -1,8 +1,8 @@
-package edu.university.ecs.lab.metrics.services;
+package edu.university.ecs.lab.detection.antipatterns.services;
 
 import edu.university.ecs.lab.common.models.Edge;
 import edu.university.ecs.lab.common.models.NetworkGraph;
-import edu.university.ecs.lab.metrics.models.metrics.GreedyMicroservice;
+import edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice;
 
 import java.util.HashSet;
 import java.util.Set;

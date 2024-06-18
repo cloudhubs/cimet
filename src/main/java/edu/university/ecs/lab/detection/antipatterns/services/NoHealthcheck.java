@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.metrics.services;
+package edu.university.ecs.lab.detection.antipatterns.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
