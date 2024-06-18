@@ -20,13 +20,13 @@ public enum Error {
     INVALID_JSON_WRITE(10, "Unable to write JSON to file!"),
     JPARSE_FAILED(10, "Failed to parse Java Code!");
 
- /**
- *  The unique error code identifying the error type.
- */
+    /**
+     *  The unique error code identifying the error type.
+     */
     private final int code;
-/**
- *  The detailed message describing the error.
- */
+    /**
+     *  The detailed message describing the error.
+     */
     private final String message;
 
     /**
