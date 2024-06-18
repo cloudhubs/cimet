@@ -139,6 +139,33 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <show>private</show>
+                    <outputDirectory>./docs</outputDirectory>
+                    <groups>
+                        <group>
+                            <title>common</title>
+                            <packages>edu.university.ecs.lab.common.*</packages>
+                        </group>
+                        <group>
+                            <title>delta</title>
+                            <packages>edu.university.ecs.lab.delta.*</packages>
+                        </group>
+                        <group>
+                            <title>intermediate</title>
+                            <packages>edu.university.ecs.lab.intermediate.*</packages>
+                        </group>
+                        <group>
+                            <title>metrics</title>
+                            <packages>edu.university.ecs.lab.metrics.*</packages>
+                        </group>
+                    </groups>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>

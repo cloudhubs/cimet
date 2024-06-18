@@ -6,14 +6,10 @@ import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 
 
 /**
- * {@link IRExtractionRunner} is the main entry point for the intermediate extraction process, relying on
- * {@link IRExtractionService}.
  *
  * <p>The IR extraction process is responsible for cloning remote services, scanning through each
  * local repo and extracting rest endpoints/calls, and writing each service and endpoints to
- * intermediate representation.
- *
- * <p>
+ * intermediate representation.</p>
  */
 public class IRExtractionRunner {
 
