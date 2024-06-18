@@ -1,11 +1,11 @@
 /**
- * Provides classes for handling and referencing configuration files for the creation of the end 
- * product of the tool.
+ * Provides classes and utilities for handling configuration files related to microservice systems.
  * <p>
- * This package contains various configuration components necessary for managing and validating
- * the configuration of a microservice system. It includes models representing JSON configuration
- * files, utilities for reading and validating these configurations, and constants defining
- * scheme domains and path extensions for Git repositories.
+ * This package includes:
+ * - {@link edu.university.ecs.lab.common.config.Config}: Represents a configuration model for managing
+ *   JSON configuration files, including system name, repository URL, base commit and branch, and paths
+ *   to microservices within the repository.
+ * - {@link edu.university.ecs.lab.common.config.ConfigUtil}: Utility class for reading and validating
+ *   JSON configuration files, converting them into {@code Config} objects.
  */
-
 package edu.university.ecs.lab.common.config;

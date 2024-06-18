@@ -11,10 +11,15 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a network graph for a microservice system.
+ * This class holds the details of the nodes and edges that make up the graph.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class NetworkGraph implements JsonSerializable {
+    // List of predefined services in the system. Need to remove
     private static List<String> SERVICES = Arrays.asList("ts-admin-service",
             "ts-assurance-service",
             "ts-auth-service",
@@ -38,12 +43,30 @@ public class NetworkGraph implements JsonSerializable {
             "ts-travel-service",
             "ts-ui-dashboard",
             "ts-user-service");
-
+    /**
+     * Represents the name of the network graph
+     */
     private String label;
+    /**
+     * Holds the timestamp of the current Network graph 
+     * (i.e the commit ID that the Network graph represents)
+     */
     private String timestamp;
+    /**
+     * Whether the edges are interpreseted as directed (default true)
+     */
     private boolean directed;
+    /**
+     * Whether several edges between cource and target are allowed, distinguished by the endpoint
+     */
     private boolean multigraph;
+    /**
+     * List of all nodes present in the data (must be unique)
+     */
     private Set<String> nodes;
+    /**
+     * List of Edge objects that represent the communication between nodes
+     */
     private Set<Edge> edges;
 
     /**
@@ -69,6 +92,11 @@ public class NetworkGraph implements JsonSerializable {
         return jsonObject;
     }
 
+    /**
+     * Creates the network graph from a given MicroserviceSystem.
+     *
+     * @param microserviceSystem the microservice system to build the graph from.
+     */
     public void createGraph(MicroserviceSystem microserviceSystem) {
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
