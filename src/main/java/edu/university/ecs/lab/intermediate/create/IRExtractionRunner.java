@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.intermediate.create;
 
-import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 
 
@@ -17,27 +17,24 @@ import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
  */
 public class IRExtractionRunner {
 
-  /**
-   * Intermediate extraction runner, generates IR from remote repository and writes to file.
-   *
-   * @param args [/path/to/config/file] <branch> <commit>
-   * @apiNote defaults to config.json in the project directory.
-   */
-  public static void main(String[] args) throws Exception {
-    args = new String[]{"./config.json"};
-    if (args.length != 1) {
-      Error.reportAndExit(Error.INVALID_ARGS);
+    /**
+     * Intermediate extraction runner, generates IR from remote repository and writes to file.
+     *
+     */
+    public static void main(String[] args) throws Exception {
+        args = new String[]{"./config.json"};
+        if (args.length != 1) {
+            Error.reportAndExit(Error.INVALID_ARGS);
+        }
+
+        // Create both directories needed
+        FileUtils.createPaths();
+
+        // Initialize the irExtractionService
+        IRExtractionService irExtractionService = new IRExtractionService(args[0]);
+
+        // Generate the Intermediate Representation
+        irExtractionService.generateIR("IR.json");
+
     }
-
-    // Create both directories needed
-    ConfigUtil.createPaths();
-
-    // Initialize the irExtractionService
-    IRExtractionService irExtractionService = new IRExtractionService(args[0]);
-
-    // Generate the Intermediate Representation
-    irExtractionService.generateIR();
-
-
-  }
 }

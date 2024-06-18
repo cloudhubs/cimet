@@ -7,13 +7,12 @@ import java.io.File;
 
 public class CimetRunner {
 
-  /**
-   * Main method for full report TODO adapt for case of already having the initial IR (the previous
-   * merged/newIR) aka not running IRExtraction
-   *
-   * @param args /path/to/config/file <base branch> <base commit> <compare branch> <compare commit>
-   */
-  public static void main(String[] args) throws Exception {
+    /**
+     * Main method for full report TODO adapt for case of already having the initial IR (the previous
+     * merged/newIR) aka not running IRExtraction
+     *
+     */
+    public static void main(String[] args) throws Exception {
 
 //    if (args.length != 5) {
 //      System.err.println(
@@ -45,7 +44,7 @@ public class CimetRunner {
 //    };
 //    IRMergeRunner.main(IRMergeArgs);
 
-    CompilationUnit cu = StaticJavaParser.parse(new File("C:\\Users\\ninja\\IdeaProjects\\TemporalParser\\repos\\train-ticket-microservices-test\\ts-order-service\\src\\main\\java\\com\\cloudhubs\\trainticket\\order\\controller\\AdminOrderController.java"));
-    System.out.println(cu.toString());
-  }
+        CompilationUnit cu = StaticJavaParser.parse(new File("C:\\Users\\ninja\\IdeaProjects\\TemporalParser\\repos\\train-ticket-microservices-test\\ts-order-service\\src\\main\\java\\com\\cloudhubs\\trainticket\\order\\controller\\AdminOrderController.java"));
+        System.out.println(cu.toString());
+    }
 }

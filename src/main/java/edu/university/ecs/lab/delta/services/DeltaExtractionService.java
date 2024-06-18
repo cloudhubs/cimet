@@ -1,134 +1,163 @@
-//package edu.university.ecs.lab.delta.services;
-//
-//import edu.university.ecs.lab.common.config.Config;
-//import edu.university.ecs.lab.common.config.ConfigUtil;
-//import edu.university.ecs.lab.common.error.Error;
-//import edu.university.ecs.lab.common.models.JClass;
-//import edu.university.ecs.lab.common.services.GitService;
-//import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-//import edu.university.ecs.lab.delta.models.SystemChange;
-//import org.eclipse.jgit.diff.DiffEntry;
-//import org.eclipse.jgit.lib.Repository;
-//
-//import java.io.*;
-//import java.util.*;
-//import java.util.stream.Collectors;
-//
-//import static edu.university.ecs.lab.common.utils.SourceToObjectUtils.parseClass;
-//
-///**
-// * Service for extracting the differences between a local and remote repository and generating delta
-// */
-//public class DeltaExtractionService {
-//
-//  /** Config file, defaults to config.json */
-//  private final Config config;
-//
-//  /** Config file, defaults to config.json */
-//  private final GitService gitService;
-//
-//
-//  /**
-//   * Constructor for the delta extraction service
-//   *
-//   * @param configPath file path to the configuration file
-//   */
-//  public DeltaExtractionService(String configPath) {
-//    this.gitService = new GitService(configPath);
-//    this.config = ConfigUtil.readConfig(configPath);
-//  }
-//
-//  /**
-//   * Generate delta between base branch and base branch + 1
-//   */
-//  public void generateDelta() {
-//    List<DiffEntry> differences = null;
-//
-//    try{
-//      differences = gitService.getDifferences(1);
-//
-//    } catch (Exception e) {
-//      Error.reportAndExit(Error.GIT_FAILED);
-//    }
-//
-//    // process/write differences to delta output
-//    String outputFile = processDifferences(differences);
-//
-//    // Advance the local commit for next delta generation
-//    if(!gitService.resetLocal(1)) {
-//      System.out.println("No additional commits to fast forward to!");
-//    }
-//
-//  }
-//
-//  /**
-//   * Process the differences between the local and remote repository and write the differences to a
-//   * file. Differences can be generated from {@link GitFetchUtils#fetchRemoteDifferences(Repository,
-//   * String)}
-//   *
-//   * @param diffEntries the list of differences extracted
-//   * @param inputRepo the input repo to handle
-//   * @return the name of the output file generated
-//   * @throws IOException if a failure occurs while trying to write to the file
-//   */
-//  public String processDifferences(List<DiffEntry> diffEntries) {
-//
-//    // Filter entries
-//    List<DiffEntry> filteredEntries = filterDiffEntries(diffEntries);
-//
-//    SystemChange systemChange = new SystemChange();
-//
-//    // process each difference
-//    for (DiffEntry entry : filteredEntries) {
-//      String basePath = config.getLocalPath(inputRepo) + "/";
-//      System.out.println("Extracting changes from: " + basePath);
-//
-//      boolean isDeleted = DiffEntry.ChangeType.DELETE.equals(entry.getChangeType());
-//      String localPath = isDeleted ? basePath + entry.getOldPath() : basePath + entry.getNewPath();
-//      File classFile = new File(localPath);
-//
-//      try {
-//        JClass jClass = parseClass(classFile, config);
-//        if (jClass != null) {
-//          systemChange.addChange(jClass, entry, localPath);
-//        }
-//      } catch (IOException e) {
-//        System.err.println("Error parsing class file: " + classFile.getAbsolutePath());
-//        System.err.println(e.getMessage());
-//        System.exit(DELTA_EXTRACTION_FAIL.ordinal());
-//      }
-//
-//      System.out.println(
-//          "Change impact of type " + entry.getChangeType() + " detected in " + entry.getNewPath());
-//    }
-//
-//    String outputName = FullCimetUtils.getDeltaOutputName(branch, compareCommit);
-//
-//    JsonReadWriteUtils.writeJsonToFile(systemChange.toJsonObject(), outputName);
-//
-//    System.out.println("Delta extracted: " + outputName);
-//
-//    return outputName;
-//  }
-//
-//  /**
-//   * Returns only Java related files and accounts for discrepancy when
-//   * dealing with deleted files whose "new path" does not exist.
-//   *
-//   * @param diffEntries the diff entry list to filter
-//   * @return filtered list of diff entries
-//   */
-//  private List<DiffEntry> filterDiffEntries(List<DiffEntry> diffEntries) {
-//    return diffEntries.stream()
-//            .filter(
-//                    diffEntry -> {
-//                      if (DiffEntry.ChangeType.DELETE.equals(diffEntry.getChangeType())) {
-//                        return diffEntry.getOldPath().endsWith(".java");
-//                      } else {
-//                        return diffEntry.getNewPath().endsWith(".java");
-//                      }
-//                    })
-//            .collect(Collectors.toUnmodifiableList());
-//  }
-//
-//}
+package edu.university.ecs.lab.delta.services;
+
+import edu.university.ecs.lab.common.config.Config;
+import edu.university.ecs.lab.common.config.ConfigUtil;
+import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.services.GitService;
+import edu.university.ecs.lab.common.utils.FileUtils;
+import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
+import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
+import edu.university.ecs.lab.delta.models.Delta;
+import edu.university.ecs.lab.delta.models.SystemChange;
+import edu.university.ecs.lab.delta.models.enums.ChangeType;
+import org.eclipse.jgit.diff.DiffEntry;
+
+import java.io.File;
+import java.util.List;
+
+/**
+ * Service for extracting the differences between two commits of a repository
+ */
+public class DeltaExtractionService {
+
+    /**
+     * Config object representing the contents of the config file
+     */
+    private final Config config;
+
+    /**
+     * GitService instance for interacting with the local repository
+     */
+    private final GitService gitService;
+
+    /**
+     * The old commit for comparison
+     */
+    private final String commitOld;
+
+    /**
+     * The new commit for comparison
+     */
+    private final String commitNew;
+
+
+    /**
+     * Constructor for the DeltaExtractionService
+     *
+     * @param configPath path to the config file
+     * @param commitOld old commit for comparison
+     * @param commitNew new commit for comparison
+     */
+    public DeltaExtractionService(String configPath, String commitOld, String commitNew) {
+        this.config = ConfigUtil.readConfig(configPath);
+        this.gitService = new GitService(configPath);
+        this.commitOld = commitOld;
+        this.commitNew = commitNew;
+    }
+
+    /**
+     * Generates Delta file representing changes between commitOld and commitNew
+     */
+    public void generateDelta() {
+        List<DiffEntry> differences = null;
+
+        // Ensure we start at commitOld
+        gitService.resetLocal(commitOld);
+
+        try {
+            differences = gitService.getDifferences(commitOld, commitNew);
+
+        } catch (Exception e) {
+            Error.reportAndExit(Error.GIT_FAILED);
+        }
+
+        // Advance the local commit for parsing
+        gitService.resetLocal(commitNew);
+
+        // process/write differences to delta output
+        processDelta(differences);
+
+    }
+
+    /**
+     * Process the differences between the local and remote repository and write the differences to a
+     * file.
+     *
+     * @param diffEntries the list of differences extracted by GitService
+     */
+    public void processDelta(List<DiffEntry> diffEntries) {
+
+        // Set up a new SystemChangeObject
+        SystemChange systemChange = new SystemChange();
+        systemChange.setOldCommit(commitOld);
+        systemChange.setNewCommit(commitNew);
+
+        // process each difference
+        for (DiffEntry entry : diffEntries) {
+
+            if (commitNew.startsWith("a78")) {
+                System.out.println("RENAME" + entry);
+            }
+
+            // If its not a java file and doesnt end with pom.xml
+            String path = entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) ? entry.getOldPath() : entry.getNewPath();
+
+            // If paths doesnt end with java or (path doesnt end with java or pom)
+            if (!path.endsWith(".java") && !path.endsWith("pom.xml")) {
+                continue;
+            }
+
+            String oldPath = "";
+            String newPath = "";
+
+            if (DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
+                oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+                newPath = null;
+
+            } else if (DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
+                oldPath = null;
+                newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+
+            } else {
+                oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+                newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+
+            }
+
+
+            // Get the class, if we are a delete the file for parsing no longer exists
+            // If we are a pom.xml we cannot parse
+            JClass jClass = null;
+            if (!path.endsWith("pom.xml")) {
+
+                if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
+
+                    jClass = SourceToObjectUtils.parseClass(new File(newPath), config);
+
+                    // If we try to parse and it is still null, for ADD we will skip
+                    if (jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
+                        continue;
+                    }
+
+                    // For MODIFY we will let pass since it might be modifying a previously accepted file
+
+                }
+
+            }
+
+
+            // If the class isn't ours and it isn't a folder or Docker or Pom
+
+            systemChange.getChanges().add(new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass));
+
+        }
+
+        JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);
+
+        System.out.println("Delta extracted: from " + commitOld + " to " + commitNew + " at ./output/Delta.json");
+
+    }
+
+
+}

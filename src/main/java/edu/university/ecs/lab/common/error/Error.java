@@ -1,5 +1,8 @@
 package edu.university.ecs.lab.common.error;
 
+import lombok.Getter;
+
+@Getter
 public enum Error {
     UNKNOWN_ERROR(1, "Unknown error has occured!"),
     NULL_ERROR(1, "Input cannot be null!"),
@@ -11,7 +14,8 @@ public enum Error {
     GIT_FAILED(7, "The requested git action failed for an unknown reason!"),
     INVALID_ARGS(8, "Invalid arguments!"),
     INVALID_JSON_READ(9, "Unable to read JSON from file!"),
-    INVALID_JSON_WRITE(10, "Unable to write JSON to file!");
+    INVALID_JSON_WRITE(10, "Unable to write JSON to file!"),
+    JPARSE_FAILED(10, "Failed to parse Java Code!");
 
     private final int code;
     private final String message;
@@ -19,14 +23,6 @@ public enum Error {
     Error(int code, String message) {
         this.code = code;
         this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
     public static void reportAndExit(Error error) {

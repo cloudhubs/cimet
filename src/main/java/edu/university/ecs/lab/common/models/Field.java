@@ -1,25 +1,38 @@
 package edu.university.ecs.lab.common.models;
 
 import com.google.gson.JsonObject;
-import lombok.*;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-/** Represents a field attribute in a Java class or in our case a JClass. */
+/**
+ * Represents a field attribute in a Java class or in our case a JClass.
+ */
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Field implements JsonSerializable {
-  /** Java class type of the class variable e.g. String */
-  private String fieldType;
+    /**
+     * Java class type of the class variable e.g. String
+     */
+    private String type;
 
-  /** Name of the class variable e.g. username */
-  private String fieldName;
+    /**
+     * Name of the class variable
+     */
+    private String name;
 
-  @Override
-  public JsonObject toJsonObject() {
-    JsonObject jsonObject = new JsonObject();
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
+    @Override
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
 
-    jsonObject.addProperty("fieldType", getFieldType());
-    jsonObject.addProperty("fieldName", getFieldName());
+        jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("type", getType());
 
-    return jsonObject;
-  }
+        return jsonObject;
+    }
 }
