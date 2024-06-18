@@ -150,7 +150,6 @@
                 <version>3.4.1</version>
                 <configuration>
                     <show>private</show>
-                    <reportOutputDirectory>./docs</reportOutputDirectory>
                     <outputDirectory>./docs</outputDirectory>
                     <groups>
                         <group>
@@ -206,7 +205,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
             <properties>
