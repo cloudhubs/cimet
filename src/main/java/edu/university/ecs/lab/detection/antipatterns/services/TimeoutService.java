@@ -11,7 +11,7 @@
 
 // import java.util.Set;
 
-// public class Timeout {
+// public class TimeoutService {
 
 //     /**
 //      * Method to analyze timeout settings for potential anti-patterns

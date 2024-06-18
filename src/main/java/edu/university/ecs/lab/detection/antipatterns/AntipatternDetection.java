@@ -15,7 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class MetricsCalculator {
+public class AntipatternDetection {
     public static void main(String[] args) {
 
         Config config = ConfigUtil.readConfig("./config.json");
