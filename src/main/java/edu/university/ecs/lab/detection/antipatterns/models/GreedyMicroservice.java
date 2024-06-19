@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.metrics.models.metrics;
+package edu.university.ecs.lab.detection.antipatterns.models;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -8,10 +8,21 @@ import lombok.Data;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents a collection of microservices identified as greedy.
+ */
 @Data
 public class GreedyMicroservice implements JsonSerializable {
+    /**
+     * Set of microservices identified as greedy
+     */
     private Set<String> greedyMicroservices = new HashSet<>();
 
+    /**
+     * Constructor to initialize with a set of greedy microservices.
+     *
+     * @param greedyMicroservices set of microservices identified as greedy
+     */
     public GreedyMicroservice(Set<String> greedyMicroservices) {
         this.greedyMicroservices = greedyMicroservices;
     }

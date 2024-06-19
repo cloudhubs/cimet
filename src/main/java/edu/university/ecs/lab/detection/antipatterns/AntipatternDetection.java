@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.metrics;
+package edu.university.ecs.lab.detection.antipatterns;
 
 import com.google.gson.Gson;
 import edu.university.ecs.lab.common.config.Config;
@@ -8,14 +8,14 @@ import edu.university.ecs.lab.common.models.NetworkGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
-import edu.university.ecs.lab.metrics.models.metrics.*;
-import edu.university.ecs.lab.metrics.services.*;
+import edu.university.ecs.lab.detection.antipatterns.models.*;
+import edu.university.ecs.lab.detection.antipatterns.services.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class MetricsCalculator {
+public class AntipatternDetection {
     public static void main(String[] args) {
 
         Config config = ConfigUtil.readConfig("./config.json");
@@ -52,7 +52,14 @@ public class MetricsCalculator {
         writeObjectToJsonFile(cycleDepencies, "cyclicdependencies.json");
         
         NoHealthcheck healthcheck = new NoHealthcheck();
-        System.out.println(healthcheck.checkHealthcheck("./check.yaml"));
+        System.out.println(healthcheck.checkHealthcheck("./healthcheck.yaml"));
+
+        WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
+        List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
+        writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+
+        NoApiGateway apiGateway = new NoApiGateway();
+        System.out.println(apiGateway.checkforApiGateway("./apigateway.yaml"));
 
     }
 
