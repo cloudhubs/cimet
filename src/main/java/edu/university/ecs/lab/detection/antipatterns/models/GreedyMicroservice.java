@@ -34,9 +34,8 @@ public class GreedyMicroservice implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         Gson gson = new Gson();
-        String greedy = gson.toJson(greedyMicroservices);
 
-        jsonObject.addProperty("greedy microservices", greedy);
+        jsonObject.add("greedy microservices", gson.toJsonTree(greedyMicroservices).getAsJsonArray());
 
         return jsonObject;
     }
