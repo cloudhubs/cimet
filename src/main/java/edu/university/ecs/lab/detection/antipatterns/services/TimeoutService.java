@@ -11,7 +11,7 @@
 
 // import java.util.Set;
 
-// public class Timeout {
+// public class TimeoutService {
 
 //     /**
 //      * Method to analyze timeout settings for potential anti-patterns
@@ -23,7 +23,6 @@
 //         for (Microservice microservice : microservices) {
 //             TimeoutSettings timeoutSettings = extractTimeoutSettings(microservice);
 
-//             // Check for lack of timeout configuration
 //             if (timeoutSettings.getTimeoutDuration() == null) {
 //                 System.out.println("Microservice " + microservice.getName() + " has no timeout configuration.");
 //             }

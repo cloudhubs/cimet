@@ -15,7 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-public class MetricsCalculator {
+public class AntipatternDetection {
     public static void main(String[] args) {
 
         Config config = ConfigUtil.readConfig("./config.json");
@@ -52,7 +52,14 @@ public class MetricsCalculator {
         writeObjectToJsonFile(cycleDepencies, "cyclicdependencies.json");
         
         NoHealthcheck healthcheck = new NoHealthcheck();
-        System.out.println(healthcheck.checkHealthcheck("./check.yaml"));
+        System.out.println(healthcheck.checkHealthcheck("./healthcheck.yaml"));
+
+        WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
+        List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
+        writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+
+        NoApiGateway apiGateway = new NoApiGateway();
+        System.out.println(apiGateway.checkforApiGateway("./apigateway.yaml"));
 
     }
 

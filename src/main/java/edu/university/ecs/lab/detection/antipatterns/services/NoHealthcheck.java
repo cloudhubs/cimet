@@ -11,14 +11,10 @@ public class NoHealthcheck {
 
     public boolean checkHealthcheck(String yamlFilePath) {
         try {
-            // Read YAML file and convert to JSON
             String jsonContent = convertYamlToJson(yamlFilePath);
 
-            // Check JSON content for any healthchecks
             boolean circuitBreakerEnabled = isCircuitBreakerEnabled(jsonContent);
             boolean rateLimiterEnabled = isRateLimiterEnabled(jsonContent);
-
-            // Return true if any of the configurations are enabled (meaning there are healthchecks)
             return circuitBreakerEnabled && rateLimiterEnabled;
 
         } catch (IOException e) {
@@ -38,7 +34,6 @@ public class NoHealthcheck {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonContent);
 
-        // Check if the circuit breaker configuration is enabled
         JsonNode circuitBreakerNode = rootNode.path("management.health.circuitbreakers.enabled");
         return circuitBreakerNode.isBoolean() && circuitBreakerNode.asBoolean(false);
     }
@@ -47,7 +42,6 @@ public class NoHealthcheck {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode rootNode = mapper.readTree(jsonContent);
 
-        // Check if the rate limiter configuration is enabled
         JsonNode rateLimiterNode = rootNode.path("management.health.ratelimiters.enabled");
         return rateLimiterNode.isBoolean() && rateLimiterNode.asBoolean(false);
     }
