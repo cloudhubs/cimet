@@ -3,7 +3,6 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 
-
 /**
  * Abstract implementation of an Antipattern should be the parent
  * of all system Antipatterns

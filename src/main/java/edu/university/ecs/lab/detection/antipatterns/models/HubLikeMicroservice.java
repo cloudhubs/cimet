@@ -12,7 +12,11 @@ import java.util.Set;
  * Represents a collection of microservices identified as hub-like.
  */
 @Data
-public class HubLikeMicroservice implements JsonSerializable {
+public class HubLikeMicroservice extends AntiPattern {
+    private static final String NAME = "Hub-Like Microservice";
+    
+    private static final String DSECRIPTION = "A centralized microservice that becomes a bottleneck due to handling too many responsibilities or being a single point of failure.";
+
     /**
      * Set of microservices identified as hub-like.
      */
@@ -28,15 +32,36 @@ public class HubLikeMicroservice implements JsonSerializable {
     }
 
     /**
-     * see {@link JsonSerializable#toJsonObject()}
+     * Checks if the list of nodes considered hub-like is empty.
+     *
+     * @return true if the cycle list is empty, false otherwise
      */
-    public JsonObject toJsonObject() {
+    public boolean isEmpty(){
+        if (this.hublikeMicroservices.isEmpty()){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    protected String getName() {
+        return NAME;
+    }
+
+    @Override
+    protected String getDescription() {
+        return DSECRIPTION;
+    }
+
+    @Override
+    protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
 
         Gson gson = new Gson();
-        String hublike = gson.toJson(hublikeMicroservices);
 
-        jsonObject.addProperty("hub-like microservices", hublike);
+        jsonObject.add(NAME, gson.toJsonTree(hublikeMicroservices).getAsJsonArray());
 
         return jsonObject;
     }

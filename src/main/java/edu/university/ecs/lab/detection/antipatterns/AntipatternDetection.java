@@ -31,35 +31,64 @@ public class AntipatternDetection {
 
         writeObjectToJsonFile(sdg, "networkgraph.json");
 
+        int detectedAntipatterns = 0;
+
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        writeObjectToJsonFile(greedyMicroservices, "greedy.json");
-
+        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(greedyMicroservices, "greedy.json");
+        }
+        
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
+        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
+        }
+        
 
         ServiceChainService chainService = new ServiceChainService();
         List<ServiceChain> allChains = chainService.getServiceChains(sdg);
-        writeObjectToJsonFile(allChains, "servicechain.json");
-
+        if (!allChains.isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(allChains, "servicechain.json");
+        }
+        
         WrongCutsService wrongCutsService = new WrongCutsService();
         List<WrongCuts> wrongCuts = wrongCutsService.identifyAndReportWrongCuts(sdg);
-        writeObjectToJsonFile(wrongCuts, "wrongcuts.json");
-
-        CyclicDependencyService cycles = new CyclicDependencyService();
-        List<CyclicDependency> cycleDepencies = cycles.findCyclicDependencies(sdg);
-        writeObjectToJsonFile(cycleDepencies, "cyclicdependencies.json");
+        if (!wrongCuts.isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(wrongCuts, "wrongcuts.json");
+        }
         
-        NoHealthcheck healthcheck = new NoHealthcheck();
-        System.out.println(healthcheck.checkHealthcheck("./healthcheck.yaml"));
+        CyclicDependencyService cycles = new CyclicDependencyService();
+        List<CyclicDependency> cycleDependencies = cycles.findCyclicDependencies(sdg);
+        if (!cycleDependencies.isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(cycleDependencies, "cyclicdependencies.json");
+        }
+        
+        NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
+        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck("./healthcheck.yaml");
+        if (noHealthCheck.getnoHealthcheck()){
+            detectedAntipatterns++;
+        }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
         List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
-        writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+        if (!wobblyService.isEmpty()){
+            detectedAntipatterns++;
+            writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+        }
 
-        NoApiGateway apiGateway = new NoApiGateway();
-        System.out.println(apiGateway.checkforApiGateway("./apigateway.yaml"));
+        NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
+        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway("./apigateway.yaml");
+        if (noApiGateway.getnoApiGateway()){
+            detectedAntipatterns++;
+        }
+
+        System.out.println("Number of Anti-Patterns Detected: " + detectedAntipatterns);
 
     }
 
