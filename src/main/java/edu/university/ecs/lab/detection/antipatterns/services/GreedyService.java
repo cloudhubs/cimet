@@ -7,10 +7,23 @@ import edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice;
 import java.util.HashSet;
 import java.util.Set;
 
+
+/**
+ * Service class to identify and manage microservices identified as greedy.
+ */
 public class GreedyService {
 
+    /**
+     * Threshold for the number of REST calls indicating a microservice is greedy.
+     */
     private static final int RESTCALL_THRESHOLD = 5;
 
+    /**
+     * Retrieves microservices identified as greedy based on REST call threshold.
+     *
+     * @param graph the network graph to analyze
+     * @return a GreedyMicroservice object containing identified greedy microservices
+     */
     public GreedyMicroservice getGreedyMicroservices(NetworkGraph graph) {
         Set<String> getGreedyMicroservices = new HashSet<>();
 

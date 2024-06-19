@@ -12,7 +12,9 @@ public class WrongCutsService {
         List<WrongCuts> wrongCutsObjects = new ArrayList<>();
 
         for (Set<String> wrongCut : wrongCutsList) {
-            wrongCutsObjects.add(new WrongCuts(wrongCut));
+            if (wrongCut.size() > 1) { // Only consider clusters with more than one service
+                wrongCutsObjects.add(new WrongCuts(wrongCut));
+            }
         }
 
         return wrongCutsObjects;

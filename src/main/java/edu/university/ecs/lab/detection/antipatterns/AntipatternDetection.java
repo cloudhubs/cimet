@@ -52,7 +52,14 @@ public class AntipatternDetection {
         writeObjectToJsonFile(cycleDepencies, "cyclicdependencies.json");
         
         NoHealthcheck healthcheck = new NoHealthcheck();
-        System.out.println(healthcheck.checkHealthcheck("./check.yaml"));
+        System.out.println(healthcheck.checkHealthcheck("./healthcheck.yaml"));
+
+        WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
+        List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
+        writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+
+        NoApiGateway apiGateway = new NoApiGateway();
+        System.out.println(apiGateway.checkforApiGateway("./apigateway.yaml"));
 
     }
 

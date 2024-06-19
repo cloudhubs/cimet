@@ -23,7 +23,6 @@
 //         for (Microservice microservice : microservices) {
 //             TimeoutSettings timeoutSettings = extractTimeoutSettings(microservice);
 
-//             // Check for lack of timeout configuration
 //             if (timeoutSettings.getTimeoutDuration() == null) {
 //                 System.out.println("Microservice " + microservice.getName() + " has no timeout configuration.");
 //             }

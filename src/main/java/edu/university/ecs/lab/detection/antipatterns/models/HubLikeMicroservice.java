@@ -8,10 +8,21 @@ import lombok.Data;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Represents a collection of microservices identified as hub-like.
+ */
 @Data
 public class HubLikeMicroservice implements JsonSerializable {
+    /**
+     * Set of microservices identified as hub-like.
+     */
     private Set<String> hublikeMicroservices = new HashSet<>();
 
+    /**
+     * Constructor to initialize with a set of hub-like microservices.
+     *
+     * @param hublikeMicroservices set of microservices identified as hub-like
+     */
     public HubLikeMicroservice(Set<String> hublikeMicroservices) {
         this.hublikeMicroservices = hublikeMicroservices;
     }
