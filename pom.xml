@@ -120,6 +120,11 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.13.0</version>
         </dependency>
+        <dependency>
+            <groupId>uk.co.jemos.podam</groupId>
+            <artifactId>podam</artifactId>
+            <version>8.0.1.RELEASE</version>
+        </dependency>
     </dependencies>
     
     <repositories>
@@ -138,6 +143,34 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <show>private</show>
+                    <reportOutputDirectory>./docs</reportOutputDirectory>
+                    <outputDirectory>./docs</outputDirectory>
+                    <groups>
+                        <group>
+                            <title>common</title>
+                            <packages>edu.university.ecs.lab.common.*</packages>
+                        </group>
+                        <group>
+                            <title>delta</title>
+                            <packages>edu.university.ecs.lab.delta.*</packages>
+                        </group>
+                        <group>
+                            <title>intermediate</title>
+                            <packages>edu.university.ecs.lab.intermediate.*</packages>
+                        </group>
+                        <group>
+                            <title>metrics</title>
+                            <packages>edu.university.ecs.lab.metrics.*</packages>
+                        </group>
+                    </groups>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -173,6 +206,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                 </plugins>
             </build>
             <properties>

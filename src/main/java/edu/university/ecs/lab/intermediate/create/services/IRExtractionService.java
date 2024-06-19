@@ -133,7 +133,7 @@ public class IRExtractionService {
      */
     private void writeToFile(Set<Microservice> microservices, String fileName) {
 
-        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), MicroserviceSystem.INITIAL_VERSION, microservices, new HashSet<>());
+        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), config.getBaseCommit(), microservices, new HashSet<>());
 
         JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
@@ -180,7 +180,7 @@ public class IRExtractionService {
         String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
 
         Microservice model =
-                new Microservice(id, rootMicroservicePath, controllers, services, repositories, entities);
+                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities);
 
         System.out.println("Done!");
         return model;

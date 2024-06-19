@@ -10,18 +10,18 @@ import lombok.EqualsAndHashCode;
  * Represents an annotation in Java
  */
 @Data
-@AllArgsConstructor
 @EqualsAndHashCode
-public class Annotation implements JsonSerializable {
-    /**
-     * The name of the annotation *
-     */
-    protected String name;
-
+public class Annotation extends Node {
     /**
      * The contents of the annotation *
      */
     protected String contents;
+
+    public Annotation(String name, String packageAndClassName, String contents) {
+        this.name = name;
+        this.packageAndClassName = packageAndClassName;
+        this.contents = contents;
+    }
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -31,6 +31,7 @@ public class Annotation implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("packageAndClassName", getPackageAndClassName());
         jsonObject.addProperty("contents", getContents());
 
         return jsonObject;

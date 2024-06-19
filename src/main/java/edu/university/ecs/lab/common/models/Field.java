@@ -10,18 +10,19 @@ import lombok.EqualsAndHashCode;
  * Represents a field attribute in a Java class or in our case a JClass.
  */
 @Data
-@AllArgsConstructor
 @EqualsAndHashCode
-public class Field implements JsonSerializable {
+public class Field extends Node {
     /**
      * Java class type of the class variable e.g. String
      */
     private String type;
 
-    /**
-     * Name of the class variable
-     */
-    private String name;
+    public Field(String name, String packageAndClassName, String type) {
+        this.name = name;
+        this.packageAndClassName = packageAndClassName;
+        this.type = type;
+    }
+
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -31,6 +32,7 @@ public class Field implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("packageAndClassName", getPackageAndClassName());
         jsonObject.addProperty("type", getType());
 
         return jsonObject;

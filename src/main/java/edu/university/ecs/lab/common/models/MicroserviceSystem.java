@@ -14,10 +14,9 @@ import java.util.Set;
  */
 @Data
 @AllArgsConstructor
+
 @EqualsAndHashCode
 public class MicroserviceSystem implements JsonSerializable {
-    public static final String INITIAL_VERSION = "1.0";
-
     /**
      * The name of the system
      */

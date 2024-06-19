@@ -15,6 +15,7 @@ public class FileUtils {
     private static final String DEFAULT_OUTPUT_PATH = "output";
     private static final String DEFAULT_CLONE_PATH = "clone";
     private static final String DOT = ".";
+    public static final String GIT_SEPARATOR = "/";
 
     /**
      * Private constructor to prevent instantiation.
@@ -43,6 +44,16 @@ public class FileUtils {
     }
 
     /**
+     * This method returns the local path of the output directory as ./DEFAULT_OUTPUT_PATH.
+     * This will be a working relative path to the output directory on the local file system.
+     *
+     * @return the relative path string where the output will exist
+     */
+    public static String getOutputPath(String repoName) {
+        return getBaseOutputPath() + SEPARATOR + repoName;
+    }
+
+    /**
      * This method returns the relative local path of the output directory as ./DEFAULT_OUTPUT_PATH.
      * This will be a working relative path to the output directory on the local file system.
      *
@@ -53,54 +64,36 @@ public class FileUtils {
     }
 
     /**
-     * This method will convert a local file path to a path that is relative
-     * to the repository root not including the name of the repo
+     * This method converts a path of the form .\clone\repoName\pathToFile to the form
+     * /pathToFile
      *
      * @param localPath the local path to be converted
+     * @param repoName the name of the repo cloned locally
      * @return the relative repo path
      */
-    public static String pathToRepoPath(String localPath, String repoName) {
-        if (localPath == null || localPath.isEmpty()) {
-            return "";
-        }
-
-        return localPath.replace(DOT + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR + repoName, "");
+    public static String localPathToGitPath(String localPath, String repoName) {
+        return localPath.replace(FileUtils.getClonePath(repoName), "").replaceAll(SEPARATOR.replace("\\","\\\\"), GIT_SEPARATOR);
     }
-
     /**
-     * This method will convert a repo path that is relative to the repository
-     * root to a local file path
+     * This method converts a path of the form .\clone\repoName\pathToFile to the form
+     * /pathToFile
      *
-     * @return the relative path string where the output will exist
+     * @param localPath the local path to be converted
+     * @param repoName the name of the repo cloned locally
+     * @return the relative repo path
      */
-    @Deprecated
-    public static String repoPathToPath(String repoPath) {
-        return DOT + SEPARATOR + DEFAULT_OUTPUT_PATH;
+    public static String gitPathToLocalPath(String localPath, String repoName) {
+        return getClonePath(repoName) + localPath.replace(GIT_SEPARATOR, SEPARATOR);
     }
 
-    /**
-     * This method will convert an absolute path to a path that
-     * is relative to the PROJECT_PATH (user.dir)
-     *
-     * @param absolutePath the absolute path to be converted
-     * @return the relative path string after conversion
-     */
-    public static String absoluteToRelative(String absolutePath) {
-        Path currentDirectory = Paths.get(PROJECT_PATH);
-        Path absoluteFilePath = Paths.get(absolutePath);
 
-        // Make the absolute path relative to the current directory
-        Path relativePath = currentDirectory.relativize(absoluteFilePath);
-
-        return relativePath.toString();
-    }
 
     public static String getMicroserviceNameFromPath(String path) {
-        if (!path.startsWith("." + File.separator + DEFAULT_CLONE_PATH + File.separator)) {
+        if (!path.startsWith("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR)) {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        return path.replace("." + File.separator + DEFAULT_CLONE_PATH + File.separator, "").split("\\\\")[1];
+        return path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split("\\\\")[1];
     }
 
     /**

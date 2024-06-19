@@ -6,11 +6,13 @@ import edu.university.ecs.lab.common.models.Endpoint;
 import edu.university.ecs.lab.common.models.Field;
 import edu.university.ecs.lab.common.models.Method;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
-
 import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Class for deserializing a Method when using Gson
+ */
 public class MethodDeserializer implements JsonDeserializer<Method> {
 
     @Override
@@ -39,6 +41,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
             fields.add(context.deserialize(fieldJson, Field.class));
         }
         method.setParameters(fields);
+        method.setPackageAndClassName(json.get("packageAndClassName").getAsString());
 
 
         return method;
