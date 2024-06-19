@@ -2,17 +2,21 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 
 import java.util.HashSet;
 import java.util.Set;
 
+
 /**
  * Represents a collection of microservices identified as greedy.
  */
 @Data
-public class GreedyMicroservice implements JsonSerializable {
+public class GreedyMicroservice extends AntiPattern {
+    
+    private static final String NAME = "Greedy Microservice";
+
+    private static final String DSECRIPTION = "A microservice that overextends its responsibilities, violating the principle of single responsibility and potentially leading to increased complexity, dependencies, and maintenance challenges within the system.";
     /**
      * Set of microservices identified as greedy
      */
@@ -28,14 +32,36 @@ public class GreedyMicroservice implements JsonSerializable {
     }
 
     /**
-     * see {@link JsonSerializable#toJsonObject()}
+     * Checks if the list of nodes considered greedy is empty.
+     *
+     * @return true if the cycle list is empty, false otherwise
      */
-    public JsonObject toJsonObject() {
+    public boolean isEmpty(){
+        if (this.greedyMicroservices.isEmpty()){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    protected String getName() {
+        return NAME;
+    }
+
+    @Override
+    protected String getDescription() {
+        return DSECRIPTION;
+    }
+
+    @Override
+    protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
 
         Gson gson = new Gson();
 
-        jsonObject.add("greedy microservices", gson.toJsonTree(greedyMicroservices).getAsJsonArray());
+        jsonObject.add(NAME, gson.toJsonTree(greedyMicroservices).getAsJsonArray());
 
         return jsonObject;
     }
