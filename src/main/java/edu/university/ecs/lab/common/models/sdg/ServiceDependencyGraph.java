@@ -32,11 +32,11 @@ public class ServiceDependencyGraph implements JsonSerializable {
     /**
      * Whether the edges are interpreseted as directed (default true)
      */
-    private boolean directed;
+    private final boolean directed = true;
     /**
      * Whether several edges between cource and target are allowed, distinguished by the endpoint
      */
-    private boolean multigraph;
+    private final boolean multigraph = true;
     /**
      * List of all nodes present in the data (must be unique)
      */
