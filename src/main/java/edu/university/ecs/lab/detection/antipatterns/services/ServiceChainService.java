@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 
 import java.util.*;
@@ -17,7 +17,7 @@ public class ServiceChainService {
      * @param graph the network graph to analyze
      * @return a list of ServiceChain objects representing detected service chains
      */
-    public List<ServiceChain> getServiceChains(NetworkGraph graph) {
+    public List<ServiceChain> getServiceChains(ServiceDependencyGraph graph) {
         List<ServiceChain> allChains = new ArrayList<>();
         Map<String, List<String>> adjacencyList = buildAdjacencyList(graph);
 
@@ -38,16 +38,13 @@ public class ServiceChainService {
      * @param graph the network graph
      * @return adjacency list mapping each node to its list of neighboring nodes
      */
-    private Map<String, List<String>> buildAdjacencyList(NetworkGraph graph) {
+    private Map<String, List<String>> buildAdjacencyList(ServiceDependencyGraph graph) {
         Map<String, List<String>> adjacencyList = new HashMap<>();
         for (String node : graph.getNodes()) {
             adjacencyList.put(node, new ArrayList<>());
         }
-        for (Edge edge : graph.getEdges()) {
-            List<String> neighbors = adjacencyList.get(edge.getSource());
-            if (!neighbors.contains(edge.getTarget())) {
-                neighbors.add(edge.getTarget());
-            }
+        for (EndpointCallEdge edge : graph.getEdges()) {
+            adjacencyList.get(edge.getSource()).add(edge.getTarget());
         }
         return adjacencyList;
     }

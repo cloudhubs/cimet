@@ -8,7 +8,7 @@
  *   - {@link edu.university.ecs.lab.common.models.serialization}: Serialization and deserialization utilities for converting Java objects to JSON and vice versa
  * - Other model classes representing key elements of the microservice system:
  *   - {@link edu.university.ecs.lab.common.models.ir.Annotation}: Represents annotations within classes.
- *   - {@link edu.university.ecs.lab.common.models.sdg.Edge}: Represents an edge in a network graph schema
+ *   - {@link edu.university.ecs.lab.common.models.sdg.EndpointCallEdge}: Represents an edge in a network graph schema
  *     modeling microservice connections.
  *   - {@link edu.university.ecs.lab.common.models.ir.Endpoint}: Represents an endpoint exposed by a microservice.
  *   - {@link edu.university.ecs.lab.common.models.ir.Field}: Represents fields within classes.
@@ -19,7 +19,7 @@
  *     including its components like controllers, services, etc.
  *   - {@link edu.university.ecs.lab.common.models.ir.MicroserviceSystem}: Represents a microservice system and all its components,
  *     including the name of the system, the set of microservices, etc.
- *   - {@link edu.university.ecs.lab.common.models.sdg.NetworkGraph}: Represents the microservice system in a Static SDG schema (nodes and edges)
+ *   - {@link edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph}: Represents the microservice system in a Static SDG schema (nodes and edges)
  *   - {@link edu.university.ecs.lab.common.models.ir.RestCall}: Represents an a call to an endpoing mapping and exists at the service level
  *    
  */
