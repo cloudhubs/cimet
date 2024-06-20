@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NetworkGraph implements JsonSerializable {
+public class ServiceDependencyGraph implements JsonSerializable {
     // List of predefined services in the system. Need to remove
     private static List<String> SERVICES = Arrays.asList("ts-admin-service",
             "ts-assurance-service",
@@ -68,7 +68,7 @@ public class NetworkGraph implements JsonSerializable {
     /**
      * List of Edge objects that represent the communication between nodes
      */
-    private Set<Edge> edges;
+    private Set<EndpointCallEdge> edges;
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -126,13 +126,13 @@ public class NetworkGraph implements JsonSerializable {
             }
         }
 
-        List<Edge> edgesList = new ArrayList<>();
+        List<EndpointCallEdge> edgesList = new ArrayList<>();
         this.nodes = new HashSet<>();
 
         for (RestCall restCall : restCalls) {
             for (Endpoint endpoint : endpoints) {
                 if (restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
-                    edgesList.add(new Edge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
+                    edgesList.add(new EndpointCallEdge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
                     this.nodes.add(endpoint.getMicroserviceName());
                     this.nodes.add(restCall.getMicroserviceName());
                 }
@@ -141,11 +141,11 @@ public class NetworkGraph implements JsonSerializable {
 
         this.edges = new HashSet<>();
 
-        Map<Edge, Long> edgeDuplicateMap = edgesList.stream()
+        Map<EndpointCallEdge, Long> edgeDuplicateMap = edgesList.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         this.edges = edgeDuplicateMap.entrySet().stream().map(entry -> {
-            Edge edge = entry.getKey();
+            EndpointCallEdge edge = entry.getKey();
             edge.setWeight(Math.toIntExact(entry.getValue()));
             return edge;
         }).collect(Collectors.toSet());

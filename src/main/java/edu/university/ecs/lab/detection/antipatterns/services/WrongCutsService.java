@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.WrongCuts;
 
 import java.util.*;
@@ -17,7 +17,7 @@ public class WrongCutsService {
      * @param graph The network graph representing microservices and their dependencies.
      * @return A list of {@link WrongCuts} objects, each representing a cluster of wrongly interconnected services.
      */
-    public List<WrongCuts> identifyAndReportWrongCuts(NetworkGraph graph) {
+    public List<WrongCuts> identifyAndReportWrongCuts(ServiceDependencyGraph graph) {
         List<Set<String>> wrongCutsList = detectWrongCuts(graph);
         List<WrongCuts> wrongCutsObjects = new ArrayList<>();
 
@@ -36,7 +36,7 @@ public class WrongCutsService {
      * @param graph The network graph representing microservices and their dependencies.
      * @return A list of sets, each containing services that are wrongly interconnected (forming a cluster).
      */
-    public List<Set<String>> detectWrongCuts(NetworkGraph graph) {
+    public List<Set<String>> detectWrongCuts(ServiceDependencyGraph graph) {
         Map<String, List<String>> adjacencyList = buildAdjacencyList(graph);
         Set<String> visited = new HashSet<>();
         List<Set<String>> wrongCuts = new ArrayList<>();
@@ -58,14 +58,14 @@ public class WrongCutsService {
      * @param graph The network graph representing microservices and their dependencies.
      * @return A map where each key is a service and its value is a list of services it directly depends on.
      */
-    private Map<String, List<String>> buildAdjacencyList(NetworkGraph graph) {
+    private Map<String, List<String>> buildAdjacencyList(ServiceDependencyGraph graph) {
         Map<String, List<String>> adjacencyList = new HashMap<>();
 
         for (String node : graph.getNodes()) {
             adjacencyList.put(node, new ArrayList<>());
         }
 
-        for (Edge edge : graph.getEdges()) {
+        for (EndpointCallEdge edge : graph.getEdges()) {
             adjacencyList.get(edge.getSource()).add(edge.getTarget());
         }
 

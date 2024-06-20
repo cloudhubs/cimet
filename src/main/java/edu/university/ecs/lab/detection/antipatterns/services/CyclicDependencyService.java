@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
 
 import java.util.*;
@@ -17,7 +17,7 @@ public class CyclicDependencyService {
      * @param graph the network graph to analyze
      * @return a list of cyclic dependencies found
      */
-    public List<CyclicDependency> findCyclicDependencies(NetworkGraph graph) {
+    public List<CyclicDependency> findCyclicDependencies(ServiceDependencyGraph graph) {
         List<CyclicDependency> cyclicDependencies = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
@@ -45,7 +45,7 @@ public class CyclicDependencyService {
      * @param cyclicDependencies list to store detected cyclic dependencies
      * @return true if a cycle is found, false otherwise
      */
-    private boolean hasCycle(String currentNode, Set<String> visited, Set<String> recStack, NetworkGraph graph, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
+    private boolean hasCycle(String currentNode, Set<String> visited, Set<String> recStack, ServiceDependencyGraph graph, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
         visited.add(currentNode);
         recStack.add(currentNode);
 
@@ -96,9 +96,9 @@ public class CyclicDependencyService {
      * @param graph       the network graph
      * @return the list of neighbors of the currentNode
      */
-    private List<String> getNeighbors(String currentNode, NetworkGraph graph) {
+    private List<String> getNeighbors(String currentNode, ServiceDependencyGraph graph) {
         List<String> neighbors = new ArrayList<>();
-        for (Edge edge : graph.getEdges()) {
+        for (EndpointCallEdge edge : graph.getEdges()) {
             if (edge.getSource().equals(currentNode)) {
                 neighbors.add(edge.getTarget());
             }

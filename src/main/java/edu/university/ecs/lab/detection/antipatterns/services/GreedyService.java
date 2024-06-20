@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice;
 
 import java.util.HashSet;
@@ -24,12 +24,12 @@ public class GreedyService {
      * @param graph the network graph to analyze
      * @return a GreedyMicroservice object containing identified greedy microservices
      */
-    public GreedyMicroservice getGreedyMicroservices(NetworkGraph graph) {
+    public GreedyMicroservice getGreedyMicroservices(ServiceDependencyGraph graph) {
         Set<String> getGreedyMicroservices = new HashSet<>();
 
         for (String microserviceName : graph.getNodes()) {
             int restCallCount = 0;
-            for (Edge edge : graph.getEdges()) {
+            for (EndpointCallEdge edge : graph.getEdges()) {
                 if (microserviceName.equals(edge.getSource())) {
                     restCallCount++;
                 }

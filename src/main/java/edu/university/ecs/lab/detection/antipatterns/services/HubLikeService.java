@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.HubLikeMicroservice;
 
 import java.util.HashSet;
@@ -22,12 +22,12 @@ public class HubLikeService {
      * @param graph the network graph to analyze
      * @return a HubLikeMicroservice object containing identified hub-like microservices
      */
-    public HubLikeMicroservice getHubLikeMicroservice(NetworkGraph graph) {
+    public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
         Set<String> getHubMircoservice = new HashSet<>();
 
         for (String microserviceName : graph.getNodes()) {
             int restCallCount = 0;
-            for (Edge edge : graph.getEdges()) {
+            for (EndpointCallEdge edge : graph.getEdges()) {
                 if (microserviceName.equals(edge.getTarget())) {
                     restCallCount++;
                 }

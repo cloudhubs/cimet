@@ -3,8 +3,8 @@ package edu.university.ecs.lab.temporal;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.*;
-import edu.university.ecs.lab.common.models.sdg.Edge;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
@@ -97,31 +97,31 @@ public class IRComparisonTest {
         }
 
         Set<String> nodes = new HashSet<>();
-        List<Edge> edges = new ArrayList<>();
+        List<EndpointCallEdge> edges = new ArrayList<>();
         for (MethodCall methodCall : restCalls) {
             for (Method method : endpoints) {
                 RestCall restCall = (RestCall) methodCall;
                 Endpoint endpoint = (Endpoint) method;
                 if (restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())
                         && !restCall.getMicroserviceName().equals(endpoint.getMicroserviceName())) {
-                    edges.add(new Edge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
+                    edges.add(new EndpointCallEdge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
                     nodes.add(endpoint.getMicroserviceName());
                     nodes.add(restCall.getMicroserviceName());
                 }
             }
         }
 
-        Set<Edge> edgeSet = new HashSet<>();
-        Map<Edge, Long> edgeDuplicateMap = edges.stream()
+        Set<EndpointCallEdge> edgeSet = new HashSet<>();
+        Map<EndpointCallEdge, Long> edgeDuplicateMap = edges.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         edgeSet = edgeDuplicateMap.entrySet().stream().map(entry -> {
-            Edge edge = entry.getKey();
+            EndpointCallEdge edge = entry.getKey();
             edge.setWeight(Math.toIntExact(entry.getValue()));
             return edge;
         }).collect(Collectors.toSet());
 
-        NetworkGraph networkGraph = new NetworkGraph("Graph", commitID, true, false, nodes, edgeSet);
-        JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", networkGraph);
+        ServiceDependencyGraph serviceDependencyGraph = new ServiceDependencyGraph("Graph", commitID, true, false, nodes, edgeSet);
+        JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", serviceDependencyGraph);
     }
 
 

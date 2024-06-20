@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
@@ -26,7 +26,7 @@ public class AntipatternDetection {
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
-        NetworkGraph sdg = new NetworkGraph();
+        ServiceDependencyGraph sdg = new ServiceDependencyGraph();
         sdg.createGraph(currentSystem);
 
         writeObjectToJsonFile(sdg, "networkgraph.json");
