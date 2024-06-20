@@ -26,8 +26,7 @@ public class AntipatternDetection {
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
-        ServiceDependencyGraph sdg = new ServiceDependencyGraph();
-        sdg.createGraph(currentSystem);
+        ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
         writeObjectToJsonFile(sdg, "networkgraph.json");
 

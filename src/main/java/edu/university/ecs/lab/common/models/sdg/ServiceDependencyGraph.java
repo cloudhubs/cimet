@@ -74,7 +74,7 @@ public class ServiceDependencyGraph implements JsonSerializable {
      *
      * @param microserviceSystem the microservice system to build the graph from.
      */
-    public void createGraph(MicroserviceSystem microserviceSystem) {
+    public ServiceDependencyGraph(MicroserviceSystem microserviceSystem) {
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
 
