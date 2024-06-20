@@ -20,30 +20,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServiceDependencyGraph implements JsonSerializable {
-    // List of predefined services in the system. Need to remove
-    private static List<String> SERVICES = Arrays.asList("ts-admin-service",
-            "ts-assurance-service",
-            "ts-auth-service",
-            "ts-cancel-service",
-            "ts-config-service",
-            "ts-consign-service",
-            "ts-contacts-service",
-            "ts-delivery-service",
-            "ts-food-service",
-            "ts-gateway",
-            "ts-new-gateway",
-            "ts-notification-service",
-            "ts-order-related-service",
-            "ts-order-service",
-            "ts-preserve-service",
-            "ts-price-service",
-            "ts-rebook-service",
-            "ts-route-service",
-            "ts-security-service",
-            "ts-station-service",
-            "ts-travel-service",
-            "ts-ui-dashboard",
-            "ts-user-service");
     /**
      * Represents the name of the network graph
      */
@@ -101,7 +77,7 @@ public class ServiceDependencyGraph implements JsonSerializable {
     public void createGraph(MicroserviceSystem microserviceSystem) {
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
-        this.multigraph = false;
+        this.multigraph = true;
 
         List<RestCall> restCalls = new ArrayList<>();
 
