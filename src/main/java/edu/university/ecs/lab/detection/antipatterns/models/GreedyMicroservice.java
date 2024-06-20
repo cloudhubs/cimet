@@ -13,9 +13,14 @@ import java.util.Set;
  */
 @Data
 public class GreedyMicroservice extends AntiPattern {
-    
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Greedy Microservice";
 
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DSECRIPTION = "A microservice that overextends its responsibilities, violating the principle of single responsibility and potentially leading to increased complexity, dependencies, and maintenance challenges within the system.";
     /**
      * Set of microservices identified as greedy

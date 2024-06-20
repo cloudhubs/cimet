@@ -117,8 +117,8 @@ public class NetworkGraph implements JsonSerializable {
         List<Endpoint> endpoints = new ArrayList<>();
 
         for (Microservice microservice : microserviceSystem.getMicroservices()) {
-            for (JClass service : microservice.getControllers()) {
-                endpoints.addAll(service.getMethods().stream()
+            for (JClass controller : microservice.getControllers()) {
+                endpoints.addAll(controller.getMethods().stream()
                         .filter(methods -> methods instanceof Endpoint)
                         .map(methods -> (Endpoint) methods)
                         .collect(Collectors.toList()));

@@ -100,4 +100,8 @@ public class MicroserviceSystem implements JsonSerializable {
 
     }
 
+    public JClass findClass(String Path){
+        return getMicroservices().stream().flatMap(m -> m.getClasses().stream()).filter(c -> c.getPath().equals(Path)).findFirst().orElse(null);
+    }
+
 }

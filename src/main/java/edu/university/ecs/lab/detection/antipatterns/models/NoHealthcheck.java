@@ -9,8 +9,14 @@ import lombok.Data;
  */
 @Data
 public class NoHealthcheck extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "No Health Check";
     
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "The lack of mechanisms for monitoring the health and availability of microservices, which can result in undetected failures and decreased system reliability.";
 
     /**

@@ -13,8 +13,15 @@ import com.google.gson.JsonObject;
  */
 @Data
 public class ServiceChain extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Service Chain";
 
+
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "A series of microservices linked in a sequence where each service depends on the output of the previous one, potentially introducing latency and complexity.";
     
     /**

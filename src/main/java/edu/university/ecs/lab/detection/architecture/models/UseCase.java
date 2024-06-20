@@ -1,6 +1,9 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
+import com.google.gson.JsonObject;
+
 import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseInterface;
 
@@ -10,7 +13,7 @@ import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseIn
  * should be held in UseCaseInterface methods.
  */
 public abstract class UseCase implements UseCaseInterface {
-    protected MicroserviceSystem microserviceSystemOld;
+    protected SystemChange microserviceSystemOld;
     protected MicroserviceSystem microserviceSystemNew;
 
     /**
@@ -33,6 +36,8 @@ public abstract class UseCase implements UseCaseInterface {
      * @return scope of the Use Case
      */
     public abstract Scope getScope();
+
+    public abstract JsonObject getMetaData();
 
     /**
      * Get the weight of the Use Case

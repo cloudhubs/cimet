@@ -55,4 +55,12 @@ public class RestCall extends MethodCall {
         return jsonObject;
     }
 
+    public static boolean matchEndpoint(RestCall restcall, Endpoint endpoint){
+        if (restcall.getUrl().equals(endpoint.getUrl()) && restcall.getHttpMethod().equals(endpoint.getHttpMethod())){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 }

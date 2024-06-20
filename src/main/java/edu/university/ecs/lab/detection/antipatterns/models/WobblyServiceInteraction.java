@@ -10,8 +10,14 @@ import lombok.Data;
  */
 @Data
 public class WobblyServiceInteraction extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Wobbly Service Interaction";
 
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "Unpredictable behavior or instability caused by inconsistent communication patterns or unreliable interactions between microservices.";
     
     /**

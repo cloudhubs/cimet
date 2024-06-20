@@ -9,8 +9,14 @@ import lombok.Data;
  */
 @Data
 public class NoApiGateway extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "No API-Gateway";
     
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "The absence of a centralized entry point for managing, routing, and securing API calls, leading to potential inefficiencies and security vulnerabilities.";
 
     /**

@@ -15,8 +15,14 @@ import com.google.gson.JsonObject;
  */
 @Data
 public class CyclicDependency extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Cyclic Dependency";
 
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "When microservices depend on each other in a circular manner, leading to potential deadlock or difficulty in scaling and maintaining the system.";
     
     /**

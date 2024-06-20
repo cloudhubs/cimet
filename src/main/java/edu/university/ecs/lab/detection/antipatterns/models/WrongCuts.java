@@ -13,8 +13,14 @@ import com.google.gson.JsonObject;
  */
 @Data
 public class WrongCuts extends AntiPattern{
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Wrong Cuts";
 
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DESCRIPTION = "Poorly defined boundaries or segmentation of microservices that lead to inefficiencies, increased coupling, or difficulty in scaling and maintaining the system.";
     
     /**

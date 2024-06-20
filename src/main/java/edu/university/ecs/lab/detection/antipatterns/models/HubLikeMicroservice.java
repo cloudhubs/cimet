@@ -13,8 +13,14 @@ import java.util.Set;
  */
 @Data
 public class HubLikeMicroservice extends AntiPattern {
+    /**
+     * Anti-pattern name
+     */
     private static final String NAME = "Hub-Like Microservice";
     
+    /**
+     * Anti-pattern descsription
+     */
     private static final String DSECRIPTION = "A centralized microservice that becomes a bottleneck due to handling too many responsibilities or being a single point of failure.";
 
     /**
