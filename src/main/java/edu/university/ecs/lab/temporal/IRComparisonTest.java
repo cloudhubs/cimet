@@ -120,7 +120,7 @@ public class IRComparisonTest {
             return edge;
         }).collect(Collectors.toSet());
 
-        ServiceDependencyGraph serviceDependencyGraph = new ServiceDependencyGraph("Graph", commitID, true, false, nodes, edgeSet);
+        ServiceDependencyGraph serviceDependencyGraph = new ServiceDependencyGraph("Graph", commitID, nodes, edgeSet);
         JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", serviceDependencyGraph);
     }
 

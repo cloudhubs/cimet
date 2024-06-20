@@ -23,20 +23,20 @@ public class ServiceDependencyGraph implements JsonSerializable {
     /**
      * Represents the name of the network graph
      */
-    private String label;
+    private final String label;
     /**
      * Holds the timestamp of the current Network graph 
      * (i.e the commit ID that the Network graph represents)
      */
-    private String timestamp;
+    private final String timestamp;
     /**
      * Whether the edges are interpreseted as directed (default true)
      */
-    private boolean directed;
+    private final boolean directed = true;
     /**
      * Whether several edges between cource and target are allowed, distinguished by the endpoint
      */
-    private boolean multigraph;
+    private final boolean multigraph = true;
     /**
      * List of all nodes present in the data (must be unique)
      */
