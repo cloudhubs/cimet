@@ -1,8 +1,8 @@
 //package edu.university.ecs.lab.temporal;
 //
-//import edu.university.ecs.lab.common.models.JClass;
-//import edu.university.ecs.lab.common.models.Microservice;
-//import edu.university.ecs.lab.common.models.MicroserviceSystem;
+//import edu.university.ecs.lab.common.models.ir.JClass;
+//import edu.university.ecs.lab.common.models.ir.Microservice;
+//import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 //import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 //
 //import java.util.Objects;

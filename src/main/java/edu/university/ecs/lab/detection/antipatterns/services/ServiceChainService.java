@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.Edge;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.Edge;
+import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 
 import java.util.*;

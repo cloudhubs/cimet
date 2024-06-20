@@ -5,10 +5,10 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
@@ -58,7 +58,7 @@ public class UseCase2 extends UseCase{
     
     public static List<UseCase2> scan(Delta delta, JClass oldClass, MicroserviceSystem newSystem) {
         List<UseCase2> useCases = new ArrayList<>();
-        
+
         if (!delta.getChangeType().equals(ChangeType.DELETE) || !delta.getClassChange().getClassRole().equals(ClassRole.CONTROLLER)) {
             return useCases;
         }

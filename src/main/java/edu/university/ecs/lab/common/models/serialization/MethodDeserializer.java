@@ -1,10 +1,10 @@
 package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.*;
-import edu.university.ecs.lab.common.models.Annotation;
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.Field;
-import edu.university.ecs.lab.common.models.Method;
+import edu.university.ecs.lab.common.models.ir.Annotation;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.Field;
+import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
 import java.util.HashSet;

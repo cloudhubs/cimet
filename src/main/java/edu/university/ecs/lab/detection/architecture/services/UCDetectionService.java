@@ -1,6 +1,10 @@
 package edu.university.ecs.lab.detection.architecture.services;
 
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.RestCall;
+import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
