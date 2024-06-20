@@ -2,7 +2,9 @@ package edu.university.ecs.lab.temporal;
 
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.ir.*;
+import edu.university.ecs.lab.common.models.sdg.Edge;
+import edu.university.ecs.lab.common.models.sdg.NetworkGraph;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;

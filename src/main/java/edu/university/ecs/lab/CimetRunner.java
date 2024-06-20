@@ -1,9 +1,7 @@
 package edu.university.ecs.lab;
 
 
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.common.utils.FlowUtils;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 
 import java.util.Objects;

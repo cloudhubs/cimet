@@ -2,7 +2,7 @@
 //
 //import edu.university.ecs.lab.common.models.JController;
 //import edu.university.ecs.lab.common.models.JService;
-//import edu.university.ecs.lab.common.models.Microservice;
+//import edu.university.ecs.lab.common.models.ir.Microservice;
 //
 //import java.util.Map;
 //

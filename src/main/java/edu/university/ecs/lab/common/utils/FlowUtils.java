@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.common.utils;
 
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.ir.*;
 
 import java.util.*;
 import java.util.stream.Collectors;

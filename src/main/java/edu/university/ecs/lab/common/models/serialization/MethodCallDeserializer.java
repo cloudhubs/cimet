@@ -1,8 +1,8 @@
 package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.*;
-import edu.university.ecs.lab.common.models.MethodCall;
-import edu.university.ecs.lab.common.models.RestCall;
+import edu.university.ecs.lab.common.models.ir.MethodCall;
+import edu.university.ecs.lab.common.models.ir.RestCall;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
 

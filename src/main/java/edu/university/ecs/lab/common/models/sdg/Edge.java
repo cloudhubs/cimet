@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.common.models;
+package edu.university.ecs.lab.common.models.sdg;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
