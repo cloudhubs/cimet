@@ -2,7 +2,6 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -20,14 +19,14 @@ public class ServiceChain extends AntiPattern{
 
 
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
     private static final String DESCRIPTION = "A series of microservices linked in a sequence where each service depends on the output of the previous one, potentially introducing latency and complexity.";
     
     /**
      * List of services in the chain.
      */
-    private List<String> chain = new ArrayList<>();
+    private List<String> chain;
 
     /**
      * Constructs a ServiceChain object initialized with the given sequence of services.

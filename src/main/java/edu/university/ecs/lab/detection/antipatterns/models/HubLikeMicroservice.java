@@ -2,10 +2,8 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,14 +17,14 @@ public class HubLikeMicroservice extends AntiPattern {
     private static final String NAME = "Hub-Like Microservice";
     
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
-    private static final String DSECRIPTION = "A centralized microservice that becomes a bottleneck due to handling too many responsibilities or being a single point of failure.";
+    private static final String DESCRIPTION = "A centralized microservice that becomes a bottleneck due to handling too many responsibilities or being a single point of failure.";
 
     /**
      * Set of microservices identified as hub-like.
      */
-    private Set<String> hublikeMicroservices = new HashSet<>();
+    private Set<String> hublikeMicroservices;
 
     /**
      * Constructor to initialize with a set of hub-like microservices.
@@ -43,12 +41,7 @@ public class HubLikeMicroservice extends AntiPattern {
      * @return true if the cycle list is empty, false otherwise
      */
     public boolean isEmpty(){
-        if (this.hublikeMicroservices.isEmpty()){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return this.hublikeMicroservices.isEmpty();
     }
 
     @Override
@@ -58,7 +51,7 @@ public class HubLikeMicroservice extends AntiPattern {
 
     @Override
     protected String getDescription() {
-        return DSECRIPTION;
+        return DESCRIPTION;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 
@@ -19,34 +18,17 @@ public class ServiceChainService {
      */
     public List<ServiceChain> getServiceChains(ServiceDependencyGraph graph) {
         List<ServiceChain> allChains = new ArrayList<>();
-        Map<String, List<String>> adjacencyList = buildAdjacencyList(graph);
+        Map<String, Set<String>> adjacencyList = graph.getAdjacency();
 
         Set<String> globalVisited = new HashSet<>();
 
-        for (String node : graph.getNodes()) {
+        for (String node : graph.vertexSet()) {
             if (!globalVisited.contains(node)) {
                 dfs(node, new ArrayList<>(), allChains, adjacencyList, globalVisited);
             }
         }
 
         return allChains;
-    }
-
-    /**
-     * Builds an adjacency list representation of the network graph.
-     *
-     * @param graph the network graph
-     * @return adjacency list mapping each node to its list of neighboring nodes
-     */
-    private Map<String, List<String>> buildAdjacencyList(ServiceDependencyGraph graph) {
-        Map<String, List<String>> adjacencyList = new HashMap<>();
-        for (String node : graph.getNodes()) {
-            adjacencyList.put(node, new ArrayList<>());
-        }
-        for (EndpointCallEdge edge : graph.getEdges()) {
-            adjacencyList.get(edge.getSource()).add(edge.getTarget());
-        }
-        return adjacencyList;
     }
 
     /**
@@ -58,7 +40,7 @@ public class ServiceChainService {
      * @param adjacencyList adjacency list representation of the network graph
      * @param globalVisited set of globally visited nodes
      */
-    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, List<String>> adjacencyList, Set<String> globalVisited) {
+    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, Set<String>> adjacencyList, Set<String> globalVisited) {
         if (globalVisited.contains(currentNode)) {
             return;
         }
@@ -66,7 +48,7 @@ public class ServiceChainService {
         currentPath.add(currentNode);
         globalVisited.add(currentNode);
 
-        List<String> neighbors = adjacencyList.get(currentNode);
+        Set<String> neighbors = adjacencyList.get(currentNode);
         if (neighbors != null && !neighbors.isEmpty()) {
             for (String neighbor : neighbors) {
                 if (!globalVisited.contains(neighbor)) {
