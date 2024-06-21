@@ -1,50 +1,37 @@
 package edu.university.ecs.lab.common.models.sdg;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.jgrapht.graph.DirectedMultigraph;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Represents a network graph for a microservice system.
- * This class holds the details of the nodes and edges that make up the graph.
+ * Represents a service dependency graph for a microservice system.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class ServiceDependencyGraph implements JsonSerializable {
+public class ServiceDependencyGraph extends DirectedMultigraph<String, EndpointCallEdge> implements JsonSerializable {
     /**
      * Represents the name of the network graph
      */
     private String label;
     /**
      * Holds the timestamp of the current Network graph 
-     * (i.e the commit ID that the Network graph represents)
+     * (i.e. the commit ID that the Network graph represents)
      */
     private String timestamp;
     /**
-     * Whether the edges are interpreseted as directed (default true)
+     * Whether the edges are interpreted as directed (default true)
      */
     private final boolean directed = true;
     /**
-     * Whether several edges between cource and target are allowed, distinguished by the endpoint
+     * Whether several edges between source and target are allowed, distinguished by the endpoint
      */
     private final boolean multigraph = true;
-    /**
-     * List of all nodes present in the data (must be unique)
-     */
-    private Set<String> nodes;
-    /**
-     * List of Edge objects that represent the communication between nodes
-     */
-    private Set<EndpointCallEdge> edges;
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -53,11 +40,12 @@ public class ServiceDependencyGraph implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        Gson gson1 = new Gson();
-        Gson gson2 = new Gson();
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(EndpointCallEdge.class, new EdgeSerializer(this));
+        Gson gson = gsonBuilder.create();
 
-        String nodesArray = gson1.toJson(nodes);
-        String edgeArray = gson2.toJson(edges);
+        String nodesArray = gson.toJson(this.vertexSet());
+        String edgeArray = gson.toJson(this.edgeSet());
 
         jsonObject.addProperty("label", label);
         jsonObject.addProperty("timestamp", timestamp);
@@ -75,6 +63,7 @@ public class ServiceDependencyGraph implements JsonSerializable {
      * @param microserviceSystem the microservice system to build the graph from.
      */
     public ServiceDependencyGraph(MicroserviceSystem microserviceSystem) {
+        super(EndpointCallEdge.class);
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
 
@@ -100,30 +89,23 @@ public class ServiceDependencyGraph implements JsonSerializable {
             }
         }
 
-        List<EndpointCallEdge> edgesList = new ArrayList<>();
-        this.nodes = new HashSet<>();
+        List<List<String>> edgesList = new ArrayList<>();
 
         for (RestCall restCall : restCalls) {
             for (Endpoint endpoint : endpoints) {
                 if (restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
-                    edgesList.add(new EndpointCallEdge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
-                    this.nodes.add(endpoint.getMicroserviceName());
-                    this.nodes.add(restCall.getMicroserviceName());
+                    edgesList.add(Arrays.asList(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl()));
+                    this.addVertex(endpoint.getMicroserviceName());
+                    this.addVertex(restCall.getMicroserviceName());
                 }
             }
         }
 
-        this.edges = new HashSet<>();
-
-        Map<EndpointCallEdge, Long> edgeDuplicateMap = edgesList.stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        this.edges = edgeDuplicateMap.entrySet().stream().map(entry -> {
-            EndpointCallEdge edge = entry.getKey();
-            edge.setWeight(Math.toIntExact(entry.getValue()));
-            return edge;
-        }).collect(Collectors.toSet());
-
-
+        edgesList.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).forEach((edgeData, value) -> {
+             EndpointCallEdge edge = this.addEdge(edgeData.get(0), edgeData.get(1));
+             edge.setEndpoint(edgeData.get(2));
+             this.setEdgeWeight(edge, value);
+         });
     }
 }
