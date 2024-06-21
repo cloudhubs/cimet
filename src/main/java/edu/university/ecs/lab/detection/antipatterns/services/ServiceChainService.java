@@ -19,9 +19,9 @@ public class ServiceChainService {
      */
     public List<ServiceChain> getServiceChains(ServiceDependencyGraph graph) {
         List<ServiceChain> allChains = new ArrayList<>();
-        Map<String, List<String>> adjacencyList = buildAdjacencyList(graph);
+        Map<String, List<String>> adjacencyList = graph.getAdjacency();
 
-        for (String node : graph.getNodes()) {
+        for (String node : graph.vertexSet()) {
             Set<String> visited = new HashSet<>();
             dfs(node, new ArrayList<>(), allChains, adjacencyList, visited);
         }
@@ -30,23 +30,6 @@ public class ServiceChainService {
         allChains.removeIf(chain -> chain.getChain().size() <= 1);
 
         return allChains;
-    }
-
-    /**
-     * Builds an adjacency list representation of the network graph.
-     *
-     * @param graph the network graph
-     * @return adjacency list mapping each node to its list of neighboring nodes
-     */
-    private Map<String, List<String>> buildAdjacencyList(ServiceDependencyGraph graph) {
-        Map<String, List<String>> adjacencyList = new HashMap<>();
-        for (String node : graph.getNodes()) {
-            adjacencyList.put(node, new ArrayList<>());
-        }
-        for (EndpointCallEdge edge : graph.getEdges()) {
-            adjacencyList.get(edge.getSource()).add(edge.getTarget());
-        }
-        return adjacencyList;
     }
 
     /**
@@ -63,15 +46,13 @@ public class ServiceChainService {
         currentPath.add(currentNode);
 
         List<String> neighbors = adjacencyList.get(currentNode);
-        if (neighbors != null) {
-            for (String neighbor : neighbors) {
-                if (!visited.contains(neighbor)) {
-                    dfs(neighbor, currentPath, allChains, adjacencyList, visited);
-                }
+        for (String neighbor : neighbors) {
+            if (!visited.contains(neighbor)) {
+                dfs(neighbor, currentPath, allChains, adjacencyList, visited);
             }
         }
 
-        if (neighbors == null || neighbors.isEmpty()) {
+        if (neighbors.isEmpty()) {
             allChains.add(new ServiceChain(new ArrayList<>(currentPath)));
         }
 

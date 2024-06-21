@@ -108,4 +108,14 @@ public class ServiceDependencyGraph extends DirectedMultigraph<String, EndpointC
              this.setEdgeWeight(edge, value);
          });
     }
+
+    public Map<String, List<String>> getAdjacency() {
+        return this.vertexSet().stream()
+                .collect(Collectors.toMap(
+                        vertex -> vertex,
+                        vertex -> this.outgoingEdgesOf(vertex).stream()
+                                .map(this::getEdgeTarget)
+                                .collect(Collectors.toList())
+                ));
+    }
 }
