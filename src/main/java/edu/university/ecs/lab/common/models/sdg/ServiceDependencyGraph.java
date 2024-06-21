@@ -18,12 +18,12 @@ public class ServiceDependencyGraph extends DirectedMultigraph<String, EndpointC
     /**
      * Represents the name of the network graph
      */
-    private String label;
+    private final String label;
     /**
      * Holds the timestamp of the current Network graph 
      * (i.e. the commit ID that the Network graph represents)
      */
-    private String timestamp;
+    private final String timestamp;
     /**
      * Whether the edges are interpreted as directed (default true)
      */
