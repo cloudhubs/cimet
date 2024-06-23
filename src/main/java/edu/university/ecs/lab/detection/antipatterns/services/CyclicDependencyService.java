@@ -21,7 +21,7 @@ public class CyclicDependencyService {
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
         Map<String, String> parentMap = new HashMap<>();
-        Map<String, List<String>> adjacency = graph.getAdjacency();
+        Map<String, Set<String>> adjacency = graph.getAdjacency();
 
         for (String node : graph.vertexSet()) {
             if (!visited.contains(node)) {
@@ -42,7 +42,7 @@ public class CyclicDependencyService {
      * @param parentMap          map of node to its parent in the traversal
      * @param cyclicDependencies list to store detected cyclic dependencies
      */
-    private void findCycles(String currentNode, Map<String, List<String>> adjacencyList, Set<String> visited, Set<String> recStack, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
+    private void findCycles(String currentNode, Map<String, Set<String>> adjacencyList, Set<String> visited, Set<String> recStack, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
         visited.add(currentNode);
         recStack.add(currentNode);
 

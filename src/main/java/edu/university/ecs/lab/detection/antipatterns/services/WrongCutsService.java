@@ -1,6 +1,5 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.WrongCuts;
 
@@ -32,7 +31,7 @@ public class WrongCutsService {
      * @return A list of sets, each containing services that are wrongly interconnected (forming a cluster).
      */
     public List<Set<String>> detectWrongCuts(ServiceDependencyGraph graph) {
-        Map<String, List<String>> adjacencyList = graph.getAdjacency();
+        Map<String, Set<String>> adjacencyList = graph.getAdjacency();
         Set<String> visited = new HashSet<>();
         List<Set<String>> wrongCuts = new ArrayList<>();
 
@@ -55,7 +54,7 @@ public class WrongCutsService {
      * @param visited       Set of visited nodes to avoid revisiting.
      * @param cluster       Set to collect all nodes belonging to the current cluster of wrong cuts.
      */
-    private void dfs(String currentNode, Map<String, List<String>> adjacencyList, Set<String> visited, Set<String> cluster) {
+    private void dfs(String currentNode, Map<String, Set<String>> adjacencyList, Set<String> visited, Set<String> cluster) {
         visited.add(currentNode);
         cluster.add(currentNode);
 

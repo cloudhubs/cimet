@@ -109,13 +109,13 @@ public class ServiceDependencyGraph extends DirectedMultigraph<String, EndpointC
          });
     }
 
-    public Map<String, List<String>> getAdjacency() {
+    public Map<String, Set<String>> getAdjacency() {
         return this.vertexSet().stream()
                 .collect(Collectors.toMap(
                         vertex -> vertex,
                         vertex -> this.outgoingEdgesOf(vertex).stream()
                                 .map(this::getEdgeTarget)
-                                .collect(Collectors.toList())
+                                .collect(Collectors.toSet())
                 ));
     }
 }

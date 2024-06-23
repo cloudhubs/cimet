@@ -1,6 +1,5 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 
@@ -19,7 +18,7 @@ public class ServiceChainService {
      */
     public List<ServiceChain> getServiceChains(ServiceDependencyGraph graph) {
         List<ServiceChain> allChains = new ArrayList<>();
-        Map<String, List<String>> adjacencyList = graph.getAdjacency();
+        Map<String, Set<String>> adjacencyList = graph.getAdjacency();
 
         for (String node : graph.vertexSet()) {
             Set<String> visited = new HashSet<>();
@@ -41,11 +40,11 @@ public class ServiceChainService {
      * @param adjacencyList adjacency list representation of the network graph
      * @param visited     set of visited nodes
      */
-    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, List<String>> adjacencyList, Set<String> visited) {
+    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, Set<String>> adjacencyList, Set<String> visited) {
         visited.add(currentNode);
         currentPath.add(currentNode);
 
-        List<String> neighbors = adjacencyList.get(currentNode);
+        Set<String> neighbors = adjacencyList.get(currentNode);
         for (String neighbor : neighbors) {
             if (!visited.contains(neighbor)) {
                 dfs(neighbor, currentPath, allChains, adjacencyList, visited);
