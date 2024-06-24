@@ -1,17 +1,16 @@
 package edu.university.ecs.lab.common.utils;
 
 import edu.university.ecs.lab.common.error.Error;
-
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 
 /**
  * Manages all file paths and file path conversion functions.
  */
 public class FileUtils {
     private static final String PROJECT_PATH = System.getProperty("user.dir");
-    private static final String SEPARATOR = System.getProperty("file.separator");
+    public static final String SEPARATOR = System.getProperty("file.separator");
+    public static final String SEPARATOR_SPECIAL = SEPARATOR.replace("\\", "\\\\");
     private static final String DEFAULT_OUTPUT_PATH = "output";
     private static final String DEFAULT_CLONE_PATH = "clone";
     private static final String DOT = ".";
@@ -72,7 +71,7 @@ public class FileUtils {
      * @return the relative repo path
      */
     public static String localPathToGitPath(String localPath, String repoName) {
-        return localPath.replace(FileUtils.getClonePath(repoName), "").replaceAll(SEPARATOR.replace("\\","\\\\"), GIT_SEPARATOR);
+        return localPath.replace(FileUtils.getClonePath(repoName), "").replaceAll(SEPARATOR_SPECIAL, GIT_SEPARATOR);
     }
     /**
      * This method converts a path of the form .\clone\repoName\pathToFile to the form
@@ -93,7 +92,7 @@ public class FileUtils {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        return path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split("\\\\")[1];
+        return path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split(SEPARATOR_SPECIAL)[1];
     }
 
     /**
