@@ -39,6 +39,10 @@ public class DegreeCoupling {
     Service coupling factor (graph density)
      */
     private final double SCF;
+    /**
+     * Service Interdependence in the System - amount of service pairs that bidirectionally call each other
+     */
+    private final int SIY;
 
 
     /**
@@ -49,6 +53,7 @@ public class DegreeCoupling {
         AIS = new HashMap<>();
         ADS = new HashMap<>();
         ACS = new HashMap<>();
+        int siy = 0;
         double tempADCS = 0.0;
         DefaultGraphIterables<String, EndpointCallEdge> GraphIter = new DefaultGraphIterables<>(graph);
         long N = GraphIter.vertexCount();
@@ -62,8 +67,17 @@ public class DegreeCoupling {
             tempADCS += ADS.get(vertex);
         }
         ADCS = tempADCS/N;
-        double E = graph.getAdjacency().values().stream().map(Set::size).mapToDouble(Integer::doubleValue).sum();
+        Map<String, Set<String>> adjacency = graph.getAdjacency();
+        double E = adjacency.values().stream().map(Set::size).mapToDouble(Integer::doubleValue).sum();
         SCF = E/(N*(N-1));
+        for (String vertex: adjacency.keySet()) {
+            for (String neighbour: adjacency.get(vertex)) {
+                if (adjacency.get(neighbour).contains(vertex)) {
+                    siy++;
+                }
+            }
+        }
+        SIY = siy/2; // each bidirectional edge was counted twice
 
     }
 }
