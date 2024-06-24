@@ -28,7 +28,7 @@ public class AntipatternDetection {
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
-        writeObjectToJsonFile(sdg, "networkgraph.json");
+        writeObjectToJsonFile(sdg.toJsonObject(), "sdg.json");
 
         int detectedAntipatterns = 0;
 
