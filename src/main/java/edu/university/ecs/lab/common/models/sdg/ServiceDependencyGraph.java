@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import org.jgrapht.graph.DirectedMultigraph;
+import org.jgrapht.graph.DirectedWeightedMultigraph;
 
 import java.util.*;
 import java.util.function.Function;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a service dependency graph for a microservice system.
  */
-public class ServiceDependencyGraph extends DirectedMultigraph<String, EndpointCallEdge> implements JsonSerializable {
+public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, EndpointCallEdge> implements JsonSerializable {
     /**
      * Represents the name of the network graph
      */
