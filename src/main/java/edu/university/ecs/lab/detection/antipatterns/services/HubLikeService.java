@@ -22,7 +22,8 @@ public class HubLikeService {
      * @return a HubLikeMicroservice object containing identified hub-like microservices
      */
     public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
-        Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.inDegreeOf(vertex) >= RESTCALL_THRESHOLD).collect(Collectors.toSet());
+        Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toSet());
 
         return new HubLikeMicroservice(getHubMicroservices);
     }
