@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.jgrapht.graph.DefaultGraphIterables;
 
-@Getter
 /**
  * Class implementing the calculation of degree-related Coupling metrics according to [1]
  * [1] Bogner, J., Wagner, S., & Zimmermann, A. (2017, October).
@@ -18,6 +17,7 @@ import org.jgrapht.graph.DefaultGraphIterables;
  * In Proceedings of the 27th international workshop on software measurement and 12th international conference
  * on software process and product measurement (pp. 107-115).
  */
+@Getter
 public class DegreeCoupling {
     /**
     Absolute Importance of the Service - numbers of services invoking given service

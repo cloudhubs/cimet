@@ -5,11 +5,11 @@ import lombok.Getter;
 
 import java.util.*;
 
-@Getter
 /**
  * Class implementing the Structural Coupling Metric proposed in [1]
  * [1] Panichella, S., Rahman, M. I., & Taibi, D. (2021). Structural coupling for microservices. arXiv preprint arXiv:2103.04674
  */
+@Getter
 public class StructuralCoupling {
 
     /**
