@@ -107,10 +107,7 @@ public class NetworkGraph implements JsonSerializable {
 
         for (Microservice microservice : microserviceSystem.getMicroservices()) {
             for (JClass service : microservice.getServices()) {
-                restCalls.addAll(service.getMethodCalls().stream()
-                        .filter(methodCall -> methodCall instanceof RestCall)
-                        .map(methodCall -> (RestCall) methodCall)
-                        .collect(Collectors.toList()));
+                restCalls.addAll(service.getRestCalls());
             }
         }
 
@@ -118,10 +115,7 @@ public class NetworkGraph implements JsonSerializable {
 
         for (Microservice microservice : microserviceSystem.getMicroservices()) {
             for (JClass controller : microservice.getControllers()) {
-                endpoints.addAll(controller.getMethods().stream()
-                        .filter(methods -> methods instanceof Endpoint)
-                        .map(methods -> (Endpoint) methods)
-                        .collect(Collectors.toList()));
+                endpoints.addAll(controller.getEndpoints());
             }
         }
 
@@ -130,7 +124,7 @@ public class NetworkGraph implements JsonSerializable {
 
         for (RestCall restCall : restCalls) {
             for (Endpoint endpoint : endpoints) {
-                if (restCall.getUrl().equals(endpoint.getUrl()) && restCall.getHttpMethod().equals(endpoint.getHttpMethod())) {
+                if (RestCall.matchEndpoint(restCall, endpoint)) {
                     edgesList.add(new Edge(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl(), 0));
                     this.nodes.add(endpoint.getMicroserviceName());
                     this.nodes.add(restCall.getMicroserviceName());
