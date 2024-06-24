@@ -10,30 +10,42 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.jgrapht.graph.DefaultGraphIterables;
 
-public class DegreeMetrics {
-    /*
+@Getter
+/**
+ * Class implementing the calculation of degree-related Coupling metrics according to [1]
+ * [1] Bogner, J., Wagner, S., & Zimmermann, A. (2017, October).
+ * Automatically measuring the maintainability of service-and microservice-based systems: a literature review.
+ * In Proceedings of the 27th international workshop on software measurement and 12th international conference
+ * on software process and product measurement (pp. 107-115).
+ */
+public class DegreeCoupling {
+    /**
     Absolute Importance of the Service - numbers of services invoking given service
      */
-    @Getter private final Map<String, Integer> AIS;
-    /*
+    private final Map<String, Integer> AIS;
+    /**
     Absolute Dependency of the Service - number of services invoked by the service
      */
-    @Getter private final Map<String, Integer> ADS;
-    /*
+    private final Map<String, Integer> ADS;
+    /**
     Absolute Criticality of the Service - product of AIS and ADS
      */
-    @Getter private final Map<String, Integer> ACS;
-    /*
+    private final Map<String, Integer> ACS;
+    /**
     Average number of Directly Connected Services - average of ADS;
      */
-    @Getter private final double ADCS;
-    /*
+    private final double ADCS;
+    /**
     Service coupling factor (graph density)
      */
-    @Getter private final double SCF;
+    private final double SCF;
 
 
-    DegreeMetrics(ServiceDependencyGraph graph){
+    /**
+     * Calculate the degree-related Coupling metrics for a given Service Dependency Graph
+     * @param graph - Service Dependency Graph to study
+     */
+    DegreeCoupling(ServiceDependencyGraph graph){
         AIS = new HashMap<>();
         ADS = new HashMap<>();
         ACS = new HashMap<>();
