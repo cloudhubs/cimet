@@ -461,6 +461,6 @@ public class SourceToObjectUtils {
 
     //TODO Generalize and move out
     private static String getMicroserviceName(File sourceFile) {
-        return sourceFile.getPath().split("\\\\")[3];
+        return sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL)[3];
     }
 }
