@@ -1,9 +1,13 @@
 package edu.university.ecs.lab;
 
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 
-import java.io.File;
+import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import edu.university.ecs.lab.common.utils.FlowUtils;
+import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
+
+import java.util.Objects;
+
 
 public class CimetRunner {
 
@@ -44,7 +48,9 @@ public class CimetRunner {
 //    };
 //    IRMergeRunner.main(IRMergeArgs);
 
-        CompilationUnit cu = StaticJavaParser.parse(new File("C:\\Users\\ninja\\IdeaProjects\\TemporalParser\\repos\\train-ticket-microservices-test\\ts-order-service\\src\\main\\java\\com\\cloudhubs\\trainticket\\order\\controller\\AdminOrderController.java"));
-        System.out.println(cu.toString());
+        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
+
+        System.out.println(Objects.equals(microserviceSystem1, microserviceSystem2));
     }
 }

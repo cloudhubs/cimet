@@ -6,6 +6,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.*;
@@ -28,6 +29,8 @@ public class SourceToObjectUtils {
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
+    private static String packageAndClassName;
+
 
     private static void generateStaticValues(File sourceFile) {
         // Parse the highest level node being compilation unit
@@ -39,6 +42,7 @@ public class SourceToObjectUtils {
         microserviceName = getMicroserviceName(sourceFile);
         if(!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
+            packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
         }
 
     }
@@ -73,14 +77,15 @@ public class SourceToObjectUtils {
 
         // Build the JClass
         return new JClass(
-            sourceFile.getName(),
-            sourceFile.getPath(),
+            sourceFile.getName().replace(".java", ""),
+            FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
             packageName,
             classRole,
             parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
             parseFields(cu.findAll(FieldDeclaration.class)),
             classAnnotations,
-            parseMethodCalls(cu.findAll(MethodDeclaration.class)));
+            parseMethodCalls(cu.findAll(MethodDeclaration.class)),
+            cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
 
     }
 
@@ -100,11 +105,12 @@ public class SourceToObjectUtils {
         for (MethodDeclaration methodDeclaration : methodDeclarations) {
             Set<Field> parameters = new HashSet<>();
             for (Parameter parameter : methodDeclaration.getParameters()) {
-                parameters.add(new Field(parameter.getNameAsString(), parameter.getTypeAsString()));
+                parameters.add(new Field(parameter.getNameAsString(), packageAndClassName, parameter.getTypeAsString()));
             }
 
             Method method = new Method(
                     methodDeclaration.getNameAsString(),
+                    packageAndClassName,
                     parameters,
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()));
@@ -171,7 +177,7 @@ public class SourceToObjectUtils {
                 String parameterContents = mce.getArguments().stream().map(Objects::toString).collect(Collectors.joining(","));
 
                 if (Objects.nonNull(calledServiceName)) {
-                    MethodCall methodCall = new MethodCall(methodName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
+                    MethodCall methodCall = new MethodCall(methodName, packageAndClassName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
 
                     methodCall = convertValidRestCalls(mce, methodCall);
 
@@ -225,7 +231,7 @@ public class SourceToObjectUtils {
         // loop through class declarations
         for (FieldDeclaration fd : fieldDeclarations) {
             for (VariableDeclarator variable : fd.getVariables()) {
-                javaFields.add(new Field(variable.getTypeAsString(), variable.getNameAsString()));
+                javaFields.add(new Field(variable.getNameAsString(), packageAndClassName, variable.getTypeAsString()));
             }
 
         }
@@ -407,15 +413,16 @@ public class SourceToObjectUtils {
             Annotation annotation;
             if (ae.isNormalAnnotationExpr()) {
                 NormalAnnotationExpr normal = ae.asNormalAnnotationExpr();
-                annotation = new Annotation(ae.getNameAsString(), normal.getPairs().toString());
+                annotation = new Annotation(ae.getNameAsString(), packageAndClassName, normal.getPairs().toString());
 
             } else if (ae.isSingleMemberAnnotationExpr()) {
                 annotation =
                         new Annotation(
                                 ae.getNameAsString(),
+                                packageAndClassName,
                                 ae.asSingleMemberAnnotationExpr().getMemberValue().toString());
             } else {
-                annotation = new Annotation(ae.getNameAsString(), "");
+                annotation = new Annotation(ae.getNameAsString(), packageAndClassName, "");
             }
 
             annotations.add(annotation);

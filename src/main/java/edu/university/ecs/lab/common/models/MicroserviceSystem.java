@@ -14,10 +14,9 @@ import java.util.Set;
  */
 @Data
 @AllArgsConstructor
+
 @EqualsAndHashCode
 public class MicroserviceSystem implements JsonSerializable {
-    public static final String INITIAL_VERSION = "1.0";
-
     /**
      * The name of the system
      */
@@ -99,6 +98,10 @@ public class MicroserviceSystem implements JsonSerializable {
 
         setOrphans(updatedOrphans);
 
+    }
+
+    public JClass findClass(String Path){
+        return getMicroservices().stream().flatMap(m -> m.getClasses().stream()).filter(c -> c.getPath().equals(Path)).findFirst().orElse(null);
     }
 
 }

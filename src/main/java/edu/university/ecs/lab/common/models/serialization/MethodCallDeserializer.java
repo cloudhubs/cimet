@@ -4,9 +4,11 @@ import com.google.gson.*;
 import edu.university.ecs.lab.common.models.MethodCall;
 import edu.university.ecs.lab.common.models.RestCall;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
-
 import java.lang.reflect.Type;
 
+/**
+ * Class for deserializing a MethodCall when using Gson
+ */
 public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
 
     @Override
@@ -25,6 +27,7 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
         methodCall.setCalledFrom(json.get("calledFrom").getAsString());
         methodCall.setObjectName(json.get("objectName").getAsString());
         methodCall.setParameterContents(json.get("parameterContents").getAsString());
+        methodCall.setPackageAndClassName(json.get("packageAndClassName").getAsString());
 
         return methodCall;
     }

@@ -11,14 +11,9 @@ import lombok.NoArgsConstructor;
  * Represents a method call in Java.
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class MethodCall implements JsonSerializable {
-    /**
-     * Name of the called method
-     */
-    private String name;
+public class MethodCall extends Node {
 
     /**
      * Name of object this method call is from (Maybe a static class instance, just whatever is before
@@ -36,6 +31,14 @@ public class MethodCall implements JsonSerializable {
      */
     private String parameterContents;
 
+    public MethodCall(String name, String packageName, String objectName, String calledFrom, String parameterContents) {
+        this.name = name;
+        this.packageAndClassName = packageName;
+        this.objectName = objectName;
+        this.calledFrom = calledFrom;
+        this.parameterContents = parameterContents;
+    }
+
     /**
      * see {@link JsonSerializable#toJsonObject()}
      */
@@ -44,6 +47,7 @@ public class MethodCall implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("packageAndClassName", getPackageAndClassName());
         jsonObject.addProperty("objectName", getObjectName());
         jsonObject.addProperty("calledFrom", getCalledFrom());
         jsonObject.addProperty("parameterContents", getParameterContents());

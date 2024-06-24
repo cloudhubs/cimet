@@ -112,16 +112,16 @@ public class DeltaExtractionService {
             String newPath = "";
 
             if (DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
-                oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
+                oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
                 newPath = null;
 
             } else if (DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
                 oldPath = null;
-                newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+                newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
 
             } else {
-                oldPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getOldPath().replace("/", File.separator);
-                newPath = FileUtils.getClonePath(config.getRepoName()) + File.separator + entry.getNewPath().replace("/", File.separator);
+                oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
+                newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
 
             }
 
@@ -133,7 +133,7 @@ public class DeltaExtractionService {
 
                 if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 
-                    jClass = SourceToObjectUtils.parseClass(new File(newPath), config);
+                    jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
 
                     // If we try to parse and it is still null, for ADD we will skip
                     if (jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {

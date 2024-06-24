@@ -74,6 +74,7 @@ public class MergeService {
             }
         }
 
+        microserviceSystem.setCommitID(systemChange.getNewCommit());
         JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
     }
 
@@ -195,16 +196,16 @@ public class MergeService {
             String[] tokens;
 
             String path = delta.getOldPath() == null ? delta.getNewPath() : delta.getOldPath();
-            tokens = path.split("\\\\");
+            tokens = path.split("/");
 
             // Skip a pom that is in the root
-            if (tokens.length <= 4) {
+            if (tokens.length <= 2) {
                 continue;
             }
 
             switch (delta.getChangeType()) {
                 case ADD:
-                    microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("\\pom.xml", ""));
+                    microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("/pom.xml", ""));
                     // Here we must check if any orphans are waiting on this creation
                     microserviceSystem.adopt(microservice);
                     microserviceSystem.getMicroservices().add(microservice);

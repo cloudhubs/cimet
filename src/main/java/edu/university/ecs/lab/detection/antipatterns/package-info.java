@@ -8,18 +8,22 @@
  *   anti-pattern detection routines using configuration and services.
  * <p>
  * Models Package:
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency}: Represents a cyclic
- *   dependency detected in the network graph.
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice}: Represents microservices
- *   identified as greedy based on REST call thresholds.
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.HubLikeMicroservice}: Represents microservices
- *   identified as hub-like based on REST call thresholds.
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.ServiceChain}: Represents a chain of services
- *   in a network graph.
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.WrongCuts}: Represents clusters of services
- *   that are incorrectly interconnected in a network graph.
- * - {@link edu.university.ecs.lab.detection.antipatterns.models.WobblyServiceInteraction}: Represents service
- *   interactions characterized by specific annotations in microservice classes and methods.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency}: Represents cyclic dependencies
+ *   detected within a microservice network graph.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice}: Represents microservices identified
+ *   as greedy based on REST call thresholds.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.HubLikeMicroservice}: Represents microservices identified
+ *   as hub-like based on REST call thresholds.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.NoApiGateway}: Represents the absence of an API Gateway,
+ *   indicating potential issues with centralized routing and access control.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.NoHealthcheck}: Represents the absence of health check
+ *   mechanisms, which are crucial for monitoring and maintaining the health of microservices.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.ServiceChain}: Represents a chain of services within a
+ *   microservice network graph, potentially introducing latency and complexity.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.WrongCuts}: Represents clusters of services that are
+ *   incorrectly segmented, leading to inefficiencies and increased coupling within the microservice network.
+ * - {@link edu.university.ecs.lab.detection.antipatterns.models.WobblyServiceInteraction}: Represents service interactions
+ *   characterized by unstable or inconsistent communication patterns within microservice classes and methods.
  * </p>
  * <p>
  * Services Package:
@@ -35,9 +39,9 @@
  *   reporting clusters of services that are incorrectly interconnected in a network graph.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.WobblyServiceInteractionService}: Service for detecting
  *   wobbly service interactions in a microservice system based on specific annotations.
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.NoApiGateway}: Service for checking the presence of an
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.NoApiGatewayService}: Service for checking the presence of an
  *   API gateway configuration in a YAML file.
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.NoHealthcheck}: Service for checking the presence of
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.NoHealthcheckService}: Service for checking the presence of
  *   health check configurations in a YAML file.
  * </p>
  */

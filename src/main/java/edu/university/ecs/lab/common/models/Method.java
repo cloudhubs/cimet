@@ -13,15 +13,9 @@ import java.util.Set;
  * Represents a method declaration in Java.
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-public class Method implements JsonSerializable {
-    /**
-     * Name of the method
-     */
-    private String name;
-
+@EqualsAndHashCode(callSuper = false)
+public class Method extends Node {
     // Protection Not Yet Implemented
     // protected String protection;
 
@@ -40,6 +34,14 @@ public class Method implements JsonSerializable {
      */
     private Set<Annotation> annotations;
 
+    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, Set<Annotation> annotations) {
+        this.name = name;
+        this.packageAndClassName = packageAndClassName;
+        this.parameters = parameters;
+        this.returnType = typeAsString;
+        this.annotations = annotations;
+    }
+
     /**
      * see {@link JsonSerializable#toJsonObject()}
      */
@@ -47,10 +49,11 @@ public class Method implements JsonSerializable {
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("name", name);
-        jsonObject.add("annotations", JsonSerializable.toJsonArray(annotations));
-        jsonObject.add("parameters", JsonSerializable.toJsonArray(parameters));
-        jsonObject.addProperty("returnType", returnType);
+        jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("packageAndClassName", getPackageAndClassName());
+        jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
+        jsonObject.add("parameters", JsonSerializable.toJsonArray(getParameters()));
+        jsonObject.addProperty("returnType", getReturnType());
 
         return jsonObject;
     }

@@ -58,6 +58,7 @@ public class IRComparisonTest {
 
         // Compare two IR's for equivalence
         MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        microserviceSystem1.setCommitID(config.getBaseCommit());
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
         boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);
 
