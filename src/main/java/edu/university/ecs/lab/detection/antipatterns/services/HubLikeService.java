@@ -14,7 +14,7 @@ public class HubLikeService {
     /**
      * Threshold for the number of REST calls indicating a microservice is hub-like.
      */
-    private static final int RESTCALL_THRESHOLD = 5;
+    private static final int RESTCALL_THRESHOLD = 6;
 
     /**
      * Retrieves microservices identified as hub-like based on REST call threshold.

@@ -16,7 +16,7 @@ public class GreedyService {
     /**
      * Threshold for the number of REST calls indicating a microservice is greedy.
      */
-    private static final int RESTCALL_THRESHOLD = 5;
+    private static final int RESTCALL_THRESHOLD = 6;
 
     /**
      * Retrieves microservices identified as greedy based on REST call threshold.

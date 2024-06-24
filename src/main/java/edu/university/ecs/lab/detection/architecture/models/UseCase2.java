@@ -9,6 +9,9 @@ import edu.university.ecs.lab.common.models.Endpoint;
 import edu.university.ecs.lab.common.models.JClass;
 import edu.university.ecs.lab.common.models.Microservice;
 import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.delta.models.Delta;
+import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
@@ -53,21 +56,35 @@ public class UseCase2 extends UseCase{
         return metaData;
     }
     
-    public static UseCase2 scan(Endpoint endpoint, MicroserviceSystem microserviceSystem){
-        for (Microservice microservice : microserviceSystem.getMicroservices()){
-            for(JClass controller : microservice.getControllers()){
-                for (Endpoint endP : controller.getEndpoints()){
-                    if (endpoint.equals(endP)){
-                        return null;
+    public static List<UseCase2> scan(Delta delta, JClass oldClass, MicroserviceSystem newSystem) {
+        List<UseCase2> useCases = new ArrayList<>();
+        
+        if (!delta.getChangeType().equals(ChangeType.DELETE) || !delta.getClassChange().getClassRole().equals(ClassRole.CONTROLLER)) {
+            return useCases;
+        }
+
+        for (Endpoint endpoint : oldClass.getEndpoints()) {
+            if (!existsInSystem(endpoint, newSystem)) {
+                UseCase2 useCase2 = new UseCase2();
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.add("Endpoint", endpoint.toJsonObject());
+                useCase2.setMetaData(jsonObject);
+                useCases.add(useCase2);
+            }
+        }
+        return useCases;
+    }
+
+    private static boolean existsInSystem(Endpoint endpoint, MicroserviceSystem newSystem) {
+        for (Microservice microservice : newSystem.getMicroservices()) {
+            for (JClass controller : microservice.getControllers()) {
+                for (Endpoint endP : controller.getEndpoints()) {
+                    if (endpoint.equals(endP)) {
+                        return true;
                     }
                 }
             }
         }
-
-        UseCase2 useCase2 = new UseCase2();
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("Endpoint", endpoint.toJsonObject());
-        useCase2.setMetaData(jsonObject);    
-        return useCase2;
+        return false;
     }
 }

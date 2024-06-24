@@ -49,7 +49,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
 
     private Method jsonToEndpoint(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         Method method = jsonToMethod(json, context);
-        String microserviceName = json.get("name").getAsString();
+        String microserviceName = json.get("microserviceName").getAsString();
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
 

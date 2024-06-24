@@ -5,6 +5,9 @@ import edu.university.ecs.lab.common.models.JClass;
 import edu.university.ecs.lab.common.models.Microservice;
 import edu.university.ecs.lab.common.models.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.RestCall;
+import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.delta.models.Delta;
+import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
@@ -57,21 +60,37 @@ public class UseCase3 extends UseCase {
         return metaData;
     }
 
-    public static UseCase3 scan(RestCall restCall, MicroserviceSystem microserviceSystem){
-        for (Microservice microservice : microserviceSystem.getMicroservices()){
-            for(JClass controller : microservice.getControllers()){
-                for (Endpoint endpoint : controller.getEndpoints()){
-                    if (RestCall.matchEndpoint(restCall, endpoint)){
-                        return null;
+    public static List<UseCase3> scan(Delta delta, MicroserviceSystem microserviceSystem) {
+        List<UseCase3> useCases = new ArrayList<>();
+        
+        if (!delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
+            return useCases;
+        }
+        
+        for (RestCall restCall : delta.getClassChange().getRestCalls()) {
+            if (!existsInSystem(restCall, microserviceSystem)) {
+                UseCase3 useCase3 = new UseCase3();
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.add("Rest Call", restCall.toJsonObject());
+                useCase3.setMetaData(jsonObject);
+                useCases.add(useCase3);
+            }
+        }
+        
+        return useCases;
+    }
+
+    private static boolean existsInSystem(RestCall restCall, MicroserviceSystem microserviceSystem) {
+        for (Microservice microservice : microserviceSystem.getMicroservices()) {
+            for (JClass controller : microservice.getControllers()) {
+                for (Endpoint endpoint : controller.getEndpoints()) {
+                    if (RestCall.matchEndpoint(restCall, endpoint)) {
+                        return true;
                     }
                 }
             }
         }
-
-        UseCase3 useCase3 = new UseCase3();
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("Rest Call", restCall.toJsonObject());
-        useCase3.setMetaData(jsonObject);    
-        return useCase3;
+        return false;
     }
 }
+

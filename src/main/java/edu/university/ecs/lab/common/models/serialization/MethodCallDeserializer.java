@@ -34,7 +34,7 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
 
     private RestCall jsonToRestCall(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         MethodCall methodCall = jsonToMethodCall(json, context);
-        String microserviceName = json.get("name").getAsString();
+        String microserviceName = json.get("microserviceName").getAsString();
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
 
