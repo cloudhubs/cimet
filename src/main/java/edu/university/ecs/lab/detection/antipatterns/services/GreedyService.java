@@ -25,7 +25,8 @@ public class GreedyService {
      */
     public GreedyMicroservice getGreedyMicroservices(ServiceDependencyGraph graph) {
 
-        Set<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outDegreeOf(vertex) >= RESTCALL_THRESHOLD).collect(Collectors.toSet());
+        Set<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outgoingEdgesOf(vertex).stream()
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toSet());
 
         return new GreedyMicroservice(getGreedyMicroservices);
     }
