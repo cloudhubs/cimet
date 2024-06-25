@@ -15,7 +15,7 @@ public class GreedyService {
     /**
      * Threshold for the number of REST calls indicating a microservice is greedy.
      */
-    private static final int RESTCALL_THRESHOLD = 6;
+    private final int RESTCALL_THRESHOLD;
 
     /**
      * Retrieves microservices identified as greedy based on REST call threshold.
@@ -25,8 +25,18 @@ public class GreedyService {
      */
     public GreedyMicroservice getGreedyMicroservices(ServiceDependencyGraph graph) {
 
-        Set<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outDegreeOf(vertex) >= RESTCALL_THRESHOLD).collect(Collectors.toSet());
+        Set<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outgoingEdgesOf(vertex).stream()
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toSet());
 
         return new GreedyMicroservice(getGreedyMicroservices);
     }
+
+    public GreedyService() {
+        RESTCALL_THRESHOLD = 6;
+    }
+
+    public GreedyService(int RESTCALL_THRESHOLD) {
+        this.RESTCALL_THRESHOLD = RESTCALL_THRESHOLD;
+    }
+
 }

@@ -13,7 +13,7 @@ public class HubLikeService {
     /**
      * Threshold for the number of REST calls indicating a microservice is hub-like.
      */
-    private static final int RESTCALL_THRESHOLD = 6;
+    private final int RESTCALL_THRESHOLD;
 
     /**
      * Retrieves microservices identified as hub-like based on REST call threshold.
@@ -22,8 +22,17 @@ public class HubLikeService {
      * @return a HubLikeMicroservice object containing identified hub-like microservices
      */
     public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
-        Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.inDegreeOf(vertex) >= RESTCALL_THRESHOLD).collect(Collectors.toSet());
+        Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toSet());
 
         return new HubLikeMicroservice(getHubMicroservices);
+    }
+
+    public HubLikeService() {
+        RESTCALL_THRESHOLD = 6;
+    }
+
+    public HubLikeService(int RESTCALL_THRESHOLD) {
+        this.RESTCALL_THRESHOLD = RESTCALL_THRESHOLD;
     }
 }

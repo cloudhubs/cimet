@@ -11,6 +11,10 @@ import java.util.*;
 public class ServiceChainService {
 
     /**
+      length of the chain consider an anti-pattern
+     */
+    private final int CHAIN_LENGTH;
+    /**
      * Retrieves all service chains from the given network graph.
      *
      * @param graph the network graph to analyze
@@ -57,10 +61,17 @@ public class ServiceChainService {
             }
         }
 
-        if (currentPath.size() > 1) {
+        if (currentPath.size() > CHAIN_LENGTH) {
             allChains.add(new ServiceChain(new ArrayList<>(currentPath)));
         }
 
         currentPath.remove(currentPath.size() - 1);
+    }
+
+    public ServiceChainService() {
+        CHAIN_LENGTH = 3;
+    }
+    public ServiceChainService(int CHAIN_LENGTH) {
+        this.CHAIN_LENGTH = CHAIN_LENGTH;
     }
 }
