@@ -1,6 +1,5 @@
 package edu.university.ecs.lab.detection.metrics.models;
 
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 
 import java.util.Comparator;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import org.jgrapht.graph.DefaultGraphIterables;
 
 /**
  * Class implementing the calculation of degree-related Coupling metrics according to [1]
@@ -83,26 +81,26 @@ public class DegreeCoupling {
      * @param graph - Service Dependency Graph to study
      */
     DegreeCoupling(ServiceDependencyGraph graph){
+        // AIS, ADS, ACS
         AIS = new HashMap<>();
         ADS = new HashMap<>();
         ACS = new HashMap<>();
-        int siy = 0;
-        double tempADCS = 0.0;
-        DefaultGraphIterables<String, EndpointCallEdge> GraphIter = new DefaultGraphIterables<>(graph);
-        long N = GraphIter.vertexCount();
-        Iterable<String> VertexIter = GraphIter.vertices();
-        for (String vertex : VertexIter) {
+        for (String vertex : graph.vertexSet()) {
             AIS.put(vertex, graph.incomingEdgesOf(vertex).stream().map(graph::getEdgeSource)
                     .collect(Collectors.toSet()).size());
             ADS.put(vertex, graph.outgoingEdgesOf(vertex).stream().map(graph::getEdgeTarget)
                     .collect(Collectors.toSet()).size());
             ACS.put(vertex, AIS.get(vertex)*ADS.get(vertex));
-            tempADCS += ADS.get(vertex);
         }
-        ADCS = tempADCS/N;
+
+        //  Service coupling factor (graph density)
         Map<String, Set<String>> adjacency = graph.getAdjacency();
         double E = adjacency.values().stream().map(Set::size).mapToDouble(Integer::doubleValue).sum();
+        long N = AIS.size();
         SCF = E/(N*(N-1));
+
+        // Service Interdependence in the System
+        int siy = 0;
         for (String vertex: adjacency.keySet()) {
             for (String neighbour: adjacency.get(vertex)) {
                 if (adjacency.get(neighbour).contains(vertex)) {
