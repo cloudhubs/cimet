@@ -1,10 +1,10 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.RestCall;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.RestCall;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
@@ -62,11 +62,11 @@ public class UseCase3 extends UseCase {
 
     public static List<UseCase3> scan(Delta delta, MicroserviceSystem microserviceSystem) {
         List<UseCase3> useCases = new ArrayList<>();
-        
+
         if (!delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
             return useCases;
         }
-        
+
         for (RestCall restCall : delta.getClassChange().getRestCalls()) {
             if (!existsInSystem(restCall, microserviceSystem)) {
                 UseCase3 useCase3 = new UseCase3();
@@ -76,7 +76,7 @@ public class UseCase3 extends UseCase {
                 useCases.add(useCase3);
             }
         }
-        
+
         return useCases;
     }
 
@@ -93,4 +93,3 @@ public class UseCase3 extends UseCase {
         return false;
     }
 }
-

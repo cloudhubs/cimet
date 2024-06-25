@@ -1,11 +1,10 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.Edge;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -24,23 +23,10 @@ public class GreedyService {
      * @param graph the network graph to analyze
      * @return a GreedyMicroservice object containing identified greedy microservices
      */
-    public GreedyMicroservice getGreedyMicroservices(NetworkGraph graph) {
-        Set<String> getGreedyMicroservices = new HashSet<>();
+    public GreedyMicroservice getGreedyMicroservices(ServiceDependencyGraph graph) {
 
-        for (String microserviceName : graph.getNodes()) {
-            int restCallCount = 0;
-            for (Edge edge : graph.getEdges()) {
-                if (microserviceName.equals(edge.getSource())) {
-                    restCallCount++;
-                }
-            }
-            if (restCallCount >= RESTCALL_THRESHOLD) {
-                getGreedyMicroservices.add(microserviceName);
-            }
-        }
+        Set<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outDegreeOf(vertex) >= RESTCALL_THRESHOLD).collect(Collectors.toSet());
 
-        GreedyMicroservice greedyMicroservices = new GreedyMicroservice(getGreedyMicroservices);
-
-        return greedyMicroservices;
+        return new GreedyMicroservice(getGreedyMicroservices);
     }
 }

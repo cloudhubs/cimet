@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.Annotation;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Method;
+import edu.university.ecs.lab.common.models.ir.Annotation;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;

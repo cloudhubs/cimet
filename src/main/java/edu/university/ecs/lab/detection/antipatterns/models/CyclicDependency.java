@@ -3,7 +3,6 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -21,14 +20,14 @@ public class CyclicDependency extends AntiPattern{
     private static final String NAME = "Cyclic Dependency";
 
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
     private static final String DESCRIPTION = "When microservices depend on each other in a circular manner, leading to potential deadlock or difficulty in scaling and maintaining the system.";
     
     /**
      * List of one cycle detected
      */
-    private List<String> cycle = new ArrayList<>();
+    private List<String> cycle;
 
     /**
      * Constructs a CyclicDependency object initialized with the given cycle.

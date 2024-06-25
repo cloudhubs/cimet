@@ -1,7 +1,8 @@
-package edu.university.ecs.lab.common.models;
+package edu.university.ecs.lab.common.models.sdg;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 import java.util.Objects;
 
@@ -9,25 +10,13 @@ import java.util.Objects;
  * Represents an edge in a network graph schema to model a microservice system.
  * Each edge object contains details about the connection between nodes.
  */
-@Data
-@AllArgsConstructor
-public class Edge {
-    /**
-     * The source node.
-     */
-    private String source;
-    /**
-     * The target node. 
-     */
-    private String target;
+@Setter
+@Getter
+public class EndpointCallEdge extends DefaultWeightedEdge {
     /**
      * The endpoint of the target node that is accessed.
      */
     private String endpoint;
-    /**
-     * The weight associated with the connection, e.g., the number of connections.
-     */
-    private int weight;
 
     /**
      * Determines whether another object is "equal to" this edge.
@@ -40,8 +29,8 @@ public class Edge {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Edge edge = (Edge) o;
-        return Objects.equals(source, edge.source) && Objects.equals(target, edge.target) && Objects.equals(endpoint, edge.endpoint);
+        EndpointCallEdge edge = (EndpointCallEdge) o;
+        return Objects.equals(this.getSource(), edge.getSource()) && Objects.equals(this.getTarget(), edge.getTarget()) && Objects.equals(endpoint, edge.endpoint);
     }
 
     /**
@@ -52,6 +41,6 @@ public class Edge {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(source, target, endpoint);
+        return Objects.hash(this.getSource(), this.getTarget(), endpoint);
     }
 }

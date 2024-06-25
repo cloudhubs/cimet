@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.common.models;
+package edu.university.ecs.lab.common.models.ir;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;

@@ -3,8 +3,8 @@ package edu.university.ecs.lab.common.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.university.ecs.lab.common.error.Error;
-import edu.university.ecs.lab.common.models.Method;
-import edu.university.ecs.lab.common.models.MethodCall;
+import edu.university.ecs.lab.common.models.ir.Method;
+import edu.university.ecs.lab.common.models.ir.MethodCall;
 import edu.university.ecs.lab.common.models.serialization.MethodCallDeserializer;
 import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
 
