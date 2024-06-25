@@ -1,28 +1,28 @@
-#name: Fetch Changes
-#
-#on: push
-#
-#jobs:
-#  identify-changed-files:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#        with:
-#          fetch-depth: 2
-#
-#      - name: Get line-by-line diff
-#        id: get_diff
-#        uses: ILikePlayingGames/line-diff-action@v1.3
-#        with:
-#          commit-hash: '@~'
-#
-#      - name: Save diff.txt as artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: changed-files-diff
-#          path: ./diff.txt
-#
-#      - name: Display diff content
-#        run: cat ./diff.txt
+name: Fetch Changes
+
+on: push
+
+jobs:
+  identify-changed-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get line-by-line diff
+        id: get_diff
+        uses: ILikePlayingGames/line-diff-action@v1.3
+        with:
+          commit-hash: '@~'
+        
+      - name: Save diff.txt as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: changed-files-diff
+          path: ./diff.txt
+
+      - name: Display diff content
+        run: cat ./diff.txt

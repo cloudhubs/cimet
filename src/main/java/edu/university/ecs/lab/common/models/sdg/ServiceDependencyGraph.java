@@ -64,7 +64,7 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, E
      */
     public ServiceDependencyGraph(MicroserviceSystem microserviceSystem) {
         super(EndpointCallEdge.class);
-        this.label = "Test";
+        this.label = microserviceSystem.getName();
         this.timestamp = microserviceSystem.getCommitID();
 
         List<RestCall> restCalls = new ArrayList<>();
