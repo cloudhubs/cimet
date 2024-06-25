@@ -80,7 +80,7 @@ public class DegreeCoupling {
      * Calculate the degree-related Coupling metrics for a given Service Dependency Graph
      * @param graph - Service Dependency Graph to study
      */
-    DegreeCoupling(ServiceDependencyGraph graph){
+    public DegreeCoupling(ServiceDependencyGraph graph){
         // AIS, ADS, ACS
         AIS = new HashMap<>();
         ADS = new HashMap<>();
