@@ -17,13 +17,49 @@ public class StructuralCoupling {
      */
     private final Map<List<String>, Double> LWF;
     /**
+     * Maximum of LWF
+     */
+    private final double maxLWF;
+    /**
+     * Average of LWF
+     */
+    private final double avgLWF;
+    /**
+     * Standard deviation of LWF
+     */
+    private final double stdLWF;
+    /**
      * Global Weight Factor(s1, s2) = degree(s1, s2)/max_degree
      */
     private final Map<List<String>, Double> GWF;
     /**
+     * Maximum of GWF
+     */
+    private final double maxGWF;
+    /**
+     * Average of GWF
+     */
+    private final double avgGWF;
+    /**
+     * Standard deviation of GWF
+     */
+    private final double stdGWF;
+    /**
      * Structural Coupling(s1, s2) = 1 - 1/degree(s1, s2) - LWF(s1, s2)*GWF(s1, s2)
      */
     private final Map<List<String>, Double> SC;
+    /**
+     * Maximum of SC
+     */
+    private final double maxSC;
+    /**
+     * Average of SC
+     */
+    private final double avgSC;
+    /**
+     * Standard deviation of SC
+     */
+    private final double stdSC;
 
     /**
      * Calculate the Structural Coupling and related metrics for a given Service Dependency Graph
@@ -51,14 +87,38 @@ public class StructuralCoupling {
         }
         double max_degree = degree.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
                 orElseThrow(() -> new RuntimeException("Degree map is empty after processing the SDG"));
-       for (String vertexA: graph.vertexSet()) {
-           for (String vertexB: graph.vertexSet()) {
-               List<String> pair = Arrays.asList(vertexA, vertexB);
-               if (!vertexA.equals(vertexB)) {
-                   GWF.put(pair, degree.get(pair)/max_degree);
-                   SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
-               }
-           }
-       }
+        for (String vertexA: graph.vertexSet()) {
+            for (String vertexB: graph.vertexSet()) {
+                List<String> pair = Arrays.asList(vertexA, vertexB);
+                if (!vertexA.equals(vertexB)) {
+                    GWF.put(pair, degree.get(pair)/max_degree);
+                    SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
+                }
+            }
+        }
+
+        // Amount of actually connected pairs
+        long N = LWF.keySet().stream().filter(pair -> graph.containsEdge(pair.get(0), pair.get(1))).count();
+
+        // Averages
+        avgLWF = LWF.values().stream().mapToDouble(Double::doubleValue).sum() / N;
+        avgGWF = GWF.values().stream().mapToDouble(Double::doubleValue).sum() / N;
+        avgSC = SC.values().stream().mapToDouble(Double::doubleValue).sum() / N;
+
+        // Maxima
+        maxLWF = LWF.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
+                 orElseThrow(() -> new RuntimeException("Cannot find maximum of LWF"));
+        maxGWF = GWF.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
+                 orElseThrow(() -> new RuntimeException("Cannot find maximum of GWF"));
+        maxSC = SC.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
+                orElseThrow(() -> new RuntimeException("Cannot find maximum of SC"));
+
+        // Standard deviations
+        stdLWF = Math.sqrt(LWF.values().stream().map(value -> Math.pow(value - avgLWF, 2))
+                 .mapToDouble(Double::doubleValue).sum() / N);
+        stdGWF = Math.sqrt(GWF.values().stream().map(value -> Math.pow(value - avgGWF, 2))
+                .mapToDouble(Double::doubleValue).sum() / N);
+        stdSC = Math.sqrt(SC.values().stream().map(value -> Math.pow(value - avgSC, 2))
+                 .mapToDouble(Double::doubleValue).sum() / N);
     }
 }

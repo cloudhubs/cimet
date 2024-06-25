@@ -3,6 +3,7 @@ package edu.university.ecs.lab.detection.metrics.models;
 import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,17 +25,49 @@ public class DegreeCoupling {
      */
     private final Map<String, Integer> AIS;
     /**
+     * Average of AIS
+     */
+    private final double avgAIS;
+    /**
+     * Maximum of AIS
+     */
+    private final int maxAIS;
+    /**
+     * Standard deviation of AIS
+     */
+    private final double stdAIS;
+    /**
     Absolute Dependency of the Service - number of services invoked by the service
      */
     private final Map<String, Integer> ADS;
+    /**
+     Average number of Directly Connected Services - average of ADS;
+     */
+    private final double ADCS;
+    /**
+     * Maximum of ADS
+     */
+    private final int maxADS;
+    /**
+     * Standard deviation of ADS
+     */
+    private final double stdADS;
     /**
     Absolute Criticality of the Service - product of AIS and ADS
      */
     private final Map<String, Integer> ACS;
     /**
-    Average number of Directly Connected Services - average of ADS;
+     * Average of ACS
      */
-    private final double ADCS;
+    private final double avgACS;
+    /**
+     * Maximum of ACS
+     */
+    private final int maxACS;
+    /**
+     * Standard deviation of ACS
+     */
+    private final double stdACS;
     /**
     Service coupling factor (graph density)
      */
@@ -78,6 +111,27 @@ public class DegreeCoupling {
             }
         }
         SIY = siy/2; // each bidirectional edge was counted twice
+
+        // Averages
+        avgAIS = AIS.values().stream().mapToDouble(Integer::doubleValue).sum() / N;
+        ADCS = ADS.values().stream().mapToDouble(Integer::doubleValue).sum() / N;
+        avgACS = ACS.values().stream().mapToDouble(Integer::doubleValue).sum() / N;
+
+        // Maxima
+        maxAIS = AIS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
+            orElseThrow(() -> new RuntimeException("Cannot find maximum of AIS"));
+        maxADS = ADS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
+                orElseThrow(() -> new RuntimeException("Cannot find maximum of ADS"));
+        maxACS = ACS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
+                orElseThrow(() -> new RuntimeException("Cannot find maximum of ACS"));
+
+        // Standard deviations
+        stdAIS = Math.sqrt(AIS.values().stream().map(value -> Math.pow(value - avgAIS, 2))
+                .mapToDouble(Double::doubleValue).sum() / N);
+        stdADS = Math.sqrt(ADS.values().stream().map(value -> Math.pow(value - ADCS, 2))
+                .mapToDouble(Double::doubleValue).sum() / N);
+        stdACS = Math.sqrt(ACS.values().stream().map(value -> Math.pow(value - avgACS, 2))
+                .mapToDouble(Double::doubleValue).sum() / N);
 
     }
 }
