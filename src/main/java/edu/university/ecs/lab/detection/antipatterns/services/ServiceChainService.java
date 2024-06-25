@@ -21,13 +21,13 @@ public class ServiceChainService {
         List<ServiceChain> allChains = new ArrayList<>();
         Map<String, List<String>> adjacencyList = buildAdjacencyList(graph);
 
-        for (String node : graph.getNodes()) {
-            Set<String> visited = new HashSet<>();
-            dfs(node, new ArrayList<>(), allChains, adjacencyList, visited);
-        }
+        Set<String> globalVisited = new HashSet<>();
 
-        // Filter out single-service chains
-        allChains.removeIf(chain -> chain.getChain().size() <= 1);
+        for (String node : graph.getNodes()) {
+            if (!globalVisited.contains(node)) {
+                dfs(node, new ArrayList<>(), allChains, adjacencyList, globalVisited);
+            }
+        }
 
         return allChains;
     }
@@ -44,7 +44,10 @@ public class ServiceChainService {
             adjacencyList.put(node, new ArrayList<>());
         }
         for (Edge edge : graph.getEdges()) {
-            adjacencyList.get(edge.getSource()).add(edge.getTarget());
+            List<String> neighbors = adjacencyList.get(edge.getSource());
+            if (!neighbors.contains(edge.getTarget())) {
+                neighbors.add(edge.getTarget());
+            }
         }
         return adjacencyList;
     }
@@ -56,27 +59,29 @@ public class ServiceChainService {
      * @param currentPath the current path of nodes being explored
      * @param allChains   list to store detected service chains
      * @param adjacencyList adjacency list representation of the network graph
-     * @param visited     set of visited nodes
+     * @param globalVisited set of globally visited nodes
      */
-    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, List<String>> adjacencyList, Set<String> visited) {
-        visited.add(currentNode);
+    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, List<String>> adjacencyList, Set<String> globalVisited) {
+        if (globalVisited.contains(currentNode)) {
+            return;
+        }
+
         currentPath.add(currentNode);
+        globalVisited.add(currentNode);
 
         List<String> neighbors = adjacencyList.get(currentNode);
-        if (neighbors != null) {
+        if (neighbors != null && !neighbors.isEmpty()) {
             for (String neighbor : neighbors) {
-                if (!visited.contains(neighbor)) {
-                    dfs(neighbor, currentPath, allChains, adjacencyList, visited);
+                if (!globalVisited.contains(neighbor)) {
+                    dfs(neighbor, currentPath, allChains, adjacencyList, globalVisited);
                 }
             }
         }
 
-        if (neighbors == null || neighbors.isEmpty()) {
+        if (currentPath.size() > 1) {
             allChains.add(new ServiceChain(new ArrayList<>(currentPath)));
         }
 
-        // Backtrack
         currentPath.remove(currentPath.size() - 1);
-        visited.remove(currentNode);
     }
 }
