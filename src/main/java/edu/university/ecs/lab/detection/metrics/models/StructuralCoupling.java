@@ -87,14 +87,9 @@ public class StructuralCoupling {
         }
         double max_degree = degree.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
                 orElseThrow(() -> new RuntimeException("Degree map is empty after processing the SDG"));
-        for (String vertexA: graph.vertexSet()) {
-            for (String vertexB: graph.vertexSet()) {
-                List<String> pair = Arrays.asList(vertexA, vertexB);
-                if (!vertexA.equals(vertexB)) {
-                    GWF.put(pair, degree.get(pair)/max_degree);
-                    SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
-                }
-            }
+        for (List<String> pair: LWF.keySet()) {
+            GWF.put(pair, degree.get(pair)/max_degree);
+            SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
         }
 
         // Amount of actually connected pairs
