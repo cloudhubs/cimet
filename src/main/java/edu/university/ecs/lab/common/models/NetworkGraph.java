@@ -100,7 +100,6 @@ public class NetworkGraph implements JsonSerializable {
     public void createGraph(MicroserviceSystem microserviceSystem) {
         this.label = "Test";
         this.timestamp = microserviceSystem.getCommitID();
-        this.directed = true;
         this.multigraph = false;
 
         List<RestCall> restCalls = new ArrayList<>();
@@ -143,6 +142,12 @@ public class NetworkGraph implements JsonSerializable {
             return edge;
         }).collect(Collectors.toSet());
 
+        if (!this.edges.isEmpty()){
+            this.directed = true;
+        }
+        else{
+            this.directed = false;
+        }
 
     }
 }

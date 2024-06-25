@@ -56,6 +56,9 @@ public class RestCall extends MethodCall {
     }
 
     public static boolean matchEndpoint(RestCall restcall, Endpoint endpoint){
+        if(restcall.getMicroserviceName().equals(endpoint.getMicroserviceName())){
+            return false;
+        }
         if (restcall.getUrl().equals(endpoint.getUrl()) && restcall.getHttpMethod().equals(endpoint.getHttpMethod())){
             return true;
         }
