@@ -12,7 +12,7 @@ import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseIn
  * Children should not host public constructors and all logic
  * should be held in UseCaseInterface methods.
  */
-public abstract class UseCase implements UseCaseInterface {
+public abstract class AbstractUseCase implements UseCaseInterface {
     protected SystemChange microserviceSystemOld;
     protected MicroserviceSystem microserviceSystemNew;
 

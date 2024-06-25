@@ -1,8 +1,6 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.google.gson.JsonObject;
 
@@ -18,7 +16,7 @@ import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
-public class UseCase4 extends UseCase {
+public class UseCase4 extends AbstractUseCase {
 
     protected static final String NAME = "Floating endpoint due to last call removal";
     protected static final Scope SCOPE = Scope.REST_CALL;
@@ -28,7 +26,7 @@ public class UseCase4 extends UseCase {
     private UseCase4() {}
 
     @Override
-    public List<? extends UseCase> checkUseCase() {
+    public List<? extends AbstractUseCase> checkUseCase() {
         // To be implemented if needed
         return new ArrayList<>();
     }
@@ -58,71 +56,100 @@ public class UseCase4 extends UseCase {
         return metaData;
     }
 
-    public static List<UseCase4> scan(Delta delta, MicroserviceSystem microserviceSystemOld, MicroserviceSystem microserviceSystemNew) {
+    public static List<UseCase4> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<UseCase4> useCases = new ArrayList<>();
 
-        if (!(delta.getChangeType().equals(ChangeType.MODIFY) || delta.getChangeType().equals(ChangeType.DELETE))
-                || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
+        // If we are not removing or modifying a service
+        if (delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
             return useCases;
         }
 
-        List<Endpoint> endpointsNoRC = collectEndpointsNoRC(microserviceSystemNew);
+        // Get endpoints that do not have any calls
+        Set<Endpoint> uncalledEndpoints = getEndpointsWithNoCalls(newSystem);
+
+        JClass oldClass;
+        Set<RestCall> restCalls = new HashSet<>();
 
         if (delta.getChangeType().equals(ChangeType.MODIFY)) {
-            JClass oldClass = microserviceSystemOld.findClass(delta.getNewPath());
-            List<RestCall> modifiedRestCalls = collectModifiedRestCalls(delta, oldClass);
-
-            for (RestCall restCall : modifiedRestCalls) {
-                for (Endpoint endpoint : endpointsNoRC) {
-                    if (RestCall.matchEndpoint(restCall, endpoint)) {
-                        UseCase4 useCase4 = new UseCase4();
-                        JsonObject jsonObject = new JsonObject();
-                        jsonObject.add("Rest Call", restCall.toJsonObject());
-                        useCase4.setMetaData(jsonObject);
-                        useCases.add(useCase4);
-                    }
-                }
-            }
+            oldClass = oldSystem.findClass(delta.getNewPath());
+            restCalls = getRemovedRestCalls(delta, oldClass);
         } else if (delta.getChangeType().equals(ChangeType.DELETE)) {
-            JClass oldClass = microserviceSystemOld.findClass(delta.getOldPath());
-            Set<RestCall> restCalls = oldClass.getRestCalls();
+            oldClass = oldSystem.findClass(delta.getOldPath());
+            restCalls = oldClass.getRestCalls();
+        }
 
-            for (RestCall restCall : restCalls) {
-                for (Endpoint endpoint : endpointsNoRC) {
+        Endpoint removeEndpoint = null;
+        // For each restCall removed
+        for (RestCall restCall : restCalls) {
+            // TODO this approach picks the first rest call that no longer calls an uncalled endpoint
+            endpointLoop:
+            {
+                // For endpoint with no call
+                for (Endpoint endpoint : uncalledEndpoints) {
+                    // If we match, they once called but no longer call
                     if (RestCall.matchEndpoint(restCall, endpoint)) {
                         UseCase4 useCase4 = new UseCase4();
                         JsonObject jsonObject = new JsonObject();
-                        jsonObject.add("Rest Call", restCall.toJsonObject());
+                        jsonObject.add("RestCall", restCall.toJsonObject());
                         useCase4.setMetaData(jsonObject);
                         useCases.add(useCase4);
+                        removeEndpoint = endpoint;
+                        break endpointLoop;
                     }
                 }
             }
+
+            // Update endpoint loop as we potentially found a match
+            if(Objects.nonNull(removeEndpoint)) {
+                uncalledEndpoints.remove(removeEndpoint);
+            }
+            removeEndpoint = null;
         }
+
 
         return useCases;
     }
 
-    private static List<RestCall> collectModifiedRestCalls(Delta d, JClass oldClass){
-        List<RestCall> modifiedRestCalls = new ArrayList<>();
-        for(RestCall restCallNew: d.getClassChange().getRestCalls()){
+    /**
+     * This method collects rest calls that were modified and are no longer present
+     * in the new system.
+     *
+     * @param delta delta change associated
+     * @param oldClass the delta changed class from the oldSystem
+     * @return a set of rest calls
+     */
+    private static Set<RestCall> getRemovedRestCalls(Delta delta, JClass oldClass){
+        Set<RestCall> removedRestCalls = new HashSet<>();
+
+        // For the restCalls in delta
+        for(RestCall modifiedRestCall: delta.getClassChange().getRestCalls()){
             outer: {
-                for(RestCall restCallOld: oldClass.getRestCalls()){
-                    if(restCallOld.equals(restCallNew)){
+                // For the restCalls in oldClass
+                for(RestCall existingRestCall: oldClass.getRestCalls()){
+                    // If they match we do not have a removed call
+                    if(existingRestCall.equals(modifiedRestCall)){
                         break outer;
                     }
                 }
-                modifiedRestCalls.add(restCallNew);
+
+                // If we loop through them all and find no match add them to the removed calls
+                removedRestCalls.add(modifiedRestCall);
             }
         }
 
-        return modifiedRestCalls;
+        return removedRestCalls;
     }
 
-    private static List<Endpoint> collectEndpointsNoRC(MicroserviceSystem microserviceSystem) {
-        List<Endpoint> endpointsNoRC = new ArrayList<>();
+    /**
+     * This method generates a list of endpoints that have no rest calls
+     *
+     * @param newSystem the new system to check for endpoints
+     * @return a list of endpoints
+     */
+    private static Set<Endpoint> getEndpointsWithNoCalls(MicroserviceSystem newSystem) {
+        Set<Endpoint> endpointsNoRC = new HashSet<>();
 
-        for (Microservice microservice : microserviceSystem.getMicroservices()) {
+        for (Microservice microservice : newSystem.getMicroservices()) {
             for (JClass controller : microservice.getControllers()) {
                 for (JClass service : microservice.getServices()) {
                     for (Endpoint endpoint : controller.getEndpoints()) {

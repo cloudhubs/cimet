@@ -5,18 +5,16 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.*;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
-public class UseCase2 extends UseCase{
+public class UseCase2 extends AbstractUseCase {
     protected static final String NAME = "Floating call due to endpoint removal (external)";
     protected static final Scope SCOPE = Scope.ENDPOINT;
     protected static final String DESC = "An endpoint was removed and calls now reference an endpoint no longer in existence.";
@@ -25,7 +23,7 @@ public class UseCase2 extends UseCase{
     private UseCase2() {}
 
     @Override
-    public List<? extends UseCase> checkUseCase() {
+    public List<? extends AbstractUseCase> checkUseCase() {
         ArrayList<UseCase3> useCases = new ArrayList<>();
 
         return new ArrayList<>();
@@ -55,26 +53,33 @@ public class UseCase2 extends UseCase{
     public JsonObject getMetaData() {
         return metaData;
     }
-    
-    public static List<UseCase2> scan(Delta delta, JClass oldClass, MicroserviceSystem newSystem) {
+
+
+
+    public static List<UseCase2> scan(Delta delta, JClass oldClass, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<UseCase2> useCases = new ArrayList<>();
-        
-        if (!delta.getChangeType().equals(ChangeType.DELETE) || !delta.getClassChange().getClassRole().equals(ClassRole.CONTROLLER)) {
+
+        // If we are not deleting/modifying a controller class
+        if (delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.CONTROLLER)) {
             return useCases;
         }
 
+        // For each endpoint in the old class, if it's no longer found
         for (Endpoint endpoint : oldClass.getEndpoints()) {
             if (!existsInSystem(endpoint, newSystem)) {
                 UseCase2 useCase2 = new UseCase2();
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.add("Endpoint", endpoint.toJsonObject());
+                jsonObject.add("AffectedRestCalls", JsonSerializable.toJsonArray(getAffectedRestCalls(endpoint, oldSystem)));
                 useCase2.setMetaData(jsonObject);
                 useCases.add(useCase2);
+
             }
         }
         return useCases;
     }
 
+    // Check for modified/deleted endpoint in new system
     private static boolean existsInSystem(Endpoint endpoint, MicroserviceSystem newSystem) {
         for (Microservice microservice : newSystem.getMicroservices()) {
             for (JClass controller : microservice.getControllers()) {
@@ -86,5 +91,21 @@ public class UseCase2 extends UseCase{
             }
         }
         return false;
+    }
+
+    // Check for modified/deleted endpoint in new system
+    private static List<RestCall> getAffectedRestCalls(Endpoint endpoint, MicroserviceSystem oldSystem) {
+        List<RestCall> restCalls = new ArrayList<>();
+        for (Microservice microservice : oldSystem.getMicroservices()) {
+            for (JClass service : microservice.getServices()) {
+                for (RestCall restCall : service.getRestCalls()) {
+                    if(RestCall.matchEndpoint(restCall, endpoint)) {
+                        restCalls.add(restCall);
+                    }
+                }
+            }
+        }
+
+        return restCalls;
     }
 }

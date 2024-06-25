@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.detection.architecture.models.interfaces;
 
-import edu.university.ecs.lab.detection.architecture.models.UseCase;
+import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public interface UseCaseInterface {
      *
      * @return
      */
-    public List<? extends UseCase> checkUseCase();
+    public List<? extends AbstractUseCase> checkUseCase();
 
 
 }

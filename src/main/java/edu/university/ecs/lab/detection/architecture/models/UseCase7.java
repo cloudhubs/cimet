@@ -15,7 +15,7 @@ import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
-public class UseCase7 extends UseCase {
+public class UseCase7 extends AbstractUseCase {
     protected static final String NAME = "Affected endpoint due to data access logic update";
     protected static final Scope SCOPE = Scope.METHOD;
     protected static final String DESC = "A repository method was modified and now causes inconsistent results";
@@ -24,7 +24,7 @@ public class UseCase7 extends UseCase {
     private UseCase7() {}
 
     @Override
-    public List<? extends UseCase> checkUseCase() {
+    public List<? extends AbstractUseCase> checkUseCase() {
         // This method should return the list of UseCase3 instances relevant to UseCase7 logic, if any.
         ArrayList<UseCase3> useCases = new ArrayList<>();
         return useCases;
@@ -65,17 +65,20 @@ public class UseCase7 extends UseCase {
 
         for (Method methodOld : jClass.getMethods()) {
             for (Method methodNew : delta.getClassChange().getMethods()) {
+                // Match old and new Methods
                 if (methodOld.getID().equals(methodNew.getID()) && !methodOld.equals(methodNew)) {
+                    // Any annotations that don't equal their counterpart we can add to metadata
                     for (Annotation annotationOld : methodOld.getAnnotations()) {
-                        if (annotationOld.getName().equals("Query")) {
-                            for (Annotation annotationNew : methodNew.getAnnotations()) {
-                                if (annotationNew.getName().equals("Query") && !annotationNew.getContents().equals(annotationOld.getContents())) {
-                                    UseCase7 useCase7 = new UseCase7();
-                                    JsonObject jsonObject = new JsonObject();
-                                    jsonObject.add("Method Declaration", methodNew.toJsonObject());
-                                    useCase7.setMetaData(jsonObject);
-                                    useCases.add(useCase7);
-                                }
+                        for (Annotation annotationNew : methodNew.getAnnotations()) {
+                            // Annotation names match but not the contents
+                            if (annotationNew.getName().equals(annotationOld.getName()) && !annotationNew.getContents().equals(annotationOld.getContents())) {
+                                UseCase7 useCase7 = new UseCase7();
+                                JsonObject jsonObject = new JsonObject();
+                                jsonObject.isJsonNull();
+                                jsonObject.add("OldMethodDeclaration", methodOld.toJsonObject());
+                                jsonObject.add("NewMethodDeclaration", methodNew.toJsonObject());
+                                useCase7.setMetaData(jsonObject);
+                                useCases.add(useCase7);
                             }
                         }
                     }
