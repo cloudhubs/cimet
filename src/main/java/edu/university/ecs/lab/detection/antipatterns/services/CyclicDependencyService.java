@@ -1,7 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.Edge;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
 
 import java.util.*;
@@ -17,17 +16,16 @@ public class CyclicDependencyService {
      * @param graph the network graph to analyze
      * @return a list of cyclic dependencies found
      */
-    public List<CyclicDependency> findCyclicDependencies(NetworkGraph graph) {
+    public List<CyclicDependency> findCyclicDependencies(ServiceDependencyGraph graph) {
         List<CyclicDependency> cyclicDependencies = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
         Map<String, String> parentMap = new HashMap<>();
+        Map<String, Set<String>> adjacency = graph.getAdjacency();
 
-        for (String node : graph.getNodes()) {
+        for (String node : graph.vertexSet()) {
             if (!visited.contains(node)) {
-                if (hasCycle(node, visited, recStack, graph, parentMap, cyclicDependencies)) {
-                    // Continue searching for other cycles
-                }
+                findCycles(node, adjacency, visited, recStack, parentMap, cyclicDependencies);
             }
         }
 
@@ -36,35 +34,28 @@ public class CyclicDependencyService {
 
     /**
      * Checks if there is a cycle starting from the current node.
-     * 
-     * @param currentNode      the current node to check
-     * @param visited          set of visited nodes
-     * @param recStack         stack of nodes in the current recursion stack
-     * @param graph            the network graph
-     * @param parentMap        map of node to its parent in the traversal
+     *
+     * @param currentNode        the current node to check
+     * @param adjacencyList      mapping from nodes to their outgoing neighbours
+     * @param visited            set of visited nodes
+     * @param recStack           stack of nodes in the current recursion stack
+     * @param parentMap          map of node to its parent in the traversal
      * @param cyclicDependencies list to store detected cyclic dependencies
-     * @return true if a cycle is found, false otherwise
      */
-    private boolean hasCycle(String currentNode, Set<String> visited, Set<String> recStack, NetworkGraph graph, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
+    private void findCycles(String currentNode, Map<String, Set<String>> adjacencyList, Set<String> visited, Set<String> recStack, Map<String, String> parentMap, List<CyclicDependency> cyclicDependencies) {
         visited.add(currentNode);
         recStack.add(currentNode);
 
-        List<String> neighbors = getNeighbors(currentNode, graph);
-        for (String neighbor : neighbors) {
+        for (String neighbor : adjacencyList.get(currentNode)) {
             if (!visited.contains(neighbor)) {
                 parentMap.put(neighbor, currentNode);
-                if (hasCycle(neighbor, visited, recStack, graph, parentMap, cyclicDependencies)) {
-                    // Continue searching for other cycles
-                }
+                findCycles(neighbor, adjacencyList, visited, recStack, parentMap, cyclicDependencies);
             } else if (recStack.contains(neighbor)) {
                 List<String> cyclePath = reconstructCyclePath(neighbor, currentNode, parentMap);
                 cyclicDependencies.add(new CyclicDependency(new ArrayList<>(cyclePath)));
             }
         }
-
         recStack.remove(currentNode);
-
-        return false;
     }
 
     /**
@@ -89,20 +80,4 @@ public class CyclicDependencyService {
         return fullCyclePath;
     }
 
-    /**
-     * Retrieves the neighbors of the currentNode from the graph.
-     * 
-     * @param currentNode the node whose neighbors are to be retrieved
-     * @param graph       the network graph
-     * @return the list of neighbors of the currentNode
-     */
-    private List<String> getNeighbors(String currentNode, NetworkGraph graph) {
-        List<String> neighbors = new ArrayList<>();
-        for (Edge edge : graph.getEdges()) {
-            if (edge.getSource().equals(currentNode)) {
-                neighbors.add(edge.getTarget());
-            }
-        }
-        return neighbors;
-    }
 }

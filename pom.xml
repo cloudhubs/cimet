@@ -125,8 +125,13 @@
             <artifactId>podam</artifactId>
             <version>8.0.1.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>1.5.2</version>
+        </dependency>
     </dependencies>
-    
+
     <repositories>
 		<repository>
 		    <id>jitpack.io</id>
@@ -206,7 +211,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
             <properties>

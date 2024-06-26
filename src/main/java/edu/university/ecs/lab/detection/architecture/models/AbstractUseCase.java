@@ -2,7 +2,7 @@ package edu.university.ecs.lab.detection.architecture.models;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseInterface;

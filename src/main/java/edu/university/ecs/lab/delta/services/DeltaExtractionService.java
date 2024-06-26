@@ -3,7 +3,7 @@ package edu.university.ecs.lab.delta.services;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
-import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;

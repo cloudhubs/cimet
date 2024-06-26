@@ -3,8 +3,8 @@ package edu.university.ecs.lab.detection.antipatterns;
 import com.google.gson.Gson;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
@@ -26,23 +26,22 @@ public class AntipatternDetection {
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
-        NetworkGraph sdg = new NetworkGraph();
-        sdg.createGraph(currentSystem);
+        ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
-        writeObjectToJsonFile(sdg, "networkgraph.json");
+        writeObjectToJsonFile(sdg.toJsonObject(), "sdg.json");
 
         int detectedAntipatterns = 0;
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
+        if (!greedyMicroservices.isEmpty()){
             detectedAntipatterns++;
             writeObjectToJsonFile(greedyMicroservices, "greedy.json");
         }
         
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
+        if (!hublikeMicroservices.isEmpty()){
             detectedAntipatterns++;
             writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
         }

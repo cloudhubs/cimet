@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.common.models;
+package edu.university.ecs.lab.common.models.ir;
 
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;

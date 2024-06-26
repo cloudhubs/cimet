@@ -2,7 +2,7 @@ package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import edu.university.ecs.lab.common.models.Flow;
+import edu.university.ecs.lab.common.models.ir.Flow;
 
 /**
  * Interface for classes that can be serialized to JSON object

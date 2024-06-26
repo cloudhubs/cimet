@@ -1,8 +1,7 @@
-package edu.university.ecs.lab.common.models;
+package edu.university.ecs.lab.common.models.ir;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
