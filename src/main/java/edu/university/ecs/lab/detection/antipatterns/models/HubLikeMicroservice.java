@@ -60,7 +60,7 @@ public class HubLikeMicroservice extends AntiPattern {
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(hublikeMicroservices).getAsJsonArray());
+        jsonObject.add("Hub-like Microservices Found", gson.toJsonTree(hublikeMicroservices).getAsJsonArray());
 
         return jsonObject;
     }

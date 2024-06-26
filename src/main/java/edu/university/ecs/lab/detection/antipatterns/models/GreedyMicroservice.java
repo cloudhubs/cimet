@@ -60,7 +60,7 @@ public class GreedyMicroservice extends AntiPattern {
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(greedyMicroservices).getAsJsonArray());
+        jsonObject.add("Greedy Microservices Found", gson.toJsonTree(greedyMicroservices).getAsJsonArray());
 
         return jsonObject;
     }

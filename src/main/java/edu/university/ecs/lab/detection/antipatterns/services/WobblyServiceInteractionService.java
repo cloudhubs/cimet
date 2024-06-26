@@ -10,6 +10,7 @@ import edu.university.ecs.lab.detection.antipatterns.models.WobblyServiceInterac
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 /**
  * Service class for detecting wobbly service interactions in a MicroserviceSystem.
  * Wobbly service interactions are identified based on specific annotations in classes and methods.
@@ -17,50 +18,35 @@ import java.util.Set;
 public class WobblyServiceInteractionService {
 
     /**
-     * Checks for wobbly service interactions in the given MicroserviceSystem and returns the results.
-     *
-     * @param system the MicroserviceSystem to analyze
-     * @return a list of WobblyServiceInteraction objects representing detected wobbly interactions
+     * Finds all wobbly service interactions in the given network graph.
+     * 
+     * @param graph the network graph to analyze
+     * @return a WobblyServiceInteraction object containing the list of detected interactions
      */
-    public List<WobblyServiceInteraction> checkForWobblyServiceInteractions(MicroserviceSystem system) {
-        List<WobblyServiceInteraction> wobblyInteractions = new ArrayList<>();
-        for (Microservice microservice : system.getMicroservices()) {
-            checkClassesForWobblyInteractions(microservice.getClasses(), microservice, wobblyInteractions);
-        }
+    public WobblyServiceInteraction findWobblyServiceInteractions(MicroserviceSystem currentSystem) {
+        List<String> wobblyInteractions = new ArrayList<>();
 
-        return wobblyInteractions;
-    }
-
-    /**
-     * Helper method to check a set of JClass objects for wobbly service interactions.
-     *
-     * @param classes            the set of JClass objects to analyze
-     * @param microservice       the Microservice owning the classes
-     * @param wobblyInteractions list to store detected wobbly interactions
-     */
-    private void checkClassesForWobblyInteractions(Set<JClass> classes, Microservice microservice, List<WobblyServiceInteraction> wobblyInteractions) {
-        for (JClass jClass : classes) {
-            for (Annotation annotation : jClass.getAnnotations()) {
-                if (isWobblyServiceInteractionAnnotation(annotation)) {
-                    String microserviceName = microservice.getName();
-                    String className = jClass.getName();
-                    String methodName = getMethodNameFromAnnotation(annotation);
-                    WobblyServiceInteraction interaction = new WobblyServiceInteraction(microserviceName, className, methodName);
-                    wobblyInteractions.add(interaction);
-                }
-            }
-            for (Method method : jClass.getMethods()) {
-                for (Annotation annotation : method.getAnnotations()) {
+        for (Microservice microservice : currentSystem.getMicroservices()) {
+            Set<JClass> classes = microservice.getClasses();
+            for (JClass jClass : classes) {
+                for (Annotation annotation : jClass.getAnnotations()) {
                     if (isWobblyServiceInteractionAnnotation(annotation)) {
-                        String microserviceName = microservice.getName();
-                        String className = jClass.getName();
-                        String methodName = method.getName();
-                        WobblyServiceInteraction interaction = new WobblyServiceInteraction(microserviceName, className, methodName);
+                        String interaction = microservice + "." + jClass.getName() + "." + getMethodNameFromAnnotation(annotation);
                         wobblyInteractions.add(interaction);
+                    }
+                }
+                for (Method method : jClass.getMethods()) {
+                    for (Annotation annotation : method.getAnnotations()) {
+                        if (isWobblyServiceInteractionAnnotation(annotation)) {
+                            String interaction = microservice + "." + jClass.getName() + "." + method.getName();
+                            wobblyInteractions.add(interaction);
+                        }
                     }
                 }
             }
         }
+
+        return new WobblyServiceInteraction(wobblyInteractions);
     }
 
     /**
