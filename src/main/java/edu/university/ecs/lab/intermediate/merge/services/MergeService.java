@@ -45,7 +45,7 @@ public class MergeService {
         // TODO optimize
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
-            JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
+            JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
             return;
         }
 
@@ -75,7 +75,7 @@ public class MergeService {
         }
 
         microserviceSystem.setCommitID(systemChange.getNewCommit());
-        JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
+        JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
     }
 
 
