@@ -75,7 +75,7 @@ public class StructuralCoupling {
         for (String vertexA: graph.vertexSet()) {
             for (String vertexB: graph.vertexSet()) {
                 List<String> pair = Arrays.asList(vertexA, vertexB);
-                if (!vertexA.equals(vertexB)) {
+                if (!vertexA.equals(vertexB) && graph.containsEdge(vertexA, vertexB)) {
                     out_degree.put(pair,
                             graph.getAllEdges(vertexA, vertexB).stream().mapToDouble(graph::getEdgeWeight).sum());
                     in_degree.put(pair,
@@ -93,7 +93,7 @@ public class StructuralCoupling {
         }
 
         // Amount of actually connected pairs
-        long N = LWF.keySet().stream().filter(pair -> graph.containsEdge(pair.get(0), pair.get(1))).count();
+        long N = LWF.size();
 
         // Averages
         avgLWF = LWF.values().stream().mapToDouble(Double::doubleValue).sum() / N;
