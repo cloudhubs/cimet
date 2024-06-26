@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.architecture.services;
 
+import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
@@ -18,10 +19,10 @@ public class UCDetectionService {
     MicroserviceSystem microserviceSystemOld;
     MicroserviceSystem microserviceSystemNew;
 
-    public UCDetectionService(String DeltaPath, String OldIRPath, String IRPath) {
+    public UCDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) {
         oldSystem = JsonReadWriteUtils.readFromJSON(DeltaPath, SystemChange.class);
         microserviceSystemOld = JsonReadWriteUtils.readFromJSON(OldIRPath, MicroserviceSystem.class);
-        microserviceSystemNew = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
+        microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
 
@@ -30,7 +31,11 @@ public class UCDetectionService {
         List<UseCase> useCases = new ArrayList<>();
         
         for (Delta d : oldSystem.getChanges()){
-            List<UseCase2> useCase2List = UseCase2.scan(d, microserviceSystemOld.findClass(d.getOldPath()), microserviceSystemNew);
+            
+            if((d.getNewPath() != null) && d.getNewPath().contains("pom.xml") || (d.getOldPath() != null && d.getOldPath().contains("pom.xml"))){
+                continue;
+            }
+            List<UseCase2> useCase2List = UseCase2.scan(d, microserviceSystemOld, microserviceSystemNew);
             if (!useCase2List.isEmpty()){
                 useCases.addAll(useCase2List);
             }
@@ -45,8 +50,8 @@ public class UCDetectionService {
                 useCases.addAll(useCase4List);
             }
 
-            //Need to check implementation
-            List<UseCase7> useCase7List = UseCase7.scan(d, microserviceSystemOld.findClass(d.getNewPath()));
+            
+            List<UseCase7> useCase7List = UseCase7.scan(d, microserviceSystemOld);
             if(!useCase7List.isEmpty()){
                 useCases.addAll(useCase7List);
             }
