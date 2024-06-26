@@ -1,5 +1,7 @@
 package edu.university.ecs.lab.detection.metrics.service;
 
+import org.json.JSONObject;
+
 public class MetricResult {
     private String serviceName;
     private String version;
@@ -39,5 +41,21 @@ public class MetricResult {
 
     public void setMetricValue(Double metricValue) {
         this.metricValue = metricValue;
+    }
+
+    public String toString() {
+//        return "{" +
+//                "serviceName:'" + serviceName + '\'' +
+//                ", version='" + version + '\'' +
+//                ", metricName='" + metricName + '\'' +
+//                ", metricValue=" + metricValue +
+//                '}';
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("serviceName", serviceName);
+        jsonObject.put("version", version);
+        jsonObject.put("metricName", metricName);
+        jsonObject.put("metricValue", metricValue);
+        return jsonObject.toString();
     }
 }

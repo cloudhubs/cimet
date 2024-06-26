@@ -29,4 +29,11 @@ public class Parameter {
     public static List<String> getParameterTypes(List<Parameter> parameters) {
         return parameters.stream().map(parameter -> parameter.getType()).collect(Collectors.toList());
     }
+
+    public String toString() {
+        return "Parameter{" +
+                "type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }
