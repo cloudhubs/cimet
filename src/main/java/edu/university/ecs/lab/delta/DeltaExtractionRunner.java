@@ -18,7 +18,7 @@ public class DeltaExtractionRunner {
             Error.reportAndExit(Error.INVALID_ARGS);
         }
 
-        DeltaExtractionService deltaService = new DeltaExtractionService(args[0], args[1], args[2]);
+        DeltaExtractionService deltaService = new DeltaExtractionService(args[0], args[1], args[2], args[4]);
 
         deltaService.generateDelta();
 

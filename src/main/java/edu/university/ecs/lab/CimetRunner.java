@@ -46,7 +46,7 @@ public class CimetRunner {
 //    };
 //    IRMergeRunner.main(IRMergeArgs);
 
-        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
 
         System.out.println(Objects.equals(microserviceSystem1, microserviceSystem2));

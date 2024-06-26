@@ -3,6 +3,7 @@ package edu.university.ecs.lab.detection.architecture.models;
 import com.google.gson.JsonObject;
 
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseInterface;
@@ -12,7 +13,7 @@ import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseIn
  * Children should not host public constructors and all logic
  * should be held in UseCaseInterface methods.
  */
-public abstract class AbstractUseCase implements UseCaseInterface {
+public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterface {
     protected SystemChange microserviceSystemOld;
     protected MicroserviceSystem microserviceSystemNew;
 
@@ -45,4 +46,15 @@ public abstract class AbstractUseCase implements UseCaseInterface {
      * @return double weight of the Use Case
      */
     public abstract double getWeight();
+
+    @Override
+    public final JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("name", getName());
+        jsonObject.addProperty("description", getDescription());
+        jsonObject.addProperty("scope", getScope().toString());
+        jsonObject.add("metadata", getMetaData());
+
+        return jsonObject;
+    }
 }

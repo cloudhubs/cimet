@@ -13,6 +13,10 @@ import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +40,7 @@ public class IRComparisonTest {
         Collections.reverse(list);
         config.setBaseCommit(list.get(1).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "IR.json");
+        createIRSystem(config, "OldIR.json");
 
 
         // Loop through commit history and create delta, merge, etc...
@@ -45,12 +49,18 @@ public class IRComparisonTest {
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
             // Extract changes from one commit to the other
-            deltaExtractionService = new DeltaExtractionService("./config.json", commitIdOld, commitIdNew);
+            deltaExtractionService = new DeltaExtractionService("./config.json", "./output/OldIR.json", commitIdOld, commitIdNew);
             deltaExtractionService.generateDelta();
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
-            MergeService mergeService = new MergeService("./output/IR.json", "./output/Delta.json", "./config.json");
+            MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", "./config.json");
             mergeService.generateMergeIR();
+
+            try {
+                Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         }
 
@@ -59,7 +69,7 @@ public class IRComparisonTest {
         createIRSystem(config, "IRCompare.json");
 
         // Compare two IR's for equivalence
-        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
         microserviceSystem1.setCommitID(config.getBaseCommit());
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
         boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);

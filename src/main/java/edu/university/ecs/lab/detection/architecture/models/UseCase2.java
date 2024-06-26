@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.*;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
@@ -56,11 +56,15 @@ public class UseCase2 extends AbstractUseCase {
 
 
 
-    public static List<UseCase2> scan(Delta delta, JClass oldClass, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+    public static List<UseCase2> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<UseCase2> useCases = new ArrayList<>();
 
         // If we are not deleting/modifying a controller class
-        if (delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.CONTROLLER)) {
+        JClass oldClass = oldSystem.findClass(delta.getOldPath());
+        if(!delta.getChangeType().equals(ChangeType.ADD) && oldClass == null) {
+            System.out.println("Old class not found");
+        }
+        if (delta.getChangeType().equals(ChangeType.ADD) || !oldClass.getClassRole().equals(ClassRole.CONTROLLER)) {
             return useCases;
         }
 

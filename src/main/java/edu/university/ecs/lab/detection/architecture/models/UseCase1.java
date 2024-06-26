@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
@@ -53,13 +53,13 @@ public class UseCase1 extends AbstractUseCase {
 
 
     public static UseCase1 scan(Endpoint endpoint, MicroserviceSystem microserviceSystem){
-        //TODO add implementation 
+        //TODO add implementation
 
 
         UseCase1 useCase1 = new UseCase1();
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("Endpoint", endpoint.toJsonObject());
-        useCase1.setMetaData(jsonObject);    
+        useCase1.setMetaData(jsonObject);
         return useCase1;
     }
 }

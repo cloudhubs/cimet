@@ -1,15 +1,10 @@
 package edu.university.ecs.lab.detection.architecture.services;
 
-import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
-import edu.university.ecs.lab.detection.architecture.models.UseCase;
-import edu.university.ecs.lab.detection.architecture.models.UseCase2;
-import edu.university.ecs.lab.detection.architecture.models.UseCase3;
-import edu.university.ecs.lab.detection.architecture.models.UseCase4;
-import edu.university.ecs.lab.detection.architecture.models.UseCase7;
+import edu.university.ecs.lab.detection.architecture.models.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +22,8 @@ public class UCDetectionService {
 
 
 
-    public List<UseCase> scanDelta() {
-        List<UseCase> useCases = new ArrayList<>();
+    public List<AbstractUseCase> scanDelta() {
+        List<AbstractUseCase> useCases = new ArrayList<>();
         
         for (Delta d : oldSystem.getChanges()){
             

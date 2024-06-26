@@ -60,21 +60,20 @@ public class UseCase4 extends AbstractUseCase {
         List<UseCase4> useCases = new ArrayList<>();
 
         // If we are not removing or modifying a service
-        if (delta.getChangeType().equals(ChangeType.ADD) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
+        JClass oldClass = oldSystem.findClass(delta.getOldPath());
+
+        if (delta.getChangeType().equals(ChangeType.ADD) || !oldClass.getClassRole().equals(ClassRole.SERVICE)) {
             return useCases;
         }
 
         // Get endpoints that do not have any calls
         Set<Endpoint> uncalledEndpoints = getEndpointsWithNoCalls(newSystem);
 
-        JClass oldClass;
         Set<RestCall> restCalls = new HashSet<>();
 
         if (delta.getChangeType().equals(ChangeType.MODIFY)) {
-            oldClass = oldSystem.findClass(delta.getNewPath());
             restCalls = getRemovedRestCalls(delta, oldClass);
         } else if (delta.getChangeType().equals(ChangeType.DELETE)) {
-            oldClass = oldSystem.findClass(delta.getOldPath());
             restCalls = oldClass.getRestCalls();
         }
 

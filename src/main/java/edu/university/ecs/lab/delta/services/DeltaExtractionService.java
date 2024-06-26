@@ -4,6 +4,7 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
@@ -41,6 +42,11 @@ public class DeltaExtractionService {
      */
     private final String commitNew;
 
+    /**
+     * The old IR for validating delta file changes
+     */
+    private final MicroserviceSystem oldSystem;
+
 
     /**
      * Constructor for the DeltaExtractionService
@@ -49,11 +55,12 @@ public class DeltaExtractionService {
      * @param commitOld old commit for comparison
      * @param commitNew new commit for comparison
      */
-    public DeltaExtractionService(String configPath, String commitOld, String commitNew) {
+    public DeltaExtractionService(String configPath, String oldIRPath, String commitOld, String commitNew) {
         this.config = ConfigUtil.readConfig(configPath);
         this.gitService = new GitService(configPath);
         this.commitOld = commitOld;
         this.commitNew = commitNew;
+        this.oldSystem = JsonReadWriteUtils.readFromJSON(oldIRPath, MicroserviceSystem.class);
     }
 
     /**
@@ -96,12 +103,10 @@ public class DeltaExtractionService {
         // process each difference
         for (DiffEntry entry : diffEntries) {
 
-            if (commitNew.startsWith("a78")) {
-                System.out.println("RENAME" + entry);
-            }
-
             // If its not a java file and doesnt end with pom.xml
             String path = entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) ? entry.getOldPath() : entry.getNewPath();
+
+
 
             // If paths doesnt end with java or (path doesnt end with java or pom)
             if (!path.endsWith(".java") && !path.endsWith("pom.xml")) {
@@ -123,6 +128,15 @@ public class DeltaExtractionService {
                 oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
                 newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
 
+            }
+
+            //TODO BAD -- If we modify/delete a file that isn't present in the old system (was skipped because it has no annotation)
+            // Add get's skipped when we parse returns null
+            if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && !path.endsWith("pom.xml")) {
+                JClass jClass = oldSystem.findClass(oldPath);
+                if(jClass == null) {
+                    continue;
+                }
             }
 
 

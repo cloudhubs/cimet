@@ -9,6 +9,7 @@ import edu.university.ecs.lab.common.models.ir.Annotation;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
@@ -54,16 +55,18 @@ public class UseCase7 extends AbstractUseCase {
     public JsonObject getMetaData() {
         return metaData;
     }
-    
-    public static List<UseCase7> scan(Delta delta, JClass jClass) {
+
+    public static List<UseCase7> scan(Delta delta, MicroserviceSystem oldSystem) {
         List<UseCase7> useCases = new ArrayList<>();
 
-        if (!jClass.getClassRole().equals(ClassRole.REPOSITORY) || !delta.getChangeType().equals(ChangeType.MODIFY)) {
+        JClass oldClass = oldSystem.findClass(delta.getOldPath());
+
+        if (!delta.getChangeType().equals(ChangeType.MODIFY) || !oldClass.getClassRole().equals(ClassRole.REPOSITORY)) {
             return useCases;
         }
-        
 
-        for (Method methodOld : jClass.getMethods()) {
+
+        for (Method methodOld : oldClass.getMethods()) {
             for (Method methodNew : delta.getClassChange().getMethods()) {
                 // Match old and new Methods
                 if (methodOld.getID().equals(methodNew.getID()) && !methodOld.equals(methodNew)) {

@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection;
 
+import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.JsonArray;
@@ -10,7 +11,6 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
-import edu.university.ecs.lab.detection.architecture.models.UseCase;
 import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
@@ -41,7 +41,7 @@ public class UCDetectionRunner {
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
-        List<List<UseCase>> allUseCases = new ArrayList<>();
+        List<List<AbstractUseCase>> allUseCases = new ArrayList<>();
 
         // Loop through commit history and create delta, merge, etc...
         for (int i = 0; i < list.size() - 1; i++) {
@@ -49,7 +49,7 @@ public class UCDetectionRunner {
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
             // Extract changes from one commit to the other
-            deltaExtractionService = new DeltaExtractionService("./config.json", commitIdOld, commitIdNew);
+            deltaExtractionService = new DeltaExtractionService("./config.json", "./output/OldIR.json", commitIdOld, commitIdNew);
             deltaExtractionService.generateDelta();
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
@@ -83,12 +83,12 @@ public class UCDetectionRunner {
         irExtractionService.generateIR(fileName);
     }
 
-    public static JsonArray toJsonArray(List<List<UseCase>> useCaseLists) {
+    public static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
         JsonArray outerArray = new JsonArray();
         
-        for (List<UseCase> useCaseList : useCaseLists) {
+        for (List<AbstractUseCase> useCaseList : useCaseLists) {
             JsonArray innerArray = new JsonArray();
-            for (UseCase useCase : useCaseList) {
+            for (AbstractUseCase useCase : useCaseList) {
                 innerArray.add(useCase.toJsonObject());
             }
             outerArray.add(innerArray);
