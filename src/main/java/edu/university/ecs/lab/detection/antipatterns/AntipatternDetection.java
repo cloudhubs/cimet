@@ -33,14 +33,14 @@ public class AntipatternDetection {
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        if (!greedyMicroservices.isEmpty()){
+        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/greedy.json", greedyMicroservices.toJsonObject());
         }
         
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        if (!hublikeMicroservices.isEmpty()){
+        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/hublike.json", hublikeMicroservices.toJsonObject());
         }

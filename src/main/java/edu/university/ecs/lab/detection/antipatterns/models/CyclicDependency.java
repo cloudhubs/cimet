@@ -58,4 +58,8 @@ public class CyclicDependency extends AntiPattern{
 
         return jsonObject;
     }
+
+    public int numCyclicDep(){
+        return cycles.size();
+    }
 }

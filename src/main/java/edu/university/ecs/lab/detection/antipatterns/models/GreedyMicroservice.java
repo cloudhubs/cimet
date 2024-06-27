@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 
 /**
@@ -24,14 +24,14 @@ public class GreedyMicroservice extends AntiPattern {
     /**
      * Set of microservices identified as greedy
      */
-    private Set<String> greedyMicroservices;
+    private List<String> greedyMicroservices;
 
     /**
      * Constructor to initialize with a set of greedy microservices.
      *
      * @param greedyMicroservices set of microservices identified as greedy
      */
-    public GreedyMicroservice(Set<String> greedyMicroservices) {
+    public GreedyMicroservice(List<String> greedyMicroservices) {
         this.greedyMicroservices = greedyMicroservices;
     }
 
@@ -63,5 +63,9 @@ public class GreedyMicroservice extends AntiPattern {
         jsonObject.add("Greedy Microservices Found", gson.toJsonTree(greedyMicroservices).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numGreedyMicro(){
+        return greedyMicroservices.size();
     }
 }

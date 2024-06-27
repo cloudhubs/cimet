@@ -55,4 +55,8 @@ public class WobblyServiceInteraction extends AntiPattern {
         jsonObject.add("Wobbly Service Interactions Found", gson.toJsonTree(wobblyServiceInteractions).getAsJsonArray());
         return jsonObject;
     }
+
+    public int numWobbblyService(){
+        return wobblyServiceInteractions.size();
+    }
 }

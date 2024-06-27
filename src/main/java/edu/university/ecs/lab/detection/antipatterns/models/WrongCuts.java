@@ -56,4 +56,8 @@ public class WrongCuts extends AntiPattern{
 
         return jsonObject;
     }
+
+    public int numWrongCuts(){
+        return wrongCuts.size();
+    }
 }

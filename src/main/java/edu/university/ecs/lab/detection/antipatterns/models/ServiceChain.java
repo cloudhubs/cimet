@@ -57,4 +57,8 @@ public class ServiceChain extends AntiPattern{
 
         return jsonObject;
     }
+
+    public int numServiceChains(){
+        return chain.size();
+    }
 }
