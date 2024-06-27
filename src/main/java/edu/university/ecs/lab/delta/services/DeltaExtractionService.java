@@ -143,6 +143,7 @@ public class DeltaExtractionService {
             // Get the class, if we are a delete the file for parsing no longer exists
             // If we are a pom.xml we cannot parse
             JClass jClass = null;
+            ChangeType changeType = ChangeType.fromDiffEntry(entry);
             if (!path.endsWith("pom.xml")) {
 
                 if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
@@ -150,20 +151,34 @@ public class DeltaExtractionService {
                     jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
 
                     // If we try to parse and it is still null, for ADD we will skip
-                    if (jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
-                        continue;
-                    }
+
 
                     // For MODIFY we will let pass since it might be modifying a previously accepted file
 
                 }
 
+                // WORKAROUND, RENAME MODIFY'S THAT WITH NULL CLASSCHANGE (UNPARSABLE) TO DELETE
+                if(entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
+                    if(jClass == null && oldSystem.findClass(oldPath) == null) {
+                        continue;
+                    } else if(jClass == null && oldSystem.findClass(oldPath) != null) {
+                        changeType = ChangeType.DELETE;
+                    } else if(jClass != null && oldSystem.findClass(oldPath) == null) {
+                        changeType = ChangeType.ADD;
+                    }
+                    // LIKEWISE IF WE "MODIFYING" A NON_PRESENT CLASS BECAUSE IT WAS INITIALLY UNPARSABLE
+                } else if(entry.getChangeType().equals(DiffEntry.ChangeType.ADD) && jClass == null) {
+                    continue;
+                } else if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && oldSystem.findClass(oldPath) == null) {
+                    continue;
+                }
+
             }
 
 
-            // If the class isn't ours and it isn't a folder or Docker or Pom
 
-            systemChange.getChanges().add(new Delta(oldPath, newPath, ChangeType.fromDiffEntry(entry), jClass));
+
+            systemChange.getChanges().add(new Delta(oldPath, newPath, changeType, jClass));
 
         }
 
