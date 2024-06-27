@@ -130,7 +130,7 @@ public class ExcelOutputRunner {
 
     //Need to implement NoAPI & Healthcheck -> need yaml in IR
     private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns){
-        MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
