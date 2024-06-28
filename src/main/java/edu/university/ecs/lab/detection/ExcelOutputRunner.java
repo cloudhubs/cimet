@@ -94,8 +94,8 @@ public class ExcelOutputRunner {
             mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
-            UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            allUseCases.add(ucDetectionService.scanDelta());
+            //UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+            //allUseCases.add(ucDetectionService.scanDelta());
 
             try {
                 Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
