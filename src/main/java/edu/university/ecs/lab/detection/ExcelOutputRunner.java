@@ -61,7 +61,9 @@ public class ExcelOutputRunner {
 
         XSSFSheet sheet = workbook.createSheet("Train-Ticket-Test");
         String[] columnLabels = {"Commit ID", "Greedy Micorservices", "Hub-like Microservices", "Service Chains", 
-                                    "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions"};
+                                    "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions", "maxAIS",
+        "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
+        "stdSC", "SCCmodularity"};
 
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < columnLabels.length; i++) {
@@ -87,7 +89,7 @@ public class ExcelOutputRunner {
                 e.printStackTrace();
             }
 
-            writeToExcel(workbook, sheet, commitIdOld, allAntiPatterns, i + 1);
+            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, i + 1);
 
             // Extract changes from one commit to the other
             deltaExtractionService = new DeltaExtractionService("./config.json", "./output/OldIR.json", commitIdOld, commitIdNew);
@@ -173,27 +175,29 @@ public class ExcelOutputRunner {
         if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
             allAntiPatterns.add(wobblyService);
         }
-        DegreeCoupling dc = new DegreeCoupling(sdg);
-        metrics.put("maxAIS", (double) dc.getMaxAIS());
-        metrics.put("avgAIS", dc.getAvgAIS());
-        metrics.put("stdAIS", dc.getStdAIS());
-        metrics.put("maxADS", (double) dc.getMaxADS());
-        metrics.put("ADCS", dc.getADCS());
-        metrics.put("stdADS", dc.getStdADS());
-        metrics.put("maxACS", (double) dc.getMaxACS());
-        metrics.put("avgACS", dc.getAvgACS());
-        metrics.put("stdACS", dc.getStdACS());
-        metrics.put("SCF", dc.getSCF());
-        metrics.put("SIY", (double) dc.getSIY());
-        StructuralCoupling sc = new StructuralCoupling(sdg);
-        metrics.put("maxSC", sc.getMaxSC());
-        metrics.put("avgSC", sc.getAvgSC());
-        metrics.put("stdSC", sc.getStdSC());
-        ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
-        metrics.put("SCCmodularity", mod.getModularity());
+        if (!sdg.vertexSet().isEmpty()) {
+            DegreeCoupling dc = new DegreeCoupling(sdg);
+            metrics.put("maxAIS", (double) dc.getMaxAIS());
+            metrics.put("avgAIS", dc.getAvgAIS());
+            metrics.put("stdAIS", dc.getStdAIS());
+            metrics.put("maxADS", (double) dc.getMaxADS());
+            metrics.put("ADCS", dc.getADCS());
+            metrics.put("stdADS", dc.getStdADS());
+            metrics.put("maxACS", (double) dc.getMaxACS());
+            metrics.put("avgACS", dc.getAvgACS());
+            metrics.put("stdACS", dc.getStdACS());
+            metrics.put("SCF", dc.getSCF());
+            metrics.put("SIY", (double) dc.getSIY());
+            StructuralCoupling sc = new StructuralCoupling(sdg);
+            metrics.put("maxSC", sc.getMaxSC());
+            metrics.put("avgSC", sc.getAvgSC());
+            metrics.put("stdSC", sc.getStdSC());
+            ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
+            metrics.put("SCCmodularity", mod.getModularity());
+        }
     }
 
-    private static void writeToExcel(XSSFWorkbook workbook, XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, int rowIndex) {
+    private static void writeToExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
         Cell commitIdCell = row.createCell(0);
         commitIdCell.setCellValue(commitID.substring(0, 7));
@@ -218,10 +222,30 @@ public class ExcelOutputRunner {
                 }
             }
         }
+        double[] metric_counts = new double[15];
+        metric_counts[0] = metrics.getOrDefault("maxAIS", 0.0);
+        metric_counts[1] = metrics.getOrDefault("avgAIS", 0.0);
+        metric_counts[2] = metrics.getOrDefault("stdAIS", 0.0);
+        metric_counts[3] = metrics.getOrDefault("maxADS", 0.0);
+        metric_counts[4] = metrics.getOrDefault("ADCS", 0.0);
+        metric_counts[5] = metrics.getOrDefault("stdADS", 0.0);
+        metric_counts[6] = metrics.getOrDefault("maxACS", 0.0);
+        metric_counts[7] = metrics.getOrDefault("avgACS", 0.0);
+        metric_counts[8] = metrics.getOrDefault("stdACS", 0.0);
+        metric_counts[9] = metrics.getOrDefault("SCF", 0.0);
+        metric_counts[10] = metrics.getOrDefault("SIY", 0.0);
+        metric_counts[11] = metrics.getOrDefault("maxSC", 0.0);
+        metric_counts[12] = metrics.getOrDefault("avgSC", 0.0);
+        metric_counts[13] = metrics.getOrDefault("stdSC", 0.0);
+        metric_counts[14] = metrics.getOrDefault("SCCmodularity", 0.0);
 
         for (int i = 0; i < counts.length; i++) {
             Cell cell = row.createCell(i + 1); // i + 1 because the first column is for commit ID
             cell.setCellValue(counts[i]);
+        }
+        for (int i = 0; i < metric_counts.length; i++) {
+            Cell cell = row.createCell(i + 1 + counts.length); // first column is for commit ID + rest for anti-patterns
+            cell.setCellValue(metric_counts[i]);
         }
     }
 
