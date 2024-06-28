@@ -5,8 +5,8 @@
 // import java.nio.file.Paths;
 // import java.util.stream.Stream;
 
-// import edu.university.ecs.lab.common.models.Microservice;
-// import edu.university.ecs.lab.common.models.MicroserviceSystem;
+// import edu.university.ecs.lab.common.models.ir.Microservice;
+// import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 // import edu.university.ecs.lab.metrics.models.metrics.TimeoutSettings;
 
 // import java.util.Set;

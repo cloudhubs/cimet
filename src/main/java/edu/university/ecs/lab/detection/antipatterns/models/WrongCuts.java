@@ -2,8 +2,7 @@ package edu.university.ecs.lab.detection.antipatterns.models;
 
 import lombok.Data;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -19,21 +18,21 @@ public class WrongCuts extends AntiPattern{
     private static final String NAME = "Wrong Cuts";
 
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
     private static final String DESCRIPTION = "Poorly defined boundaries or segmentation of microservices that lead to inefficiencies, increased coupling, or difficulty in scaling and maintaining the system.";
     
     /**
      * Set of service names forming a cluster of wrongly interconnected services.
      */
-    private Set<String> wrongCuts = new HashSet<>();
+    private List<String> wrongCuts;
 
     /**
      * Constructs a WrongCuts object initialized with the provided set of wrongly interconnected service names.
      *
      * @param wrongCuts Set of service names forming a cluster of wrongly interconnected services.
      */
-    public WrongCuts(Set<String> wrongCuts) {
+    public WrongCuts(List<String> wrongCuts) {
         this.wrongCuts = wrongCuts;
     }
 
@@ -53,8 +52,12 @@ public class WrongCuts extends AntiPattern{
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(wrongCuts).getAsJsonArray());
+        jsonObject.add("Wrong Cuts Found", gson.toJsonTree(wrongCuts).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numWrongCuts(){
+        return wrongCuts.size();
     }
 }

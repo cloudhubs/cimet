@@ -1,8 +1,8 @@
 package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.*;
-import edu.university.ecs.lab.common.models.MethodCall;
-import edu.university.ecs.lab.common.models.RestCall;
+import edu.university.ecs.lab.common.models.ir.MethodCall;
+import edu.university.ecs.lab.common.models.ir.RestCall;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
 
@@ -34,7 +34,7 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
 
     private RestCall jsonToRestCall(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         MethodCall methodCall = jsonToMethodCall(json, context);
-        String microserviceName = json.get("name").getAsString();
+        String microserviceName = json.get("microserviceName").getAsString();
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
 

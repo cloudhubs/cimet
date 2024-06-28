@@ -2,9 +2,9 @@ package edu.university.ecs.lab.intermediate.merge.services;
 
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
@@ -45,7 +45,7 @@ public class MergeService {
         // TODO optimize
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
-            JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
+            JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
             return;
         }
 
@@ -75,7 +75,7 @@ public class MergeService {
         }
 
         microserviceSystem.setCommitID(systemChange.getNewCommit());
-        JsonReadWriteUtils.writeToJSON("./output/IR.json", microserviceSystem);
+        JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
     }
 
 

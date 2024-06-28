@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.delta.models;
 
 import com.google.gson.JsonObject;
-import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.AllArgsConstructor;

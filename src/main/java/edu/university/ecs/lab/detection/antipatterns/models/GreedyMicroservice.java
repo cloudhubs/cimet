@@ -4,8 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 
 /**
@@ -19,35 +18,30 @@ public class GreedyMicroservice extends AntiPattern {
     private static final String NAME = "Greedy Microservice";
 
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
-    private static final String DSECRIPTION = "A microservice that overextends its responsibilities, violating the principle of single responsibility and potentially leading to increased complexity, dependencies, and maintenance challenges within the system.";
+    private static final String DESCRIPTION = "A microservice that overextends its responsibilities, violating the principle of single responsibility and potentially leading to increased complexity, dependencies, and maintenance challenges within the system.";
     /**
      * Set of microservices identified as greedy
      */
-    private Set<String> greedyMicroservices = new HashSet<>();
+    private List<String> greedyMicroservices;
 
     /**
      * Constructor to initialize with a set of greedy microservices.
      *
      * @param greedyMicroservices set of microservices identified as greedy
      */
-    public GreedyMicroservice(Set<String> greedyMicroservices) {
+    public GreedyMicroservice(List<String> greedyMicroservices) {
         this.greedyMicroservices = greedyMicroservices;
     }
 
     /**
      * Checks if the list of nodes considered greedy is empty.
      *
-     * @return true if the cycle list is empty, false otherwise
+     * @return true if the list of nodes is empty, false otherwise
      */
     public boolean isEmpty(){
-        if (this.greedyMicroservices.isEmpty()){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return this.greedyMicroservices.isEmpty();
     }
 
     @Override
@@ -57,7 +51,7 @@ public class GreedyMicroservice extends AntiPattern {
 
     @Override
     protected String getDescription() {
-        return DSECRIPTION;
+        return DESCRIPTION;
     }
 
     @Override
@@ -66,8 +60,12 @@ public class GreedyMicroservice extends AntiPattern {
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(greedyMicroservices).getAsJsonArray());
+        jsonObject.add("Greedy Microservices Found", gson.toJsonTree(greedyMicroservices).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numGreedyMicro(){
+        return greedyMicroservices.size();
     }
 }

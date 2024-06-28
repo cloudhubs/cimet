@@ -5,15 +5,13 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.Endpoint;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.Endpoint;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
-public class UseCase1 extends UseCase{
+public class UseCase1 extends AbstractUseCase {
     protected static final String NAME = "Floating call due to endpoint removal (internal)";
     protected static final Scope SCOPE = Scope.ENDPOINT;
     protected static final String DESC = "An endpoint was removed, inter service calls depending on this method are no longer called";
@@ -22,7 +20,7 @@ public class UseCase1 extends UseCase{
     private UseCase1() {}
 
     @Override
-    public List<? extends UseCase> checkUseCase() {
+    public List<? extends AbstractUseCase> checkUseCase() {
         ArrayList<UseCase3> useCases = new ArrayList<>();
 
         return new ArrayList<>();
@@ -52,15 +50,16 @@ public class UseCase1 extends UseCase{
     public JsonObject getMetaData() {
         return metaData;
     }
-    
+
+
     public static UseCase1 scan(Endpoint endpoint, MicroserviceSystem microserviceSystem){
-        //TODO add implementation 
+        //TODO add implementation
 
 
         UseCase1 useCase1 = new UseCase1();
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("Endpoint", endpoint.toJsonObject());
-        useCase1.setMetaData(jsonObject);    
+        useCase1.setMetaData(jsonObject);
         return useCase1;
     }
 }

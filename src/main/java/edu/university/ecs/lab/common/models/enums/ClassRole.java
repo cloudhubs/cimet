@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.common.models.enums;
 
-import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.ir.JClass;
 import lombok.Getter;
 
 /**

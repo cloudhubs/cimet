@@ -56,7 +56,7 @@ public class NoHealthcheck extends AntiPattern{
     protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty(NAME, noHealthcheck);
+        jsonObject.addProperty("Healthchecks Found", noHealthcheck);
 
         return jsonObject;
     }

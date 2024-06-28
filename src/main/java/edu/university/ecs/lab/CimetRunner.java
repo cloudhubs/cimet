@@ -1,9 +1,7 @@
 package edu.university.ecs.lab;
 
 
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.common.utils.FlowUtils;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 
 import java.util.Objects;
@@ -48,7 +46,7 @@ public class CimetRunner {
 //    };
 //    IRMergeRunner.main(IRMergeArgs);
 
-        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
+        MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
 
         System.out.println(Objects.equals(microserviceSystem1, microserviceSystem2));
