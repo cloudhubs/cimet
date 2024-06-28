@@ -7,6 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
+import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
+import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.Gson;
@@ -71,13 +74,14 @@ public class ExcelOutputRunner {
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
             List<AntiPattern> allAntiPatterns = new ArrayList<>();
+            HashMap<String, Double> metrics = new HashMap<>();
 
             try {
                 Gson gson = new Gson();
                 MicroserviceSystem microserviceSystem = gson.fromJson(new FileReader("./output/OldIR.json"), MicroserviceSystem.class);
                 
                 if (!microserviceSystem.getMicroservices().isEmpty()) {
-                    detectAntipatterns("./output/OldIR.json", allAntiPatterns);
+                    detectAntipatterns("./output/OldIR.json", allAntiPatterns, metrics);
                 }
             } catch (IOException e){
                 e.printStackTrace();
@@ -129,7 +133,7 @@ public class ExcelOutputRunner {
     }
 
     //Need to implement NoAPI & Healthcheck -> need yaml in IR
-    private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns){
+    private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics){
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
@@ -169,6 +173,24 @@ public class ExcelOutputRunner {
         if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
             allAntiPatterns.add(wobblyService);
         }
+        DegreeCoupling dc = new DegreeCoupling(sdg);
+        metrics.put("maxAIS", (double) dc.getMaxAIS());
+        metrics.put("avgAIS", dc.getAvgAIS());
+        metrics.put("stdAIS", dc.getStdAIS());
+        metrics.put("maxADS", (double) dc.getMaxADS());
+        metrics.put("ADCS", dc.getADCS());
+        metrics.put("stdADS", dc.getStdADS());
+        metrics.put("maxACS", (double) dc.getMaxACS());
+        metrics.put("avgACS", dc.getAvgACS());
+        metrics.put("stdACS", dc.getStdACS());
+        metrics.put("SCF", dc.getSCF());
+        metrics.put("SIY", (double) dc.getSIY());
+        StructuralCoupling sc = new StructuralCoupling(sdg);
+        metrics.put("maxSC", sc.getMaxSC());
+        metrics.put("avgSC", sc.getAvgSC());
+        metrics.put("stdSC", sc.getStdSC());
+        ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
+        metrics.put("SCCmodularity", mod.getModularity());
     }
 
     private static void writeToExcel(XSSFWorkbook workbook, XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, int rowIndex) {
