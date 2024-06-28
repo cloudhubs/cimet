@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.detection.metrics.model;
+package edu.university.ecs.lab.detection.metrics.models;
 
 import java.util.List;
 import java.util.stream.Collectors;

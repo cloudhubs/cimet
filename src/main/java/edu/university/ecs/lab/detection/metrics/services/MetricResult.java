@@ -1,4 +1,4 @@
-package edu.university.ecs.lab.detection.metrics.service;
+package edu.university.ecs.lab.detection.metrics.services;
 
 import org.json.JSONObject;
 

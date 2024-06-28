@@ -1,8 +1,11 @@
 package edu.university.ecs.lab.detection.metrics;
 
-import edu.university.ecs.lab.detection.metrics.model.*;
-import edu.university.ecs.lab.detection.metrics.service.MetricCalculator;
-import edu.university.ecs.lab.detection.metrics.service.MetricResult;
+import edu.university.ecs.lab.detection.metrics.models.IServiceDescriptor;
+import edu.university.ecs.lab.detection.metrics.models.Operation;
+import edu.university.ecs.lab.detection.metrics.models.Parameter;
+import edu.university.ecs.lab.detection.metrics.models.ServiceDescriptor;
+import edu.university.ecs.lab.detection.metrics.services.MetricCalculator;
+import edu.university.ecs.lab.detection.metrics.services.MetricResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;

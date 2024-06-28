@@ -1,9 +1,9 @@
 /**
  * 
  */
-package edu.university.ecs.lab.detection.metrics.service;
+package edu.university.ecs.lab.detection.metrics.services;
 
-import edu.university.ecs.lab.detection.metrics.model.IServiceDescriptor;
+import edu.university.ecs.lab.detection.metrics.models.IServiceDescriptor;
 
 /**
  * @author Mateus Gabi Moreira

@@ -1,8 +1,8 @@
-package edu.university.ecs.lab.detection.metrics.service;
+package edu.university.ecs.lab.detection.metrics.services;
 
-import edu.university.ecs.lab.detection.metrics.model.IServiceDescriptor;
-import edu.university.ecs.lab.detection.metrics.model.Operation;
-import edu.university.ecs.lab.detection.metrics.model.Parameter;
+import edu.university.ecs.lab.detection.metrics.models.IServiceDescriptor;
+import edu.university.ecs.lab.detection.metrics.models.Operation;
+import edu.university.ecs.lab.detection.metrics.models.Parameter;
 import edu.university.ecs.lab.detection.metrics.utils.Utils;
 
 import java.util.ArrayList;
