@@ -7,9 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
 import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
 import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
 import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
+import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.Gson;
@@ -31,6 +33,7 @@ import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 
 import java.util.*;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -43,6 +46,7 @@ public class ExcelOutputRunner {
         GitService gitService = new GitService(config);
 
         Iterable<RevCommit> commits = gitService.getLog();
+
 
         Iterator<RevCommit> iterator = commits.iterator();
         List<RevCommit> list = new LinkedList<>();
@@ -60,10 +64,11 @@ public class ExcelOutputRunner {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         XSSFSheet sheet = workbook.createSheet("Train-Ticket-Test");
-        String[] columnLabels = {"Commit ID", "Greedy Micorservices", "Hub-like Microservices", "Service Chains", 
-                                    "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions", "maxAIS",
-        "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
-        "stdSC", "SCCmodularity"};
+        String[] columnLabels = {"Commit ID", "Greedy Micorservices", "Hub-like Microservices", "Service Chains",
+                "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions", "maxAIS",
+                "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
+                "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
+                "maxLOMLC", "avgLOMLC", "stdLOMLC"};
 
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < columnLabels.length; i++) {
@@ -81,11 +86,11 @@ public class ExcelOutputRunner {
             try {
                 Gson gson = new Gson();
                 MicroserviceSystem microserviceSystem = gson.fromJson(new FileReader("./output/OldIR.json"), MicroserviceSystem.class);
-                
+
                 if (!microserviceSystem.getMicroservices().isEmpty()) {
                     detectAntipatterns("./output/OldIR.json", allAntiPatterns, metrics);
                 }
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
@@ -99,7 +104,7 @@ public class ExcelOutputRunner {
             MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", "./config.json");
             mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
-        
+
             //UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
             //allUseCases.add(ucDetectionService.scanDelta());
 
@@ -120,7 +125,7 @@ public class ExcelOutputRunner {
         }
 
         JsonArray jsonArray = toJsonArray(allUseCases);
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);        
+        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
     }
 
     private static void createIRSystem(Config config, String fileName) {
@@ -135,46 +140,47 @@ public class ExcelOutputRunner {
     }
 
     //Need to implement NoAPI & Healthcheck -> need yaml in IR
-    private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics){
+    private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics) {
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
+        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()) {
             allAntiPatterns.add(greedyMicroservices);
         }
 
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
+        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()) {
             allAntiPatterns.add(hublikeMicroservices);
         }
 
         ServiceChainService chainService = new ServiceChainService();
         ServiceChain allChains = chainService.getServiceChains(sdg);
-        if (!allChains.getChain().isEmpty()){
+        if (!allChains.getChain().isEmpty()) {
             allAntiPatterns.add(allChains);
         }
 
         WrongCutsService wrongCutsService = new WrongCutsService();
         WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(currentSystem);
-        if (!wrongCuts.getWrongCuts().isEmpty()){
+        if (!wrongCuts.getWrongCuts().isEmpty()) {
             allAntiPatterns.add(wrongCuts);
         }
 
         CyclicDependencyService cycles = new CyclicDependencyService();
         CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
-        if (!cycleDependencies.getCycles().isEmpty()){
+        if (!cycleDependencies.getCycles().isEmpty()) {
             allAntiPatterns.add(cycleDependencies);
         }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
         WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
-        if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
+        if (!wobblyService.getWobblyServiceInteractions().isEmpty()) {
             allAntiPatterns.add(wobblyService);
         }
+
         if (!sdg.vertexSet().isEmpty()) {
             DegreeCoupling dc = new DegreeCoupling(sdg);
             metrics.put("maxAIS", (double) dc.getMaxAIS());
@@ -195,6 +201,18 @@ public class ExcelOutputRunner {
             ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
             metrics.put("SCCmodularity", mod.getModularity());
         }
+
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(IRPath);
+        metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
+        metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
+        metrics.put("stdSIDC", cohesionMetrics.getStdDev("ServiceInterfaceDataCohesion"));
+        metrics.put("maxSSIC", cohesionMetrics.getMax("StrictServiceImplementationCohesion"));
+        metrics.put("avgSSIC", cohesionMetrics.getAverage("StrictServiceImplementationCohesion"));
+        metrics.put("stdSSIC", cohesionMetrics.getStdDev("StrictServiceImplementationCohesion"));
+        metrics.put("maxLOMLC", cohesionMetrics.getMax("LackOfMessageLevelCohesion"));
+        metrics.put("avgLOMLC", cohesionMetrics.getAverage("LackOfMessageLevelCohesion"));
+        metrics.put("stdLOMLC", cohesionMetrics.getStdDev("LackOfMessageLevelCohesion"));
+
     }
 
     private static void writeToExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, int rowIndex) {
@@ -222,7 +240,7 @@ public class ExcelOutputRunner {
                 }
             }
         }
-        double[] metric_counts = new double[15];
+        double[] metric_counts = new double[30];
         metric_counts[0] = metrics.getOrDefault("maxAIS", 0.0);
         metric_counts[1] = metrics.getOrDefault("avgAIS", 0.0);
         metric_counts[2] = metrics.getOrDefault("stdAIS", 0.0);
@@ -238,6 +256,16 @@ public class ExcelOutputRunner {
         metric_counts[12] = metrics.getOrDefault("avgSC", 0.0);
         metric_counts[13] = metrics.getOrDefault("stdSC", 0.0);
         metric_counts[14] = metrics.getOrDefault("SCCmodularity", 0.0);
+        metric_counts[15] = metrics.getOrDefault("maxSIDC", 0.0);
+        metric_counts[16] = metrics.getOrDefault("avgSIDC", 0.0);
+        metric_counts[17] = metrics.getOrDefault("stdSIDC", 0.0);
+        metric_counts[18] = metrics.getOrDefault("maxSSIC", 0.0);
+        metric_counts[19] = metrics.getOrDefault("avgSSIC", 0.0);
+        metric_counts[20] = metrics.getOrDefault("stdSSIC", 0.0);
+        metric_counts[21] = metrics.getOrDefault("maxLOMLC", 0.0);
+        metric_counts[22] = metrics.getOrDefault("avgLOMLC", 0.0);
+        metric_counts[23] = metrics.getOrDefault("stdLOMLC", 0.0);
+
 
         for (int i = 0; i < counts.length; i++) {
             Cell cell = row.createCell(i + 1); // i + 1 because the first column is for commit ID
@@ -251,7 +279,7 @@ public class ExcelOutputRunner {
 
     private static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
         JsonArray outerArray = new JsonArray();
-        
+
         for (List<AbstractUseCase> useCaseList : useCaseLists) {
             JsonArray innerArray = new JsonArray();
             for (AbstractUseCase useCase : useCaseList) {
@@ -259,8 +287,8 @@ public class ExcelOutputRunner {
             }
             outerArray.add(innerArray);
         }
-        
+
         return outerArray;
     }
-    
+
 }

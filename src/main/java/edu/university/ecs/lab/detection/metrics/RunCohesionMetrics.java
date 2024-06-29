@@ -6,6 +6,7 @@ import edu.university.ecs.lab.detection.metrics.models.Parameter;
 import edu.university.ecs.lab.detection.metrics.models.ServiceDescriptor;
 import edu.university.ecs.lab.detection.metrics.services.MetricCalculator;
 import edu.university.ecs.lab.detection.metrics.services.MetricResult;
+import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -15,19 +16,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunMetrics {
+public class RunCohesionMetrics {
 
     public static void main(String[] args) {
-        String filePath = "./output/IR.json";
+        calculateCohesionMetrics("./output/OldIR.json");
+    }
 
-        try (FileInputStream inputStream = new FileInputStream(filePath)) {
+    public static MetricResultCalculation calculateCohesionMetrics(String IRPath) {
+        try (FileInputStream inputStream = new FileInputStream(IRPath)) {
 
-            JSONTokener tokener = new JSONTokener(inputStream);
-            JSONObject root = new JSONObject(tokener);
+            JSONTokener tokenizer = new JSONTokener(inputStream);
+            JSONObject root = new JSONObject(tokenizer);
 
             System.out.println(root.getString("name"));
 
             JSONArray microservices = root.getJSONArray("microservices");
+
+            MetricResultCalculation metricResultCalculation = new MetricResultCalculation();
 
 
             for (int i = 0; i < microservices.length(); i++) {
@@ -79,13 +84,22 @@ public class RunMetrics {
                 }
 
                 List<MetricResult> metricResults = new MetricCalculator().assess(serviceDescriptor);
-                System.out.println(metricResults);
+
+                for (MetricResult metricResult : metricResults) {
+                    metricResultCalculation.addMetric(metricResult.getMetricName(), metricResult.getMetricValue());
+                }
 
             }
 
+            System.out.println(metricResultCalculation);
+
+            return metricResultCalculation;
+
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-
     }
+
 }
+
