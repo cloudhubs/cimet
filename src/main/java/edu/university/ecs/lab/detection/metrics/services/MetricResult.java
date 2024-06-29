@@ -36,6 +36,10 @@ public class MetricResult {
     }
 
     public Double getMetricValue() {
+        if (metricValue == null || metricValue.isNaN() || metricValue.isInfinite()) {
+            return 0.0;
+        }
+
         return metricValue;
     }
 
@@ -44,18 +48,18 @@ public class MetricResult {
     }
 
     public String toString() {
-//        return "{" +
-//                "serviceName:'" + serviceName + '\'' +
-//                ", version='" + version + '\'' +
-//                ", metricName='" + metricName + '\'' +
-//                ", metricValue=" + metricValue +
-//                '}';
+        return "{" +
+                "serviceName:'" + serviceName + '\'' +
+                ", version='" + version + '\'' +
+                ", metricName='" + metricName + '\'' +
+                ", metricValue=" + metricValue +
+                '}';
 
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("serviceName", serviceName);
-        jsonObject.put("version", version);
-        jsonObject.put("metricName", metricName);
-        jsonObject.put("metricValue", metricValue);
-        return jsonObject.toString();
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("serviceName", serviceName);
+//        jsonObject.put("version", version);
+//        jsonObject.put("metricName", metricName);
+//        jsonObject.put("metricValue", metricValue);
+//        return jsonObject.toString();
     }
 }
