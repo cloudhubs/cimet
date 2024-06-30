@@ -240,7 +240,7 @@ public class ExcelOutputRunner {
                 }
             }
         }
-        double[] metric_counts = new double[30];
+        double[] metric_counts = new double[24];
         metric_counts[0] = metrics.getOrDefault("maxAIS", 0.0);
         metric_counts[1] = metrics.getOrDefault("avgAIS", 0.0);
         metric_counts[2] = metrics.getOrDefault("stdAIS", 0.0);
