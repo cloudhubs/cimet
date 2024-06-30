@@ -40,7 +40,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelOutputRunner {
     public static void main(String[] args) {
-        Config config = ConfigUtil.readConfig("./config.json");
+        String config_path = "./config_microservice.json";
+        Config config = ConfigUtil.readConfig(config_path);
         DeltaExtractionService deltaExtractionService;
         FileUtils.createPaths();
         GitService gitService = new GitService(config);
@@ -97,11 +98,11 @@ public class ExcelOutputRunner {
             writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, i + 1);
 
             // Extract changes from one commit to the other
-            deltaExtractionService = new DeltaExtractionService("./config.json", "./output/OldIR.json", commitIdOld, commitIdNew);
+            deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
             deltaExtractionService.generateDelta();
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
-            MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", "./config.json");
+            MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", config_path);
             mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
 
