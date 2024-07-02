@@ -64,7 +64,7 @@ public class ExcelOutputRunner {
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
 
-        XSSFSheet sheet = workbook.createSheet("Train-Ticket-Test");
+        XSSFSheet sheet = workbook.createSheet(config.getSystemName());
         String[] columnLabels = {"Commit ID", "Greedy Micorservices", "Hub-like Microservices", "Service Chains",
                 "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions", "maxAIS",
                 "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
@@ -117,10 +117,10 @@ public class ExcelOutputRunner {
 
         }
 
-        try (FileOutputStream fileOut = new FileOutputStream("./output/AntiPatterns.xlsx")) {
+        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
             workbook.write(fileOut);
             workbook.close();
-            System.out.println("Excel file created: AntiPatterns.xlsx");
+            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
         } catch (IOException e) {
             e.printStackTrace();
         }
