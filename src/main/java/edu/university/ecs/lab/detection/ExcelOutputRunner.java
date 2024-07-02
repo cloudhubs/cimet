@@ -65,8 +65,8 @@ public class ExcelOutputRunner {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         XSSFSheet sheet = workbook.createSheet(config.getSystemName());
-        String[] columnLabels = {"Commit ID", "Greedy Micorservices", "Hub-like Microservices", "Service Chains",
-                "Wrong Cuts", "Cylic Dependencies", "Wobbly Service Interactions", "maxAIS",
+        String[] columnLabels = {"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
+                "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions", "maxAIS",
                 "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
                 "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
                 "maxLOMLC", "avgLOMLC", "stdLOMLC"};
