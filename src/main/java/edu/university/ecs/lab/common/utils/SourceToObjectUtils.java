@@ -40,7 +40,7 @@ public class SourceToObjectUtils {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
         microserviceName = getMicroserviceName(sourceFile);
-        if(!cu.findAll(PackageDeclaration.class).isEmpty()) {
+        if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
             packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
         }
@@ -77,15 +77,15 @@ public class SourceToObjectUtils {
 
         // Build the JClass
         return new JClass(
-            sourceFile.getName().replace(".java", ""),
-            FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
-            packageName,
-            classRole,
-            parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
-            parseFields(cu.findAll(FieldDeclaration.class)),
-            classAnnotations,
-            parseMethodCalls(cu.findAll(MethodDeclaration.class)),
-            cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+                sourceFile.getName().replace(".java", ""),
+                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                packageName,
+                classRole,
+                parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
+                parseFields(cu.findAll(FieldDeclaration.class)),
+                classAnnotations,
+                parseMethodCalls(cu.findAll(MethodDeclaration.class)),
+                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
 
     }
 
@@ -93,7 +93,7 @@ public class SourceToObjectUtils {
     /**
      * This method parses methodDeclarations list and returns a Set of Method models
      *
-     * @param preURL the preURL
+     * @param preURL             the preURL
      * @param methodDeclarations the list of methodDeclarations to be parsed
      * @return a set of Method models representing the MethodDeclarations
      */
@@ -127,9 +127,9 @@ public class SourceToObjectUtils {
     /**
      * This method converts a valid Method to an Endpoint
      *
-     * @param preURL the preURL
+     * @param preURL            the preURL
      * @param methodDeclaration the MethodDeclaration associated with Method
-     * @param method the Method to be converted
+     * @param method            the Method to be converted
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
     public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
@@ -153,6 +153,27 @@ public class SourceToObjectUtils {
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
                     break;
+            }
+
+            try {
+                if (ae.getNameAsString().equals("RequestMapping") && httpMethod.equals(HttpMethod.NONE)) {
+                    switch (ae.asAnnotationExpr().getChildNodes().get(2).getChildNodes().get(1).toString()) {
+                        case "RequestMethod.GET":
+                            httpMethod = HttpMethod.GET;
+                            break;
+                        case "RequestMethod.POST":
+                            httpMethod = HttpMethod.POST;
+                            break;
+                        case "RequestMethod.DELETE":
+                            httpMethod = HttpMethod.DELETE;
+                            break;
+                        case "RequestMethod.PUT":
+                            httpMethod = HttpMethod.PUT;
+                            break;
+                    }
+                }
+            } catch (Exception e) {
+//                System.out.println("No request method found");
             }
         }
 
@@ -193,7 +214,7 @@ public class SourceToObjectUtils {
      * This method converts a valid MethodCall to an RestCall
      *
      * @param methodCallExpr the MethodDeclaration associated with Method
-     * @param methodCall the MethodCall to be converted
+     * @param methodCall     the MethodCall to be converted
      * @return returns methodCall if it is invalid, otherwise a new RestCall
      */
     public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
