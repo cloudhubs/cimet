@@ -40,7 +40,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelOutputRunner {
     public static void main(String[] args) {
-        String config_path = "./config_microservice.json";
+        String config_path = args[0];
         Config config = ConfigUtil.readConfig(config_path);
         DeltaExtractionService deltaExtractionService;
         FileUtils.createPaths();
