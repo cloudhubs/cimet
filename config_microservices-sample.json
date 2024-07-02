@@ -1,0 +1,6 @@
+{
+  "systemName": "microservices-sample",
+  "repositoryURL": "https://github.com/mudigal-technologies/microservices-sample.git",
+  "baseCommit": "1e9ec03e01b7f63ac376fa38a6a54f2c072c0814",
+  "baseBranch": "master"
+}
