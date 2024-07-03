@@ -136,9 +136,7 @@ public class SourceToObjectUtils {
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
     public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
-        if (method.getAnnotations().isEmpty()) {
-            return method;
-        }
+        boolean isEndpoint = false;
         String url = "";
         HttpMethod httpMethod = HttpMethod.NONE;
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
@@ -146,20 +144,25 @@ public class SourceToObjectUtils {
                 case "GetMapping":
                     httpMethod = HttpMethod.GET;
                     url = getPathFromAnnotation(ae, preURL);
+                    isEndpoint = true;
                     break;
                 case "PostMapping":
                     httpMethod = HttpMethod.POST;
                     url = getPathFromAnnotation(ae, preURL);
+                    isEndpoint = true;
                     break;
                 case "DeleteMapping":
                     httpMethod = HttpMethod.DELETE;
                     url = getPathFromAnnotation(ae, preURL);
+                    isEndpoint = true;
                     break;
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
                     url = getPathFromAnnotation(ae, preURL);
+                    isEndpoint = true;
                     break;
                 case "RequestMapping":
+                    isEndpoint = true;
                     url = getPathFromAnnotation(ae, preURL);
                     if (ae instanceof NormalAnnotationExpr) {
                         NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
@@ -192,11 +195,11 @@ public class SourceToObjectUtils {
             }
 
         }
-        if (url.isEmpty()) {
+        if (isEndpoint) {
+            return new Endpoint(method, url, httpMethod, microserviceName);
+        } else {
             return method;
         }
-
-        return new Endpoint(method, url, httpMethod, microserviceName);
     }
 
     private static String getPathFromAnnotation(AnnotationExpr ae, String preURL) {
