@@ -460,6 +460,7 @@ public class SourceToObjectUtils {
         for (AnnotationExpr annotation : annotations) {
             switch (annotation.getNameAsString()) {
                 case "RestController":
+                case "Controller":
                     return ClassRole.CONTROLLER;
                 case "Service":
                     return ClassRole.SERVICE;
