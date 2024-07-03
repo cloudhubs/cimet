@@ -133,51 +133,90 @@ public class SourceToObjectUtils {
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
     public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
-        String url = preURL + getPathFromAnnotations(methodDeclaration.getAnnotations());
-        if (method.getAnnotations().isEmpty() || url.isEmpty()) {
+        if (method.getAnnotations().isEmpty()) {
             return method;
         }
+        String url = "";
         HttpMethod httpMethod = HttpMethod.NONE;
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
-
             switch (ae.getNameAsString()) {
                 case "GetMapping":
                     httpMethod = HttpMethod.GET;
+                    url = getPathFromAnnotation(ae, preURL);
                     break;
                 case "PostMapping":
                     httpMethod = HttpMethod.POST;
+                    url = getPathFromAnnotation(ae, preURL);
                     break;
                 case "DeleteMapping":
                     httpMethod = HttpMethod.DELETE;
+                    url = getPathFromAnnotation(ae, preURL);
                     break;
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
+                    url = getPathFromAnnotation(ae, preURL);
+                    break;
+                case "RequestMapping":
+                    url = getPathFromAnnotation(ae, preURL);
+                    if (ae instanceof NormalAnnotationExpr) {
+                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
+                        if (nae.getPairs().isEmpty()) {
+                            // This is a RequestMapping without parameters
+                            httpMethod = HttpMethod.NONE; // or set a default method, if you prefer
+                        } else {
+                            for (MemberValuePair pair : nae.getPairs()) {
+                                if (pair.getNameAsString().equals("method")) {
+                                    String methodValue = pair.getValue().toString();
+                                    switch (methodValue) {
+                                        case "RequestMethod.GET":
+                                            httpMethod = HttpMethod.GET;
+                                            break;
+                                        case "RequestMethod.POST":
+                                            httpMethod = HttpMethod.POST;
+                                            break;
+                                        case "RequestMethod.DELETE":
+                                            httpMethod = HttpMethod.DELETE;
+                                            break;
+                                        case "RequestMethod.PUT":
+                                            httpMethod = HttpMethod.PUT;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
             }
 
-            try {
-                if (ae.getNameAsString().equals("RequestMapping") && httpMethod.equals(HttpMethod.NONE)) {
-                    switch (ae.asAnnotationExpr().getChildNodes().get(2).getChildNodes().get(1).toString()) {
-                        case "RequestMethod.GET":
-                            httpMethod = HttpMethod.GET;
-                            break;
-                        case "RequestMethod.POST":
-                            httpMethod = HttpMethod.POST;
-                            break;
-                        case "RequestMethod.DELETE":
-                            httpMethod = HttpMethod.DELETE;
-                            break;
-                        case "RequestMethod.PUT":
-                            httpMethod = HttpMethod.PUT;
-                            break;
-                    }
-                }
-            } catch (Exception e) {
-//                System.out.println("No request method found");
-            }
+        }
+        if (url.isEmpty()) {
+            return method;
         }
 
         return new Endpoint(method, url, httpMethod, microserviceName);
+    }
+
+    private static String getPathFromAnnotation(AnnotationExpr ae, String preURL) {
+        // Getting the URL
+        String url = "";
+
+        // Annotations of type @Mapping("/endpoint")
+        if (ae.isSingleMemberAnnotationExpr()) {
+            url = preURL + StringParserUtils.simplifyEndpointURL(
+                    StringParserUtils.removeOuterQuotations(
+                            ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
+        }
+
+        // Annotations of tupe @Mapping(path="/endpoint")
+        else if (ae.isNormalAnnotationExpr() && !ae.asNormalAnnotationExpr().getPairs().isEmpty()) {
+            for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
+                if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
+                    url = preURL + StringParserUtils.simplifyEndpointURL(
+                            StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
+                }
+            }
+        }
+        return url;
     }
 
     /**
@@ -258,52 +297,6 @@ public class SourceToObjectUtils {
         }
 
         return javaFields;
-    }
-
-    /**
-     * This method gets url path from a list of annotation expressions
-     *
-     * @param annotationExprs the annotation expressions to parse
-     * @return the string url
-     */
-    private static String getPathFromAnnotations(List<AnnotationExpr> annotationExprs) {
-        for (AnnotationExpr ae : annotationExprs) {
-            HttpMethod httpMethod = HttpMethod.NONE;
-            switch (ae.getNameAsString()) {
-                case "GetMapping":
-                    httpMethod = HttpMethod.GET;
-                    break;
-                case "PostMapping":
-                    httpMethod = HttpMethod.POST;
-                    break;
-                case "DeleteMapping":
-                    httpMethod = HttpMethod.DELETE;
-                    break;
-                case "PutMapping":
-                    httpMethod = HttpMethod.PUT;
-                    break;
-            }
-
-
-            if (ae.isSingleMemberAnnotationExpr() && httpMethod != HttpMethod.NONE) {
-                return StringParserUtils.simplifyEndpointURL(
-                        StringParserUtils.removeOuterQuotations(
-                                ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
-            }
-
-            if (ae.isNormalAnnotationExpr() && ae.asNormalAnnotationExpr().getPairs().size() > 0 && httpMethod != HttpMethod.NONE) {
-                for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
-                    if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
-                        return StringParserUtils.simplifyEndpointURL(
-                                StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
-                    }
-                }
-            }
-
-        }
-
-
-        return "";
     }
 
     /**
