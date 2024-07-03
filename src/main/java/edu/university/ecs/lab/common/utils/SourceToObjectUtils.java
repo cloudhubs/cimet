@@ -57,6 +57,7 @@ public class SourceToObjectUtils {
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
         String preURL = "";
+        HttpMethod preMethod = HttpMethod.NONE;
         List<AnnotationExpr> classAnnotations = new ArrayList<>();
         for (var ae: cu.findAll(AnnotationExpr.class)){
             if (ae.getParentNode().isPresent()) {
@@ -64,8 +65,13 @@ public class SourceToObjectUtils {
                 if (n instanceof ClassOrInterfaceDeclaration)
                 {
                     classAnnotations.add(ae);
-                    if (preURL.isEmpty() && call_annotations.contains(ae.getNameAsString())) {
-                        preURL = getPathFromAnnotation(ae, "");
+                    if (call_annotations.contains(ae.getNameAsString())) {
+                        if (preURL.isEmpty()) {
+                            preURL = getPathFromAnnotation(ae, "");
+                        }
+                        if (preMethod.equals(HttpMethod.NONE)) {
+                            preMethod = getHttpMethodFromAnnotation(ae, preMethod);
+                        }
 
                     }
                 }
@@ -86,7 +92,7 @@ public class SourceToObjectUtils {
                 FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                 packageName,
                 classRole,
-                parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
+                parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod),
                 parseFields(cu.findAll(FieldDeclaration.class)),
                 parsedClassAnnotations,
                 parseMethodCalls(cu.findAll(MethodDeclaration.class)),
@@ -98,11 +104,12 @@ public class SourceToObjectUtils {
     /**
      * This method parses methodDeclarations list and returns a Set of Method models
      *
-     * @param preURL             the preURL
      * @param methodDeclarations the list of methodDeclarations to be parsed
+     * @param preURL            initial part of the URL in case of recursion
+     * @param preMethod         pre-defined HTTP method in case of recursion
      * @return a set of Method models representing the MethodDeclarations
      */
-    public static Set<Method> parseMethods(String preURL, List<MethodDeclaration> methodDeclarations) {
+    public static Set<Method> parseMethods(List<MethodDeclaration> methodDeclarations, String preURL, HttpMethod preMethod) {
         // Get params and returnType
         Set<Method> methods = new HashSet<>();
 
@@ -120,7 +127,7 @@ public class SourceToObjectUtils {
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()));
 
-            method = convertValidEndpoints(preURL, methodDeclaration, method);
+            method = convertValidEndpoints(methodDeclaration, method, preURL, preMethod);
 
 
             methods.add(method);
@@ -132,18 +139,21 @@ public class SourceToObjectUtils {
     /**
      * This method converts a valid Method to an Endpoint
      *
-     * @param preURL            the preURL
      * @param methodDeclaration the MethodDeclaration associated with Method
      * @param method            the Method to be converted
+     * @param preURL            initial part of the URL in case of recursion
+     * @param preMethod         pre-defined HTTP method in case of recursion
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
-    public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
+    public static Method convertValidEndpoints(MethodDeclaration methodDeclaration, Method method, String preURL, HttpMethod preMethod) {
         HttpMethod httpMethod = HttpMethod.NONE;
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
             String ae_name = ae.getNameAsString();
             if (call_annotations.contains(ae_name)) {
                 String url = getPathFromAnnotation(ae, preURL);
-                httpMethod = getHttpMethodFromAnnotation(ae, httpMethod);
+                if (preMethod.equals(HttpMethod.NONE)) {
+                    httpMethod = getHttpMethodFromAnnotation(ae, httpMethod);
+                }
                 // By Spring documentation, only the first valid @Mapping annotation is considered;
                 // And getAnnotations() return them in order, so we can return immediately
                 return new Endpoint(method, url, httpMethod, microserviceName);
