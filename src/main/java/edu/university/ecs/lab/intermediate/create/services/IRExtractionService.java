@@ -192,19 +192,10 @@ public class IRExtractionService {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        Set<JClass> controllers = new HashSet<>();
-        Set<JClass> services = new HashSet<>();
-        Set<JClass> repositories = new HashSet<>();
-        Set<JClass> entities = new HashSet<>();
-        Set<JClass> embeddables = new HashSet<>();
 
-
-        String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
-        scanDirectory(localDir, controllers, services, repositories, entities, embeddables, id);
-
-
-        Microservice model =
-                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities, embeddables);
+        Microservice model = new Microservice(FileUtils.getMicroserviceNameFromPath(rootMicroservicePath),
+                FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()));
+        scanDirectory(localDir, model);
 
         System.out.println("Done!");
         return model;
@@ -217,65 +208,21 @@ public class IRExtractionService {
      */
     public void scanDirectory(
             File directory,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities,
-            Set<JClass> embeddables,
-            String microserviceName) {
+            Microservice microservice) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories, entities, embeddables, microserviceName);
+                    scanDirectory(file, microservice);
                 } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, repositories, entities, embeddables, microserviceName);
+                    JClass jClass = SourceToObjectUtils.parseClass(file, config, microservice.getName());
+                    if (jClass != null) {
+                        microservice.addJClass(jClass);
+                    }
                 }
             }
         }
     }
 
-    /**
-     * Scan the given file for endpoints and calls to other services.
-     *
-     * @param file the file to scan
-     */
-    public void scanFile(
-            File file,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities,
-            Set<JClass> embeddables,
-            String microserviceName) {
-        JClass jClass = SourceToObjectUtils.parseClass(file, config, microserviceName);
-
-        if (jClass == null) {
-            return;
-        }
-
-        //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
-        // Switch through class roles and handle additional logic if needed
-        switch (jClass.getClassRole()) {
-            case CONTROLLER:
-                controllers.add(jClass);
-                break;
-            case SERVICE:
-                services.add(jClass);
-                break;
-            case REPOSITORY:
-                repositories.add(jClass);
-                break;
-            case ENTITY:
-                entities.add(jClass);
-                break;
-            case EMBEDDABLE:
-                embeddables.add(jClass);
-                break;
-            default:
-                break;
-        }
-
-    }
 }
