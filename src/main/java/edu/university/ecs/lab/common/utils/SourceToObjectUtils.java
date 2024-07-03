@@ -79,8 +79,7 @@ public class SourceToObjectUtils {
         }
         preURL = preURL.replace("\"", "");
 
-        Set<Annotation> parsedClassAnnotations = parseAnnotations(classAnnotations);
-        ClassRole classRole = parseClassRole(parsedClassAnnotations);
+        ClassRole classRole = parseClassRole(classAnnotations);
         // Return unknown classRoles where annotation not found
         if (classRole.equals(ClassRole.UNKNOWN)) {
             return null;
@@ -94,7 +93,7 @@ public class SourceToObjectUtils {
                 classRole,
                 parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod),
                 parseFields(cu.findAll(FieldDeclaration.class)),
-                parsedClassAnnotations,
+                parseAnnotations(classAnnotations),
                 parseMethodCalls(cu.findAll(MethodDeclaration.class)),
                 cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
 
@@ -452,31 +451,25 @@ public class SourceToObjectUtils {
     }
 
     /**
-     * This method searches a set of Annotation models and returns a ClassRole found
+     * This method searches a list of Annotation expressions and returns a ClassRole found
      *
-     * @param annotations the set of annotations to search
+     * @param annotations the list of annotations to search
      * @return the ClassRole determined
      */
-    private static ClassRole parseClassRole(Set<Annotation> annotations) {
-        ClassRole classRole = ClassRole.UNKNOWN;
-        for (Annotation annotation : annotations) {
-            switch (annotation.getName()) {
+    private static ClassRole parseClassRole(List<AnnotationExpr> annotations) {
+        for (AnnotationExpr annotation : annotations) {
+            switch (annotation.getNameAsString()) {
                 case "RestController":
-                    classRole = ClassRole.CONTROLLER;
-                    break;
+                    return ClassRole.CONTROLLER;
                 case "Service":
-                    classRole = ClassRole.SERVICE;
-                    break;
+                    return ClassRole.SERVICE;
                 case "Repository":
-                    classRole = ClassRole.REPOSITORY;
-                    break;
+                    return ClassRole.REPOSITORY;
                 case "Entity":
-                    classRole = ClassRole.ENTITY;
-                    break;
+                    return ClassRole.ENTITY;
             }
         }
-
-        return classRole;
+        return ClassRole.UNKNOWN;
     }
 
     //TODO Generalize and move out
