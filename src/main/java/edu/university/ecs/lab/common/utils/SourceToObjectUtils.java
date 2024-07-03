@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class SourceToObjectUtils {
     private static final List<String> call_annotations = Arrays.asList("RequestMapping", "GetMapping", "PutMapping",
-            "PostMapping", "DeleteMapping", "PatchMapping");
+            "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource");
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
@@ -469,6 +469,7 @@ public class SourceToObjectUtils {
                 case "Service":
                     return ClassRole.SERVICE;
                 case "Repository":
+                case "RepositoryRestResource":
                     return ClassRole.REPOSITORY;
                 case "Entity":
                     return ClassRole.ENTITY;
