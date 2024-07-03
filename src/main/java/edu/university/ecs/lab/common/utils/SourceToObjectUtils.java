@@ -16,10 +16,7 @@ import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,19 +54,25 @@ public class SourceToObjectUtils {
         generateStaticValues(sourceFile);
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
-        Set<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
-            if (annotationExpr.getParentNode().isPresent()) {
-                Node n = annotationExpr.getParentNode().get();
-                return n instanceof ClassOrInterfaceDeclaration;
-            }
-            return false;
-        }).collect(Collectors.toUnmodifiableList()));
+        String preURL = "";
+        List<AnnotationExpr> classAnnotations = new ArrayList<>();
+        for (var ae: cu.findAll(AnnotationExpr.class)){
+            if (ae.getParentNode().isPresent()) {
+                Node n = ae.getParentNode().get();
+                if (n instanceof ClassOrInterfaceDeclaration)
+                {
+                    classAnnotations.add(ae);
+                    if (preURL.isEmpty() && ae.getNameAsString().equals("RequestMapping")) {
+                        preURL = getPathFromAnnotation(ae, "");
 
-        // calculate the preEndpointURL from RequestMapping annotation
-        String preURL = classAnnotations.stream().filter(ae -> ae.getName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
+                    }
+                }
+            }
+        }
         preURL = preURL.replace("\"", "");
 
-        ClassRole classRole = parseClassRole(classAnnotations);
+        Set<Annotation> parsedClassAnnotations = parseAnnotations(classAnnotations);
+        ClassRole classRole = parseClassRole(parsedClassAnnotations);
         // Return unknown classRoles where annotation not found
         if (classRole.equals(ClassRole.UNKNOWN)) {
             return null;
@@ -83,7 +86,7 @@ public class SourceToObjectUtils {
                 classRole,
                 parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
                 parseFields(cu.findAll(FieldDeclaration.class)),
-                classAnnotations,
+                parsedClassAnnotations,
                 parseMethodCalls(cu.findAll(MethodDeclaration.class)),
                 cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
 
