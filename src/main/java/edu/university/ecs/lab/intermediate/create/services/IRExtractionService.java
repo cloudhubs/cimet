@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -90,10 +94,10 @@ public class IRExtractionService {
     }
 
     /**
-     * Recursively search for directories containing a Dockerfile.
+     * Recursively search for directories containing a microservice (pom.xml file)
      *
      * @param directory the directory to start the search from
-     * @return a list of directory paths containing a Dockerfile
+     * @return a list of directory paths containing pom.xml
      */
     private List<String> findRootDirectories(String directory) {
         List<String> rootDirectories = new ArrayList<>();
@@ -101,16 +105,35 @@ public class IRExtractionService {
         if (root.exists() && root.isDirectory()) {
             // Check if the current directory contains a Dockerfile
             File[] files = root.listFiles();
-            boolean containsDockerfile = false;
+            boolean containsPom = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
-                        containsDockerfile = true;
-                        break;
+                    if (file.isFile() && file.getName().equals("pom.xml")) {
+                        try {
+
+                            // Create a DocumentBuilder
+                            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+                            // Parse the XML file
+                            Document document = builder.parse(file);
+
+                            // Normalize the XML Structure
+                            document.getDocumentElement().normalize();
+
+                            // Get all elements with the specific tag name
+                            NodeList nodeList = document.getElementsByTagName("modules");
+                            // Check if the tag is present
+                            if (nodeList.getLength() == 0) {
+                                containsPom = true;
+                                break;
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException("Error parsing pom.xml");
+                        }
                     }
                 }
             }
-            if (containsDockerfile) {
+            if (containsPom) {
                 rootDirectories.add(root.getPath());
                 return rootDirectories;
             } else {
