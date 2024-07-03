@@ -205,7 +205,7 @@ public class SourceToObjectUtils {
                             ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
         }
 
-        // Annotations of tupe @Mapping(path="/endpoint")
+        // Annotations of type @Mapping(path="/endpoint")
         else if (ae.isNormalAnnotationExpr() && !ae.asNormalAnnotationExpr().getPairs().isEmpty()) {
             for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
                 if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
