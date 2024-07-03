@@ -473,6 +473,8 @@ public class SourceToObjectUtils {
                     return ClassRole.REPOSITORY;
                 case "Entity":
                     return ClassRole.ENTITY;
+                case "Embeddable":
+                    return ClassRole.EMBEDDABLE;
             }
         }
         return ClassRole.UNKNOWN;

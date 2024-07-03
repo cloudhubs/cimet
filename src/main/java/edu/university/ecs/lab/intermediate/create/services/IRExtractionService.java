@@ -196,14 +196,15 @@ public class IRExtractionService {
         Set<JClass> services = new HashSet<>();
         Set<JClass> repositories = new HashSet<>();
         Set<JClass> entities = new HashSet<>();
+        Set<JClass> embeddables = new HashSet<>();
 
 
         String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
-        scanDirectory(localDir, controllers, services, repositories, entities, id);
+        scanDirectory(localDir, controllers, services, repositories, entities, embeddables, id);
 
 
         Microservice model =
-                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities);
+                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities, embeddables);
 
         System.out.println("Done!");
         return model;
@@ -220,15 +221,16 @@ public class IRExtractionService {
             Set<JClass> services,
             Set<JClass> repositories,
             Set<JClass> entities,
+            Set<JClass> embeddables,
             String microserviceName) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories, entities, microserviceName);
+                    scanDirectory(file, controllers, services, repositories, entities, embeddables, microserviceName);
                 } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, repositories, entities, microserviceName);
+                    scanFile(file, controllers, services, repositories, entities, embeddables, microserviceName);
                 }
             }
         }
@@ -245,6 +247,7 @@ public class IRExtractionService {
             Set<JClass> services,
             Set<JClass> repositories,
             Set<JClass> entities,
+            Set<JClass> embeddables,
             String microserviceName) {
         JClass jClass = SourceToObjectUtils.parseClass(file, config, microserviceName);
 
@@ -266,6 +269,9 @@ public class IRExtractionService {
                 break;
             case ENTITY:
                 entities.add(jClass);
+                break;
+            case EMBEDDABLE:
+                embeddables.add(jClass);
                 break;
             default:
                 break;

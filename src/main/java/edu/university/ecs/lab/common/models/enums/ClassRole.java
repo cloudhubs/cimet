@@ -11,6 +11,7 @@ public enum ClassRole {
     SERVICE(JClass.class),
     REPOSITORY(JClass.class),
     ENTITY(JClass.class),
+    EMBEDDABLE(JClass.class),
     UNKNOWN(null);
 
     /**
