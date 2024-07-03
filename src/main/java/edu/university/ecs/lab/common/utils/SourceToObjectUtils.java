@@ -59,7 +59,7 @@ public class SourceToObjectUtils {
         String preURL = "";
         HttpMethod preMethod = HttpMethod.NONE;
         List<AnnotationExpr> classAnnotations = new ArrayList<>();
-        for (var ae: cu.findAll(AnnotationExpr.class)){
+        for (AnnotationExpr ae: cu.findAll(AnnotationExpr.class)){
             if (ae.getParentNode().isPresent()) {
                 Node n = ae.getParentNode().get();
                 if (n instanceof ClassOrInterfaceDeclaration)
