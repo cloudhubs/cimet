@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
  * Static utility class for parsing a file and returning associated models from code structure.
  */
 public class SourceToObjectUtils {
+    private static final List<String> call_annotations = Arrays.asList("RequestMapping", "GetMapping", "PutMapping",
+            "PostMapping", "DeleteMapping", "PatchMapping");
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
@@ -62,7 +64,7 @@ public class SourceToObjectUtils {
                 if (n instanceof ClassOrInterfaceDeclaration)
                 {
                     classAnnotations.add(ae);
-                    if (preURL.isEmpty() && ae.getNameAsString().equals("RequestMapping")) {
+                    if (preURL.isEmpty() && call_annotations.contains(ae.getNameAsString())) {
                         preURL = getPathFromAnnotation(ae, "");
 
                     }
@@ -136,69 +138,59 @@ public class SourceToObjectUtils {
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
     public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
-        boolean isEndpoint = false;
-        String url = "";
         HttpMethod httpMethod = HttpMethod.NONE;
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
-            switch (ae.getNameAsString()) {
-                case "GetMapping":
-                    httpMethod = HttpMethod.GET;
-                    url = getPathFromAnnotation(ae, preURL);
-                    isEndpoint = true;
-                    break;
-                case "PostMapping":
-                    httpMethod = HttpMethod.POST;
-                    url = getPathFromAnnotation(ae, preURL);
-                    isEndpoint = true;
-                    break;
-                case "DeleteMapping":
-                    httpMethod = HttpMethod.DELETE;
-                    url = getPathFromAnnotation(ae, preURL);
-                    isEndpoint = true;
-                    break;
-                case "PutMapping":
-                    httpMethod = HttpMethod.PUT;
-                    url = getPathFromAnnotation(ae, preURL);
-                    isEndpoint = true;
-                    break;
-                case "RequestMapping":
-                    isEndpoint = true;
-                    url = getPathFromAnnotation(ae, preURL);
-                    if (ae instanceof NormalAnnotationExpr) {
-                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
-                        if (nae.getPairs().isEmpty()) {
-                            // This is a RequestMapping without parameters
-                            httpMethod = HttpMethod.NONE; // or set a default method, if you prefer
-                        } else {
-                            for (MemberValuePair pair : nae.getPairs()) {
-                                if (pair.getNameAsString().equals("method")) {
-                                    String methodValue = pair.getValue().toString();
-                                    switch (methodValue) {
-                                        case "RequestMethod.GET":
-                                            httpMethod = HttpMethod.GET;
-                                            break;
-                                        case "RequestMethod.POST":
-                                            httpMethod = HttpMethod.POST;
-                                            break;
-                                        case "RequestMethod.DELETE":
-                                            httpMethod = HttpMethod.DELETE;
-                                            break;
-                                        case "RequestMethod.PUT":
-                                            httpMethod = HttpMethod.PUT;
-                                            break;
-                                    }
+            String ae_name = ae.getNameAsString();
+            if (call_annotations.contains(ae_name)) {
+                String url = getPathFromAnnotation(ae, preURL);
+                httpMethod = getHttpMethodFromAnnotation(ae, httpMethod);
+                // By Spring documentation, only the first valid @Mapping annotation is considered;
+                // And getAnnotations() return them in order, so we can return immediately
+                return new Endpoint(method, url, httpMethod, microserviceName);
+            }
+
+        }
+        return method;
+    }
+
+    private static HttpMethod getHttpMethodFromAnnotation(AnnotationExpr ae, HttpMethod httpMethod) {
+        switch (ae.getNameAsString()) {
+            case "GetMapping":
+                return HttpMethod.GET;
+            case "PostMapping":
+                return HttpMethod.POST;
+            case "DeleteMapping":
+                return HttpMethod.DELETE;
+            case "PutMapping":
+                return HttpMethod.PUT;
+            case "PatchMapping":
+                return HttpMethod.PATCH;
+            case "RequestMapping":
+                if (ae instanceof NormalAnnotationExpr) {
+                    NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
+                    if (nae.getPairs().isEmpty()) {
+                        // This is a RequestMapping without parameters
+                        return HttpMethod.NONE; // or set a default method, if you prefer
+                    } else {
+                        for (MemberValuePair pair : nae.getPairs()) {
+                            if (pair.getNameAsString().equals("method")) {
+                                String methodValue = pair.getValue().toString();
+                                switch (methodValue) {
+                                    case "RequestMethod.GET":
+                                        return HttpMethod.GET;
+                                    case "RequestMethod.POST":
+                                        return HttpMethod.POST;
+                                    case "RequestMethod.DELETE":
+                                        return HttpMethod.DELETE;
+                                    case "RequestMethod.PUT":
+                                        return HttpMethod.PUT;
                                 }
                             }
                         }
                     }
-                    break;
-            }
-
-        }
-        if (isEndpoint) {
-            return new Endpoint(method, url, httpMethod, microserviceName);
-        } else {
-            return method;
+                }
+            default:
+                return httpMethod;
         }
     }
 
