@@ -198,9 +198,9 @@ public class IRExtractionService {
         Set<JClass> entities = new HashSet<>();
 
 
-        scanDirectory(localDir, controllers, services, repositories, entities);
-
         String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
+        scanDirectory(localDir, controllers, services, repositories, entities, id);
+
 
         Microservice model =
                 new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities);
@@ -219,15 +219,16 @@ public class IRExtractionService {
             Set<JClass> controllers,
             Set<JClass> services,
             Set<JClass> repositories,
-            Set<JClass> entities) {
+            Set<JClass> entities,
+            String microserviceName) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories, entities);
+                    scanDirectory(file, controllers, services, repositories, entities, microserviceName);
                 } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, repositories, entities);
+                    scanFile(file, controllers, services, repositories, entities, microserviceName);
                 }
             }
         }
@@ -243,8 +244,9 @@ public class IRExtractionService {
             Set<JClass> controllers,
             Set<JClass> services,
             Set<JClass> repositories,
-            Set<JClass> entities) {
-        JClass jClass = SourceToObjectUtils.parseClass(file, config);
+            Set<JClass> entities,
+            String microserviceName) {
+        JClass jClass = SourceToObjectUtils.parseClass(file, config, microserviceName);
 
         if (jClass == null) {
             return;

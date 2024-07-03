@@ -38,7 +38,6 @@ public class SourceToObjectUtils {
         } catch (FileNotFoundException e) {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
-        microserviceName = getMicroserviceName(sourceFile);
         if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
             packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
@@ -52,8 +51,13 @@ public class SourceToObjectUtils {
      * @param sourceFile the file to parse
      * @return the JClass object representing the file
      */
-    public static JClass parseClass(File sourceFile, Config config) {
+    public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
         generateStaticValues(sourceFile);
+        if (!microserviceName.isEmpty()) {
+           SourceToObjectUtils.microserviceName = microserviceName;
+        } else {
+            SourceToObjectUtils.microserviceName = getMicroserviceName(sourceFile);
+        }
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
         String preURL = "";
@@ -475,6 +479,11 @@ public class SourceToObjectUtils {
 
     //TODO Generalize and move out
     private static String getMicroserviceName(File sourceFile) {
-        return sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL)[3];
+        List<String> split = Arrays.asList(sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL));
+        int index = split.indexOf("src");
+        if (index == -1) {
+            index = split.indexOf("java");
+        }
+        return split.get(--index);
     }
 }

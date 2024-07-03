@@ -147,7 +147,7 @@ public class DeltaExtractionService {
 
                 if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
 
-                    jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
+                    jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config, "");
 
                     // If we try to parse and it is still null, for ADD we will skip
                     if (jClass == null && entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
