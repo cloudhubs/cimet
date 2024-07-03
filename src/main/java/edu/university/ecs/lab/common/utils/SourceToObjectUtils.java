@@ -194,13 +194,10 @@ public class SourceToObjectUtils {
         }
     }
 
-    private static String getPathFromAnnotation(AnnotationExpr ae, String preURL) {
-        // Getting the URL
-        String url = "";
-
+    private static String getPathFromAnnotation(AnnotationExpr ae, String url) {
         // Annotations of type @Mapping("/endpoint")
         if (ae.isSingleMemberAnnotationExpr()) {
-            url = preURL + StringParserUtils.simplifyEndpointURL(
+            url = url + StringParserUtils.simplifyEndpointURL(
                     StringParserUtils.removeOuterQuotations(
                             ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
         }
@@ -209,8 +206,9 @@ public class SourceToObjectUtils {
         else if (ae.isNormalAnnotationExpr() && !ae.asNormalAnnotationExpr().getPairs().isEmpty()) {
             for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
                 if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
-                    url = preURL + StringParserUtils.simplifyEndpointURL(
+                    url = url + StringParserUtils.simplifyEndpointURL(
                             StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
+                    break;
                 }
             }
         }
