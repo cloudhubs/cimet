@@ -17,12 +17,13 @@ import lombok.Data;
 
 @Data
 public class UseCase7 extends AbstractUseCase {
+    protected static final String TYPE = "UseCase7";
     protected static final String NAME = "Affected endpoint due to data access logic update";
     protected static final Scope SCOPE = Scope.METHOD;
     protected static final String DESC = "A repository method was modified and now causes inconsistent results";
+    private String oldCommitID;
+    private String newCommitID;
     protected JsonObject metaData;
-
-    private UseCase7() {}
 
     @Override
     public List<? extends AbstractUseCase> checkUseCase() {
@@ -56,7 +57,12 @@ public class UseCase7 extends AbstractUseCase {
         return metaData;
     }
 
-    public static List<UseCase7> scan(Delta delta, MicroserviceSystem oldSystem) {
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    public static List<UseCase7> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<UseCase7> useCases = new ArrayList<>();
 
         JClass oldClass = oldSystem.findClass(delta.getOldPath());
@@ -64,6 +70,7 @@ public class UseCase7 extends AbstractUseCase {
         if (!delta.getChangeType().equals(ChangeType.MODIFY) || !oldClass.getClassRole().equals(ClassRole.REPOSITORY)) {
             return useCases;
         }
+
 
 
         for (Method methodOld : oldClass.getMethods()) {
@@ -78,8 +85,11 @@ public class UseCase7 extends AbstractUseCase {
                                 UseCase7 useCase7 = new UseCase7();
                                 JsonObject jsonObject = new JsonObject();
                                 jsonObject.isJsonNull();
-                                jsonObject.add("OldMethodDeclaration", methodOld.toJsonObject());
-                                jsonObject.add("NewMethodDeclaration", methodNew.toJsonObject());
+                                jsonObject.addProperty("OldMethodDeclaration", methodOld.getID());
+                                jsonObject.addProperty("NewMethodDeclaration", methodNew.getID());
+                                useCase7.setOldCommitID(oldSystem.getCommitID());
+                                useCase7.setNewCommitID(newSystem.getCommitID());
+
                                 useCase7.setMetaData(jsonObject);
                                 useCases.add(useCase7);
                             }

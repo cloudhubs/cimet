@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
 
@@ -17,13 +18,13 @@ import lombok.Data;
 
 @Data
 public class UseCase4 extends AbstractUseCase {
-
+    protected static final String TYPE = "UseCase4";
     protected static final String NAME = "Floating endpoint due to last call removal";
     protected static final Scope SCOPE = Scope.REST_CALL;
     protected static final String DESC = "Any rest calls referencing an endpoint are now gone. This endpoint is now unused by any other microservice";
+    private String oldCommitID;
+    private String newCommitID;
     protected JsonObject metaData;
-
-    private UseCase4() {}
 
     @Override
     public List<? extends AbstractUseCase> checkUseCase() {
@@ -60,9 +61,9 @@ public class UseCase4 extends AbstractUseCase {
         List<UseCase4> useCases = new ArrayList<>();
 
         // If we are not removing or modifying a service
-        JClass oldClass = oldSystem.findClass(delta.getOldPath());
+        JClass jClass = delta.getChangeType().equals(ChangeType.MODIFY) ? delta.getClassChange() : oldSystem.findClass(delta.getOldPath());
 
-        if (delta.getChangeType().equals(ChangeType.ADD) || !oldClass.getClassRole().equals(ClassRole.SERVICE)) {
+        if (delta.getChangeType().equals(ChangeType.ADD) || !jClass.getClassRole().equals(ClassRole.SERVICE)) {
             return useCases;
         }
 
@@ -72,9 +73,9 @@ public class UseCase4 extends AbstractUseCase {
         Set<RestCall> restCalls = new HashSet<>();
 
         if (delta.getChangeType().equals(ChangeType.MODIFY)) {
-            restCalls = getRemovedRestCalls(delta, oldClass);
+            restCalls = getRemovedRestCalls(delta, jClass);
         } else if (delta.getChangeType().equals(ChangeType.DELETE)) {
-            restCalls = oldClass.getRestCalls();
+            restCalls = jClass.getRestCalls();
         }
 
         Endpoint removeEndpoint = null;
@@ -91,6 +92,8 @@ public class UseCase4 extends AbstractUseCase {
                         JsonObject jsonObject = new JsonObject();
                         jsonObject.add("RestCall", restCall.toJsonObject());
                         useCase4.setMetaData(jsonObject);
+                        useCase4.setOldCommitID(oldSystem.getCommitID());
+                        useCase4.setNewCommitID(newSystem.getCommitID());
                         useCases.add(useCase4);
                         removeEndpoint = endpoint;
                         break endpointLoop;
@@ -168,5 +171,49 @@ public class UseCase4 extends AbstractUseCase {
         }
 
         return endpointsNoRC;
+    }
+
+    @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    public static List<UseCase4> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<UseCase4> useCases = new ArrayList<>();
+
+        // If we are not removing or modifying a service
+
+        // Get endpoints that do not have any calls
+        Set<Endpoint> allEndpoints = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).flatMap(jClass -> jClass.getEndpoints().stream()).collect(Collectors.toSet());
+
+
+        for(Endpoint endpoint: allEndpoints){
+            if(!findMatch(endpoint, newSystem)){
+                UseCase4 useCase4 = new UseCase4();
+                JsonObject jsonObject = new JsonObject();
+//                jsonObject.addProperty("Endpoint", endpoint.getID());
+                useCase4.setMetaData(jsonObject);
+                useCase4.setOldCommitID(oldSystem.getCommitID());
+                useCase4.setNewCommitID(newSystem.getCommitID());
+                useCases.add(useCase4);
+            }
+        }
+
+
+        return useCases;
+    }
+
+    // Check for modified/deleted endpoint in new system
+    private static boolean findMatch(Endpoint endpoint, MicroserviceSystem newSystem) {
+        for (Microservice microservice : newSystem.getMicroservices()) {
+            for (JClass service : microservice.getServices()) {
+                for (RestCall restcall : service.getRestCalls()) {
+                    if (RestCall.matchEndpoint(restcall, endpoint)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

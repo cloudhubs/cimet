@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
 
 @Data
 public class UseCase6 extends AbstractUseCase {
+    protected static final String TYPE = "UseCase6";
     protected static final String NAME = "Affected endpoint due to business logic update";
     protected static final Scope SCOPE = Scope.METHOD_CALL;
     protected static final String DESC = "A service method was modified and now causes inconsistent results for calling endpoints";
+    private String oldCommitID;
+    private String newCommitID;
     protected JsonObject metaData;
-
-    private UseCase6() {}
 
     @Override
     public List<? extends AbstractUseCase> checkUseCase() {
@@ -54,12 +55,21 @@ public class UseCase6 extends AbstractUseCase {
     }
 
     @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
     public JsonObject getMetaData() {
         return metaData;
     }
 
-    public List<UseCase6> scan(Delta delta, JClass oldClass) {
-        if(!delta.getChangeType().equals(ChangeType.MODIFY) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
+    public static List<UseCase6> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+
+
+        JClass jClass = oldSystem.findClass(delta.getOldPath());
+
+        if(!delta.getChangeType().equals(ChangeType.MODIFY) || !jClass.getClassRole().equals(ClassRole.SERVICE)) {
             return new ArrayList<>();
         }
 
@@ -68,25 +78,27 @@ public class UseCase6 extends AbstractUseCase {
         Method removeMethod = null;
 
         // For each methodCall added
-        for(MethodCall methodCall : getNewMethodCalls(oldClass, delta.getClassChange())) {
+        for(MethodCall methodCall : getNewMethodCalls(jClass, delta.getClassChange())) {
             outer:
             {
                 for (Method method : affectedMethods) {
                     // If the called object is the same as the return type of the same method
                     // TODO This will report the first instance
                     // TODO This currently does not check if the affected method is called by an endpoint and actually used, flows needed
-                    if (method.getReturnType().equals(methodCall.getObjectName())
+                    if (method.getReturnType().equals(methodCall.getObjectType())
                             && method.getName().equals(methodCall.getCalledFrom())) {
                         removeMethod = method;
 
-                        UseCase6 useCase7 = new UseCase6();
+                        UseCase6 useCase6 = new UseCase6();
                         JsonObject jsonObject = new JsonObject();
 
-                        jsonObject.add("AffectedMethod", method.toJsonObject());
-                        jsonObject.add("MethodCall", methodCall.toJsonObject());
+//                        jsonObject.addProperty("AffectedMethod", method.getID());
+//                        jsonObject.addProperty("MethodCall", methodCall.getID());
+                        useCase6.setOldCommitID(oldSystem.getCommitID());
+                        useCase6.setNewCommitID(newSystem.getCommitID());
 
-                        useCase7.setMetaData(jsonObject);
-                        useCases.add(useCase7);
+                        useCase6.setMetaData(jsonObject);
+                        useCases.add(useCase6);
 
                         break outer;
                     }

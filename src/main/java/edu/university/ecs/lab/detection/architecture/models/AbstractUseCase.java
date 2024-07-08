@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseInterface;
@@ -14,8 +15,11 @@ import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseIn
  * should be held in UseCaseInterface methods.
  */
 public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterface {
-    protected SystemChange microserviceSystemOld;
-    protected MicroserviceSystem microserviceSystemNew;
+    protected Delta delta;
+    protected MicroserviceSystem oldSystem;
+    protected MicroserviceSystem newSystem;
+
+
 
     /**
      * Get the name of the Architectural Use Case
@@ -47,12 +51,34 @@ public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterf
      */
     public abstract double getWeight();
 
+    /**
+     * Get the old commitID
+     *
+     * @return string old commitID
+     */
+    public abstract String getOldCommitID();
+
+    /**
+     * Get the new commitID
+     *
+     * @return string new commitID
+     */
+    public abstract String getNewCommitID();
+
+    /**
+     * Get the new commitID
+     *
+     * @return string new commitID
+     */
+    public abstract String getType();
+
     @Override
     public final JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("name", getName());
-        jsonObject.addProperty("description", getDescription());
-        jsonObject.addProperty("scope", getScope().toString());
+        jsonObject.addProperty("type", getType());
+        jsonObject.addProperty("oldCommitID", getOldCommitID());
+        jsonObject.addProperty("newCommitID", getNewCommitID());
         jsonObject.add("metadata", getMetaData());
 
         return jsonObject;

@@ -4,6 +4,7 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -15,6 +16,8 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import org.eclipse.jgit.diff.DiffEntry;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -94,6 +97,7 @@ public class DeltaExtractionService {
      * @param diffEntries the list of differences extracted by GitService
      */
     public void processDelta(List<DiffEntry> diffEntries) {
+        List<DiffEntry> pomDiffs = new ArrayList<>();
 
         // Set up a new SystemChangeObject
         SystemChange systemChange = new SystemChange();
@@ -103,83 +107,165 @@ public class DeltaExtractionService {
         // process each difference
         for (DiffEntry entry : diffEntries) {
 
-            // If its not a java file and doesnt end with pom.xml
             String path = entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) ? entry.getOldPath() : entry.getNewPath();
 
+            outer:
+            {
+                // Filter out nested poms
+
+                // If we are a pom
+                if (entry.getOldPath().endsWith("/pom.xml") || entry.getNewPath().endsWith("/pom.xml")) {
+                    if(entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
+                        DiffEntry remove = null;
+
+                        // For all existing pomEntry's in this delta
+                        for (DiffEntry pomEntry : pomDiffs) {
+
+                            // If we have an existing entry that is more specific than the current entry
+                            if (pomEntry.getNewPath().replace("/pom.xml", "").startsWith(path.replace("/pom.xml", ""))) {
+                                // Skip it
+                                break outer;
+
+                            // If the current entry is more specific than an existing entry
+                            } else if (path.replace("/pom.xml", "").startsWith(pomEntry.getNewPath().replace("/pom.xml", ""))) {
+                                // Remove the old entry
+                                remove = pomEntry;
+                            }
+
+                        }
 
 
-            // If paths doesnt end with java or (path doesnt end with java or pom)
-            if (!path.endsWith(".java") && !path.endsWith("pom.xml")) {
-                continue;
-            }
+                        // Check existing microservices if our entry is more specific as well
+                        for (Microservice microservice : oldSystem.getMicroservices()) {
 
-            String oldPath = "";
-            String newPath = "";
+                            // If we find a match, orphanize and redistribute those classes naturally
+                            if (("/" + path.replace("/pom.xml", "")).startsWith(microservice.getPath())) {
+                                 oldSystem.orphanizeAndAdopt(microservice);
+                                 oldSystem.getMicroservices().remove(microservice);
+                                 break;
+                            }
 
-            if (DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
-                oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
-                newPath = null;
-
-            } else if (DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
-                oldPath = null;
-                newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
-
-            } else {
-                oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
-                newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
-
-            }
-
-            //TODO BAD -- If we modify/delete a file that isn't present in the old system (was skipped because it has no annotation)
-            // Add get's skipped when we parse returns null
-            if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && !path.endsWith("pom.xml")) {
-                JClass jClass = oldSystem.findClass(oldPath);
-                if(jClass == null) {
-                    continue;
-                }
-            }
+                        }
 
 
-            // Get the class, if we are a delete the file for parsing no longer exists
-            // If we are a pom.xml we cannot parse
-            JClass jClass = null;
-            ChangeType changeType = ChangeType.fromDiffEntry(entry);
-            if (!path.endsWith("pom.xml")) {
+                        // If we remove a pom diff, delete the delta entry that already passed
+                        if(remove != null) {
+                            // Remove from current poms
+                            pomDiffs.remove(remove);
+                            // Remove delta entry
+                            Iterator<Delta> deltaIter = systemChange.getChanges().iterator();
+                            while (deltaIter.hasNext()) {
+                                Delta d = deltaIter.next();
+                                if((d.getOldPath() == null && remove.getOldPath().equals("/dev/null")
+                                    || d.getOldPath() != null && d.getOldPath().equals("/" + remove.getOldPath())) &&
+                                        (d.getNewPath() == null && remove.getNewPath().equals("/dev/null")
+                                                || d.getNewPath() != null && d.getNewPath().equals("/" + remove.getNewPath()))) {
+                                    deltaIter.remove();
+                                    break;
+                                }
+                            }
+                        }
 
-                if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
-
-                    jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
-
-                    // If we try to parse and it is still null, for ADD we will skip
+                        pomDiffs.add(entry);
 
 
-                    // For MODIFY we will let pass since it might be modifying a previously accepted file
+                    // If we are modifying or deleting an existing
+                    } else {
+                        boolean match = false;
+                        // If we try to delete or modify a pom that doesnt exist because it was filtered out
+                        for (Microservice microservice : oldSystem.getMicroservices()) {
+                            if (microservice.getPath().equals("/" + path.replace("/pom.xml", ""))) {
+                                match = true;
+                                break;
+                            }
 
-                }
+                        }
 
-                // WORKAROUND, RENAME MODIFY'S THAT WITH NULL CLASSCHANGE (UNPARSABLE) TO DELETE
-                if(entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
-                    if(jClass == null && oldSystem.findClass(oldPath) == null) {
-                        continue;
-                    } else if(jClass == null && oldSystem.findClass(oldPath) != null) {
-                        changeType = ChangeType.DELETE;
-                    } else if(jClass != null && oldSystem.findClass(oldPath) == null) {
-                        changeType = ChangeType.ADD;
+                        // If there was no match, it doesn't exist
+                        if(!match) {
+                            // Skip
+                            break outer;
+                        }
+
                     }
-                    // LIKEWISE IF WE "MODIFYING" A NON_PRESENT CLASS BECAUSE IT WAS INITIALLY UNPARSABLE
-                } else if(entry.getChangeType().equals(DiffEntry.ChangeType.ADD) && jClass == null) {
-                    continue;
-                } else if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && oldSystem.findClass(oldPath) == null) {
+
+
+                }
+
+                // If its not a java file and doesnt end with pom.xml
+
+
+                // If paths doesnt end with java or (path doesnt end with java or pom)
+                if (!path.endsWith(".java") && !path.endsWith("pom.xml")) {
                     continue;
                 }
 
+                String oldPath = "";
+                String newPath = "";
+
+                if (DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
+                    oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
+                    newPath = null;
+
+                } else if (DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
+                    oldPath = null;
+                    newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
+
+                } else {
+                    oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
+                    newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
+
+                }
+
+                //TODO BAD -- If we modify/delete a file that isn't present in the old system (was skipped because it has no annotation)
+                // Add get's skipped when we parse returns null
+                if (entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && !path.endsWith("pom.xml")) {
+                    JClass jClass = oldSystem.findClass(oldPath);
+                    if (jClass == null) {
+                        continue;
+                    }
+                }
+
+
+                // Get the class, if we are a delete the file for parsing no longer exists
+                // If we are a pom.xml we cannot parse
+                JClass jClass = null;
+                ChangeType changeType = ChangeType.fromDiffEntry(entry);
+                if (!path.endsWith("pom.xml")) {
+
+                    if (!entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
+
+                        jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
+
+                        // If we try to parse and it is still null, for ADD we will skip
+
+
+                        // For MODIFY we will let pass since it might be modifying a previously accepted file
+
+                    }
+
+                    // WORKAROUND, RENAME MODIFY'S THAT WITH NULL CLASSCHANGE (UNPARSABLE) TO DELETE
+                    if (entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
+                        if (jClass == null && oldSystem.findClass(oldPath) == null) {
+                            continue;
+                        } else if (jClass == null && oldSystem.findClass(oldPath) != null) {
+                            changeType = ChangeType.DELETE;
+                        } else if (jClass != null && oldSystem.findClass(oldPath) == null) {
+                            changeType = ChangeType.ADD;
+                        }
+                        // LIKEWISE IF WE "MODIFYING" A NON_PRESENT CLASS BECAUSE IT WAS INITIALLY UNPARSABLE
+                    } else if (entry.getChangeType().equals(DiffEntry.ChangeType.ADD) && jClass == null) {
+                        continue;
+                    } else if (entry.getChangeType().equals(DiffEntry.ChangeType.DELETE) && oldSystem.findClass(oldPath) == null) {
+                        continue;
+                    }
+
+                }
+
+
+                systemChange.getChanges().add(new Delta(oldPath, newPath, changeType, jClass));
+
             }
-
-
-
-
-            systemChange.getChanges().add(new Delta(oldPath, newPath, changeType, jClass));
-
         }
 
         JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);

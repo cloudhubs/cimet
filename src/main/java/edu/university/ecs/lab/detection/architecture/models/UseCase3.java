@@ -13,6 +13,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
 
@@ -21,12 +22,13 @@ import com.google.gson.JsonObject;
  */
 @Data
 public class UseCase3 extends AbstractUseCase {
+    protected static final String TYPE = "UseCase3";
     protected static final String NAME = "Floating call due to invalid call creation";
     protected static final Scope SCOPE = Scope.REST_CALL;
     protected static final String DESC = "A rest call is added that references a nonexistent endpoint";
+    private String oldCommitID;
+    private String newCommitID;
     protected JsonObject metaData;
-
-    private UseCase3() {}
 
     @Override
     public List<? extends AbstractUseCase> checkUseCase() {
@@ -56,11 +58,16 @@ public class UseCase3 extends AbstractUseCase {
     }
 
     @Override
+    public String getType() {
+        return TYPE;
+    }
+
+    @Override
     public JsonObject getMetaData() {
         return metaData;
     }
 
-    public static List<UseCase3> scan(Delta delta, MicroserviceSystem newSystem) {
+    public static List<UseCase3> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<UseCase3> useCases = new ArrayList<>();
 
         // If it isn't add or modify, or not a service
@@ -75,8 +82,10 @@ public class UseCase3 extends AbstractUseCase {
             if (!findMatch(restCall, newSystem)) {
                 UseCase3 useCase3 = new UseCase3();
                 JsonObject jsonObject = new JsonObject();
-                jsonObject.add("RestCall", restCall.toJsonObject());
+                jsonObject.addProperty("RestCall", restCall.getID());
                 useCase3.setMetaData(jsonObject);
+                useCase3.setOldCommitID(oldSystem.getCommitID());
+                useCase3.setNewCommitID(newSystem.getCommitID());
                 useCases.add(useCase3);
             }
         }
@@ -95,6 +104,30 @@ public class UseCase3 extends AbstractUseCase {
             }
         }
         return false;
+    }
+
+
+    public static List<UseCase3> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<UseCase3> useCases = new ArrayList<>();
+
+        List<RestCall> allRestCalls = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).flatMap(jClass -> jClass.getRestCalls().stream()).collect(Collectors.toList());
+
+
+        // For each restCall if we don't find a match in the new System
+        // TODO this technically includes RestCalls that have already been flagged in the past
+        for (RestCall restCall : allRestCalls) {
+            if (!findMatch(restCall, newSystem)) {
+                UseCase3 useCase3 = new UseCase3();
+                JsonObject jsonObject = new JsonObject();
+//                jsonObject.add("RestCall", restCall.toJsonObject());
+                useCase3.setMetaData(jsonObject);
+                useCase3.setOldCommitID(oldSystem.getCommitID());
+                useCase3.setNewCommitID(newSystem.getCommitID());
+                useCases.add(useCase3);
+            }
+        }
+
+        return useCases;
     }
 }
 

@@ -203,7 +203,7 @@ public class IRExtractionService {
             for (File file : files) {
                 if (file.isDirectory()) {
                     scanDirectory(file, controllers, services, repositories, entities);
-                } else if (file.getName().endsWith(".java")) {
+                } else if (file.getName().endsWith(".java") && testFileFilter(file)) {
                     scanFile(file, controllers, services, repositories, entities);
                 }
             }
@@ -246,5 +246,9 @@ public class IRExtractionService {
                 break;
         }
 
+    }
+
+    private boolean testFileFilter(File file) {
+        return !file.getPath().contains("/src/test/");
     }
 }

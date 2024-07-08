@@ -7,29 +7,48 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
+import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Static utility class for parsing a file and returning associated models from code structure.
  */
 public class SourceToObjectUtils {
+    private static File sourceFile;
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
     private static String packageAndClassName;
+    private static CombinedTypeSolver combinedTypeSolver;
+    static {
+        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver("C:\\Users\\ninja\\IdeaProjects\\cimet2\\clone\\train-ticket");
+
+        combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(reflectionTypeSolver);
+        combinedTypeSolver.add(javaParserTypeSolver);
+
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+    }
 
 
     private static void generateStaticValues(File sourceFile) {
@@ -54,6 +73,7 @@ public class SourceToObjectUtils {
      * @return the JClass object representing the file
      */
     public static JClass parseClass(File sourceFile, Config config) {
+        SourceToObjectUtils.sourceFile = sourceFile;
         generateStaticValues(sourceFile);
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
@@ -153,6 +173,32 @@ public class SourceToObjectUtils {
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
                     break;
+                case "RequestMapping":
+                    httpMethod = HttpMethod.GET;
+                    if(ae instanceof NormalAnnotationExpr) {
+                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
+                        for(MemberValuePair mvp : nae.getPairs()) {
+                            if(mvp.getNameAsString().equals("method")) {
+                                switch (mvp.getValue().toString()) {
+                                    case "RequestMethod.DELETE":
+                                        httpMethod = HttpMethod.DELETE;
+                                        break;
+                                    case "RequestMethod.PUT":
+                                        httpMethod = HttpMethod.PUT;
+                                        break;
+                                    case "RequestMethod.GET":
+                                        httpMethod = HttpMethod.GET;
+                                        break;
+                                    case "RequestMethod.PATCH":
+                                        httpMethod = HttpMethod.PATCH;
+                                        break;
+                                    case "RequestMethod.POST":
+                                        httpMethod = HttpMethod.POST;
+                                }
+                            }
+                        }
+                    }
+                    break;
             }
         }
 
@@ -174,10 +220,12 @@ public class SourceToObjectUtils {
                 String methodName = mce.getNameAsString();
 
                 String calledServiceName = getCallingObjectName(mce);
+                String calledServiceType = getCallingObjectType(mce);
+
                 String parameterContents = mce.getArguments().stream().map(Objects::toString).collect(Collectors.joining(","));
 
                 if (Objects.nonNull(calledServiceName)) {
-                    MethodCall methodCall = new MethodCall(methodName, packageAndClassName, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
+                    MethodCall methodCall = new MethodCall(methodName, packageAndClassName, calledServiceType, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
 
                     methodCall = convertValidRestCalls(mce, methodCall);
 
@@ -214,6 +262,12 @@ public class SourceToObjectUtils {
             httpMethod = HttpMethod.DELETE;
         } else if (methodCall.getParameterContents().contains("HttpMethod.PUT")) {
             httpMethod = HttpMethod.PUT;
+        } else if(methodCall.getParameterContents().contains("HttpMethod.PATCH")) {
+            httpMethod = HttpMethod.PATCH;
+        }
+
+        if(httpMethod.equals(HttpMethod.NONE)) {
+            httpMethod = RestCallTemplate.findHttpMethodByName(methodCall.getName());
         }
 
         return new RestCall(methodCall, url, httpMethod, microserviceName);
@@ -261,6 +315,32 @@ public class SourceToObjectUtils {
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
                     break;
+                case "RequestMapping":
+                    httpMethod = HttpMethod.GET;
+                    if(ae instanceof NormalAnnotationExpr) {
+                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
+                        for(MemberValuePair mvp : nae.getPairs()) {
+                            if(mvp.getNameAsString().equals("method")) {
+                                switch (mvp.getValue().toString()) {
+                                    case "RequestMethod.DELETE":
+                                        httpMethod = HttpMethod.DELETE;
+                                        break;
+                                    case "RequestMethod.PUT":
+                                        httpMethod = HttpMethod.PUT;
+                                        break;
+                                    case "RequestMethod.GET":
+                                        httpMethod = HttpMethod.GET;
+                                        break;
+                                    case "RequestMethod.PATCH":
+                                        httpMethod = HttpMethod.PATCH;
+                                        break;
+                                    case "RequestMethod.POST":
+                                        httpMethod = HttpMethod.POST;
+                                }
+                            }
+                        }
+                    }
+                    break;
             }
 
 
@@ -291,19 +371,42 @@ public class SourceToObjectUtils {
      * @return the name of the object the method is being called from
      */
     private static String getCallingObjectName(MethodCallExpr mce) {
+
+
+        Expression scope = mce.getScope().orElse(null);
+
+        if (Objects.nonNull(scope) && scope instanceof NameExpr) {
+            NameExpr fae = scope.asNameExpr();
+            return fae.getNameAsString();
+        }
+
+        return "";
+
+    }
+
+    private static String getCallingObjectType(MethodCallExpr mce) {
+
         Expression scope = mce.getScope().orElse(null);
 
         if (Objects.isNull(scope)) {
             return "";
         }
 
-        String calledServiceID = null;
-        if (scope instanceof NameExpr) {
-            NameExpr fae = scope.asNameExpr();
-            calledServiceID = fae.getNameAsString();
-        }
+        try {
+            // Resolve the type of the object
+            var resolvedType = JavaParserFacade.get(combinedTypeSolver).getType(scope);
+            List<String> parts = List.of(((ReferenceTypeImpl) resolvedType).getQualifiedName().split("\\."));
+            if(parts.isEmpty()) {
+                return "";
+            }
 
-        return calledServiceID;
+            return parts.get(parts.size() - 1);
+        } catch (Exception e) {
+            if(e instanceof UnsolvedSymbolException && ((UnsolvedSymbolException) e).getName() != null) {
+                return ((UnsolvedSymbolException) e).getName();
+            }
+            return "";
+        }
     }
 
     /**
@@ -321,7 +424,7 @@ public class SourceToObjectUtils {
         Expression exp = mce.getArguments().get(0);
 
         if (exp.isStringLiteralExpr()) {
-            return StringParserUtils.removeOuterQuotations(exp.toString());
+            return formatURL(StringParserUtils.removeOuterQuotations(exp.toString()));
         } else if (exp.isFieldAccessExpr()) {
             return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
         } else if (exp.isNameExpr()) {
@@ -354,7 +457,7 @@ public class SourceToObjectUtils {
         if (left instanceof BinaryExpr) {
             returnString.append(parseUrlFromBinaryExp((BinaryExpr) left));
         } else if (left instanceof StringLiteralExpr) {
-            returnString.append(formatURL((StringLiteralExpr) left));
+            returnString.append(formatURL(left.toString()));
         } else if (left instanceof NameExpr
                 && !left.asNameExpr().getNameAsString().contains("url")
                 && !left.asNameExpr().getNameAsString().contains("uri")) {
@@ -365,7 +468,7 @@ public class SourceToObjectUtils {
         if (right instanceof BinaryExpr) {
             returnString.append(parseUrlFromBinaryExp((BinaryExpr) right));
         } else if (right instanceof StringLiteralExpr) {
-            returnString.append(formatURL((StringLiteralExpr) right));
+            returnString.append(formatURL(right.toString()));
         } else if (right instanceof NameExpr) {
             returnString.append("/{?}");
         }
@@ -373,8 +476,7 @@ public class SourceToObjectUtils {
         return returnString.toString(); // URL not found in subtree
     }
 
-    private static String formatURL(StringLiteralExpr stringLiteralExpr) {
-        String str = stringLiteralExpr.toString();
+    private static String formatURL(String str) {
         str = str.replace("http://", "");
         str = str.replace("https://", "");
 

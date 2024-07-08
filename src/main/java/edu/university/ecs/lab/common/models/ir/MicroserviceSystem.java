@@ -58,8 +58,8 @@ public class MicroserviceSystem implements JsonSerializable {
      * @param name the name to search for
      * @return microservice whose name matches or null if not found
      */
-    public Microservice findMicroserviceByName(String name) {
-        return getMicroservices().stream().filter(microservice -> microservice.getName().equals(name)).findFirst().orElse(null);
+    public Microservice findMicroserviceByPath(String name) {
+        return getMicroservices().stream().filter(microservice -> microservice.getPath().equals(name)).findFirst().orElse(null);
     }
 
 
@@ -108,6 +108,13 @@ public class MicroserviceSystem implements JsonSerializable {
         }
 
         return returnClass;
+    }
+
+    public void orphanizeAndAdopt(Microservice microservice) {
+        orphanize(microservice);
+        for(Microservice m : getMicroservices()){
+            adopt(m);
+        }
     }
 
 }

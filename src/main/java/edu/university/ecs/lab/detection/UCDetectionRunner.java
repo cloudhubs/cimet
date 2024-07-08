@@ -1,6 +1,9 @@
 package edu.university.ecs.lab.detection;
 
+import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
+import edu.university.ecs.lab.detection.architecture.models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.JsonArray;
@@ -20,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class UCDetectionRunner {
     public static void main(String[] args) {
@@ -37,11 +41,11 @@ public class UCDetectionRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
-        List<List<AbstractUseCase>> allUseCases = new ArrayList<>();
+        List<JsonObject> allUseCases = new ArrayList<>();
 
         // Loop through commit history and create delta, merge, etc...
         for (int i = 0; i < list.size() - 1; i++) {
@@ -58,7 +62,22 @@ public class UCDetectionRunner {
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
             UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            allUseCases.add(ucDetectionService.scanDelta());
+            List<AbstractUseCase> useCases = ucDetectionService.scanDelta();
+            JsonObject obj = new JsonObject();
+            JsonArray jsonArray = new JsonArray();
+            jsonArray.addAll(JsonSerializable.toJsonArray(useCases));
+
+            obj.addProperty("commitID", commitIdNew);
+            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
+            obj.addProperty("UseCase2", useCases.stream().filter(uc -> uc instanceof UseCase3).count());
+            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof UseCase4).count());
+            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof UseCase6).count());
+            obj.addProperty("UseCase5", useCases.stream().filter(uc -> uc instanceof UseCase7).count());
+            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
+            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
+
+            obj.add("useCases", jsonArray);
+            allUseCases.add(obj);
 
             try {
                 Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
@@ -67,8 +86,7 @@ public class UCDetectionRunner {
             }
         }
 
-        JsonArray jsonArray = toJsonArray(allUseCases);
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);        
+        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", allUseCases);
     }
 
 

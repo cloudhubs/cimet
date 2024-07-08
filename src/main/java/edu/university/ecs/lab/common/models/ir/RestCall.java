@@ -31,12 +31,12 @@ public class RestCall extends MethodCall {
      */
     private String microserviceName;
 
-    public RestCall(String methodName, String packageAndClassName, String objectName, String calledFrom, String parameterContents) {
-        super(methodName, packageAndClassName, objectName, calledFrom, parameterContents);
+    public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents) {
+        super(methodName, packageAndClassName, objectType, objectName, calledFrom, parameterContents);
     }
 
     public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod, String microserviceName) {
-        super(methodCall.getName(), methodCall.getPackageAndClassName(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
+        super(methodCall.getName(), methodCall.getPackageAndClassName(), methodCall.getObjectType(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
         this.url = url;
         this.httpMethod = httpMethod;
         this.microserviceName = microserviceName;
@@ -59,11 +59,7 @@ public class RestCall extends MethodCall {
         if(restcall.getMicroserviceName().equals(endpoint.getMicroserviceName())){
             return false;
         }
-        if (restcall.getUrl().equals(endpoint.getUrl()) && restcall.getHttpMethod().equals(endpoint.getHttpMethod())){
-            return true;
-        }
-        else{
-            return false;
-        }
+
+        return restcall.getUrl().equals(endpoint.getUrl()) && restcall.getHttpMethod().equals(endpoint.getHttpMethod());
     }
 }

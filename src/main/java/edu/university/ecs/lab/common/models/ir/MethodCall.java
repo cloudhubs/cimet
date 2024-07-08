@@ -21,6 +21,12 @@ public class MethodCall extends Node {
     private String objectName;
 
     /**
+     * Name of object this method call is from (Maybe a static class instance, just whatever is before
+     * the ".")
+     */
+    private String objectType;
+
+    /**
      * Name of method that contains this call
      */
     private String calledFrom;
@@ -30,10 +36,11 @@ public class MethodCall extends Node {
      */
     private String parameterContents;
 
-    public MethodCall(String name, String packageName, String objectName, String calledFrom, String parameterContents) {
+    public MethodCall(String name, String packageName,String objectType, String objectName, String calledFrom, String parameterContents) {
         this.name = name;
         this.packageAndClassName = packageName;
         this.objectName = objectName;
+        this.objectType = objectType;
         this.calledFrom = calledFrom;
         this.parameterContents = parameterContents;
     }
@@ -49,6 +56,7 @@ public class MethodCall extends Node {
         jsonObject.addProperty("packageAndClassName", getPackageAndClassName());
         jsonObject.addProperty("objectName", getObjectName());
         jsonObject.addProperty("calledFrom", getCalledFrom());
+        jsonObject.addProperty("objectType", getObjectType());
         jsonObject.addProperty("parameterContents", getParameterContents());
 
         return jsonObject;
