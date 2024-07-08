@@ -73,7 +73,7 @@ public class SourceToObjectUtils {
             if (ae.getParentNode().isPresent()) {
                 Node n = ae.getParentNode().get();
 
-                if (n instanceof ClassOrInterfaceDeclaration || true) {
+                if (n instanceof ClassOrInterfaceDeclaration || call_annotations.contains(ae.getNameAsString())) {
                     classAnnotations.add(ae);
                     if (call_annotations.contains(ae.getNameAsString())) {
                         if (preURL.isEmpty()) {
