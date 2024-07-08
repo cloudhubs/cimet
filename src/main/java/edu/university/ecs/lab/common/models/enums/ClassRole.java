@@ -12,6 +12,7 @@ public enum ClassRole {
     REPOSITORY(JClass.class),
     ENTITY(JClass.class),
     EMBEDDABLE(JClass.class),
+    FEIGN_CLIENT(JClass.class),
     UNKNOWN(null);
 
     /**
