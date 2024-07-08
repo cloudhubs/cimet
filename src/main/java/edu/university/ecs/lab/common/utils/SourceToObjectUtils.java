@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class SourceToObjectUtils {
     private static final List<String> call_annotations = Arrays.asList("RequestMapping", "GetMapping", "PutMapping",
-            "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource");
+            "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource", "FeignClient");
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
@@ -54,7 +54,7 @@ public class SourceToObjectUtils {
     public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
         generateStaticValues(sourceFile);
         if (!microserviceName.isEmpty()) {
-           SourceToObjectUtils.microserviceName = microserviceName;
+            SourceToObjectUtils.microserviceName = microserviceName;
         } else {
             SourceToObjectUtils.microserviceName = getMicroserviceName(sourceFile);
         }
@@ -63,15 +63,21 @@ public class SourceToObjectUtils {
         String preURL = "";
         HttpMethod preMethod = HttpMethod.NONE;
         List<AnnotationExpr> classAnnotations = new ArrayList<>();
-        for (AnnotationExpr ae: cu.findAll(AnnotationExpr.class)){
+        String feignClient = "";
+
+        for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
+            if (ae.getNameAsString().equals("FeignClient")) {
+                feignClient = ae.getChildNodes().get(1).getChildNodes().get(1).toString().replace("\"", "");
+            }
+
             if (ae.getParentNode().isPresent()) {
                 Node n = ae.getParentNode().get();
-                if (n instanceof ClassOrInterfaceDeclaration)
-                {
+
+                if (n instanceof ClassOrInterfaceDeclaration || true) {
                     classAnnotations.add(ae);
                     if (call_annotations.contains(ae.getNameAsString())) {
                         if (preURL.isEmpty()) {
-                            preURL = getPathFromAnnotation(ae, "");
+                            preURL = getPathFromAnnotation(ae, feignClient);
                         }
                         if (preMethod.equals(HttpMethod.NONE)) {
                             preMethod = getHttpMethodFromAnnotation(ae, preMethod);
@@ -108,8 +114,8 @@ public class SourceToObjectUtils {
      * This method parses methodDeclarations list and returns a Set of Method models
      *
      * @param methodDeclarations the list of methodDeclarations to be parsed
-     * @param preURL            initial part of the URL in case of recursion
-     * @param preMethod         pre-defined HTTP method in case of recursion
+     * @param preURL             initial part of the URL in case of recursion
+     * @param preMethod          pre-defined HTTP method in case of recursion
      * @return a set of Method models representing the MethodDeclarations
      */
     public static Set<Method> parseMethods(List<MethodDeclaration> methodDeclarations, String preURL, HttpMethod preMethod) {
@@ -475,6 +481,8 @@ public class SourceToObjectUtils {
                     return ClassRole.ENTITY;
                 case "Embeddable":
                     return ClassRole.EMBEDDABLE;
+                case "FeignClient":
+                    return ClassRole.FEIGN_CLIENT;
             }
         }
         return ClassRole.UNKNOWN;
