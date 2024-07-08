@@ -13,7 +13,6 @@ import edu.university.ecs.lab.detection.antipatterns.services.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 
 public class AntipatternDetection {
     public static void main(String[] args) {
@@ -34,38 +33,38 @@ public class AntipatternDetection {
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        if (!greedyMicroservices.isEmpty()){
+        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(greedyMicroservices, "greedy.json");
+            JsonReadWriteUtils.writeToJSON("./output/greedy.json", greedyMicroservices.toJsonObject());
         }
         
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        if (!hublikeMicroservices.isEmpty()){
+        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
+            JsonReadWriteUtils.writeToJSON("./output/hublike.json", hublikeMicroservices.toJsonObject());
         }
         
 
         ServiceChainService chainService = new ServiceChainService();
-        List<ServiceChain> allChains = chainService.getServiceChains(sdg);
-        if (!allChains.isEmpty()){
+        ServiceChain allChains = chainService.getServiceChains(sdg);
+        if (!allChains.getChain().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(allChains, "servicechain.json");
+            JsonReadWriteUtils.writeToJSON("./output/servicechain.json", allChains.toJsonObject());
         }
         
         WrongCutsService wrongCutsService = new WrongCutsService();
-        List<WrongCuts> wrongCuts = wrongCutsService.identifyAndReportWrongCuts(sdg);
-        if (!wrongCuts.isEmpty()){
+        WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(currentSystem);
+        if (!wrongCuts.getWrongCuts().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(wrongCuts, "wrongcuts.json");
+            JsonReadWriteUtils.writeToJSON("./output/wrongcuts.json", wrongCuts.toJsonObject());
         }
         
         CyclicDependencyService cycles = new CyclicDependencyService();
-        List<CyclicDependency> cycleDependencies = cycles.findCyclicDependencies(sdg);
-        if (!cycleDependencies.isEmpty()){
+        CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
+        if (!cycleDependencies.getCycles().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(cycleDependencies, "cyclicdependencies.json");
+            JsonReadWriteUtils.writeToJSON("./output/cyclicdependencies.json", cycleDependencies.toJsonObject());
         }
         
         NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
@@ -75,10 +74,10 @@ public class AntipatternDetection {
         }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
-        List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
-        if (!wobblyService.isEmpty()){
+        WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
+        if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
             detectedAntipatterns++;
-            writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+            JsonReadWriteUtils.writeToJSON("./output/wobblyserviceinteratcions.json", wobblyService.toJsonObject());
         }
 
         NoApiGatewayService noApiGatewayService = new NoApiGatewayService();

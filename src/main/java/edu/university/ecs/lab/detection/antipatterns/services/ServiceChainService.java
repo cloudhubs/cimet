@@ -11,17 +11,34 @@ import java.util.*;
 public class ServiceChainService {
 
     /**
-      length of the chain consider an anti-pattern
+     * Length of the chain to consider an anti-pattern.
      */
     private final int CHAIN_LENGTH;
+    
+    /**
+     * Constructs the service with a default chain length of 3.
+     */
+    public ServiceChainService() {
+        this.CHAIN_LENGTH = 3;
+    }
+    
+    /**
+     * Constructs the service with a specified chain length.
+     * 
+     * @param CHAIN_LENGTH the length of the chain to consider an anti-pattern
+     */
+    public ServiceChainService(int CHAIN_LENGTH) {
+        this.CHAIN_LENGTH = CHAIN_LENGTH;
+    }
+
     /**
      * Retrieves all service chains from the given network graph.
      *
      * @param graph the network graph to analyze
-     * @return a list of ServiceChain objects representing detected service chains
+     * @return a ServiceChain object representing all detected service chains
      */
-    public List<ServiceChain> getServiceChains(ServiceDependencyGraph graph) {
-        List<ServiceChain> allChains = new ArrayList<>();
+    public ServiceChain getServiceChains(ServiceDependencyGraph graph) {
+        List<List<String>> allChains = new ArrayList<>();
         Map<String, Set<String>> adjacencyList = graph.getAdjacency();
 
         Set<String> globalVisited = new HashSet<>();
@@ -32,7 +49,7 @@ public class ServiceChainService {
             }
         }
 
-        return allChains;
+        return new ServiceChain(allChains);
     }
 
     /**
@@ -44,7 +61,7 @@ public class ServiceChainService {
      * @param adjacencyList adjacency list representation of the network graph
      * @param globalVisited set of globally visited nodes
      */
-    private void dfs(String currentNode, List<String> currentPath, List<ServiceChain> allChains, Map<String, Set<String>> adjacencyList, Set<String> globalVisited) {
+    private void dfs(String currentNode, List<String> currentPath, List<List<String>> allChains, Map<String, Set<String>> adjacencyList, Set<String> globalVisited) {
         if (globalVisited.contains(currentNode)) {
             return;
         }
@@ -62,16 +79,9 @@ public class ServiceChainService {
         }
 
         if (currentPath.size() > CHAIN_LENGTH) {
-            allChains.add(new ServiceChain(new ArrayList<>(currentPath)));
+            allChains.add(new ArrayList<>(currentPath));
         }
 
         currentPath.remove(currentPath.size() - 1);
-    }
-
-    public ServiceChainService() {
-        CHAIN_LENGTH = 3;
-    }
-    public ServiceChainService(int CHAIN_LENGTH) {
-        this.CHAIN_LENGTH = CHAIN_LENGTH;
     }
 }

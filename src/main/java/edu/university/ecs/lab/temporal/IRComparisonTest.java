@@ -3,7 +3,6 @@ package edu.university.ecs.lab.temporal;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.*;
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -18,8 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class IRComparisonTest {
 

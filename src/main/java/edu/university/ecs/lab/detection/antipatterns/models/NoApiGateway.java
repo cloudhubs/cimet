@@ -56,7 +56,7 @@ public class NoApiGateway extends AntiPattern{
     protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty(NAME, noApiGateway);
+        jsonObject.addProperty("API-Gatways Found", noApiGateway);
 
         return jsonObject;
     }

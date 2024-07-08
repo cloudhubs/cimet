@@ -1,0 +1,6 @@
+{
+  "systemName": "microservice",
+  "repositoryURL": "https://github.com/ewolff/microservice.git",
+  "baseCommit": "d1ccf504df5617288479902ad9eb2111df73ed65",
+  "baseBranch": "master"
+}

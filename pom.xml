@@ -14,6 +14,7 @@
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
     </properties>
 
+
     <dependencies>
         <!-- new dependencies -->
         <dependency>
@@ -57,6 +58,11 @@
             <artifactId>log4j-core</artifactId>
             <version>2.23.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-core</artifactId>
+            <version>1.5.2</version>
+        </dependency>
         <!-- <dependency>
            <groupId>tech.sourced</groupId>
            <artifactId>enry-java</artifactId>
@@ -64,8 +70,8 @@
        </dependency> -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.15.2</version>
+            <artifactId>jackson-core</artifactId>
+            <version>2.17.1</version>
         </dependency>
         <dependency>
             <groupId>javax.json</groupId>
@@ -126,19 +132,24 @@
             <version>8.0.1.RELEASE</version>
         </dependency>
         <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-core</artifactId>
-            <version>1.5.2</version>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20210307</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
         </dependency>
     </dependencies>
 
     <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
-	
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
@@ -211,6 +222,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                 </plugins>
             </build>
             <properties>

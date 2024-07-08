@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
  * Static utility class for parsing a file and returning associated models from code structure.
  */
 public class SourceToObjectUtils {
-    private static File sourceFile;
+    private static final List<String> call_annotations = Arrays.asList("RequestMapping", "GetMapping", "PutMapping",
+            "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource", "FeignClient");
     private static CompilationUnit cu;
     private static String microserviceName;
     private static String packageName;
@@ -58,8 +59,7 @@ public class SourceToObjectUtils {
         } catch (FileNotFoundException e) {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
-        microserviceName = getMicroserviceName(sourceFile);
-        if(!cu.findAll(PackageDeclaration.class).isEmpty()) {
+        if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
             packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
         }
@@ -73,20 +73,41 @@ public class SourceToObjectUtils {
      * @return the JClass object representing the file
      */
     public static JClass parseClass(File sourceFile, Config config) {
-        SourceToObjectUtils.sourceFile = sourceFile;
         generateStaticValues(sourceFile);
+        if (!microserviceName.isEmpty()) {
+            SourceToObjectUtils.microserviceName = microserviceName;
+        } else {
+            SourceToObjectUtils.microserviceName = getMicroserviceName(sourceFile);
+        }
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
-        Set<Annotation> classAnnotations = parseAnnotations(cu.findAll(AnnotationExpr.class).stream().filter(annotationExpr -> {
-            if (annotationExpr.getParentNode().isPresent()) {
-                Node n = annotationExpr.getParentNode().get();
-                return n instanceof ClassOrInterfaceDeclaration;
-            }
-            return false;
-        }).collect(Collectors.toUnmodifiableList()));
+        String preURL = "";
+        HttpMethod preMethod = HttpMethod.NONE;
+        List<AnnotationExpr> classAnnotations = new ArrayList<>();
+        String feignClient = "";
 
-        // calculate the preEndpointURL from RequestMapping annotation
-        String preURL = classAnnotations.stream().filter(ae -> ae.getName().equals("RequestMapping")).map(Annotation::getContents).findFirst().orElse("");
+        for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
+            if (ae.getNameAsString().equals("FeignClient")) {
+                feignClient = ae.getChildNodes().get(1).getChildNodes().get(1).toString().replace("\"", "");
+            }
+
+            if (ae.getParentNode().isPresent()) {
+                Node n = ae.getParentNode().get();
+
+                if (n instanceof ClassOrInterfaceDeclaration || call_annotations.contains(ae.getNameAsString())) {
+                    classAnnotations.add(ae);
+                    if (call_annotations.contains(ae.getNameAsString())) {
+                        if (preURL.isEmpty()) {
+                            preURL = getPathFromAnnotation(ae, feignClient);
+                        }
+                        if (preMethod.equals(HttpMethod.NONE)) {
+                            preMethod = getHttpMethodFromAnnotation(ae, preMethod);
+                        }
+
+                    }
+                }
+            }
+        }
         preURL = preURL.replace("\"", "");
 
         ClassRole classRole = parseClassRole(classAnnotations);
@@ -97,15 +118,15 @@ public class SourceToObjectUtils {
 
         // Build the JClass
         return new JClass(
-            sourceFile.getName().replace(".java", ""),
-            FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
-            packageName,
-            classRole,
-            parseMethods(preURL, cu.findAll(MethodDeclaration.class)),
-            parseFields(cu.findAll(FieldDeclaration.class)),
-            classAnnotations,
-            parseMethodCalls(cu.findAll(MethodDeclaration.class)),
-            cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+                sourceFile.getName().replace(".java", ""),
+                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                packageName,
+                classRole,
+                parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod),
+                parseFields(cu.findAll(FieldDeclaration.class)),
+                parseAnnotations(classAnnotations),
+                parseMethodCalls(cu.findAll(MethodDeclaration.class)),
+                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
 
     }
 
@@ -113,11 +134,12 @@ public class SourceToObjectUtils {
     /**
      * This method parses methodDeclarations list and returns a Set of Method models
      *
-     * @param preURL the preURL
      * @param methodDeclarations the list of methodDeclarations to be parsed
+     * @param preURL             initial part of the URL in case of recursion
+     * @param preMethod          pre-defined HTTP method in case of recursion
      * @return a set of Method models representing the MethodDeclarations
      */
-    public static Set<Method> parseMethods(String preURL, List<MethodDeclaration> methodDeclarations) {
+    public static Set<Method> parseMethods(List<MethodDeclaration> methodDeclarations, String preURL, HttpMethod preMethod) {
         // Get params and returnType
         Set<Method> methods = new HashSet<>();
 
@@ -135,7 +157,7 @@ public class SourceToObjectUtils {
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()));
 
-            method = convertValidEndpoints(preURL, methodDeclaration, method);
+            method = convertValidEndpoints(methodDeclaration, method, preURL, preMethod);
 
 
             methods.add(method);
@@ -147,62 +169,90 @@ public class SourceToObjectUtils {
     /**
      * This method converts a valid Method to an Endpoint
      *
-     * @param preURL the preURL
      * @param methodDeclaration the MethodDeclaration associated with Method
-     * @param method the Method to be converted
+     * @param method            the Method to be converted
+     * @param preURL            initial part of the URL in case of recursion
+     * @param preMethod         pre-defined HTTP method in case of recursion
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
-    public static Method convertValidEndpoints(String preURL, MethodDeclaration methodDeclaration, Method method) {
-        String url = preURL + getPathFromAnnotations(methodDeclaration.getAnnotations());
-        if (method.getAnnotations().isEmpty() || url.isEmpty()) {
-            return method;
-        }
+    public static Method convertValidEndpoints(MethodDeclaration methodDeclaration, Method method, String preURL, HttpMethod preMethod) {
         HttpMethod httpMethod = HttpMethod.NONE;
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
+            String ae_name = ae.getNameAsString();
+            if (call_annotations.contains(ae_name)) {
+                String url = getPathFromAnnotation(ae, preURL);
+                if (preMethod.equals(HttpMethod.NONE)) {
+                    httpMethod = getHttpMethodFromAnnotation(ae, httpMethod);
+                }
+                // By Spring documentation, only the first valid @Mapping annotation is considered;
+                // And getAnnotations() return them in order, so we can return immediately
+                return new Endpoint(method, url, httpMethod, microserviceName);
+            }
 
-            switch (ae.getNameAsString()) {
-                case "GetMapping":
-                    httpMethod = HttpMethod.GET;
-                    break;
-                case "PostMapping":
-                    httpMethod = HttpMethod.POST;
-                    break;
-                case "DeleteMapping":
-                    httpMethod = HttpMethod.DELETE;
-                    break;
-                case "PutMapping":
-                    httpMethod = HttpMethod.PUT;
-                    break;
-                case "RequestMapping":
-                    httpMethod = HttpMethod.GET;
-                    if(ae instanceof NormalAnnotationExpr) {
-                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
-                        for(MemberValuePair mvp : nae.getPairs()) {
-                            if(mvp.getNameAsString().equals("method")) {
-                                switch (mvp.getValue().toString()) {
-                                    case "RequestMethod.DELETE":
-                                        httpMethod = HttpMethod.DELETE;
-                                        break;
-                                    case "RequestMethod.PUT":
-                                        httpMethod = HttpMethod.PUT;
-                                        break;
+        }
+        return method;
+    }
+
+    private static HttpMethod getHttpMethodFromAnnotation(AnnotationExpr ae, HttpMethod httpMethod) {
+        switch (ae.getNameAsString()) {
+            case "GetMapping":
+                return HttpMethod.GET;
+            case "PostMapping":
+                return HttpMethod.POST;
+            case "DeleteMapping":
+                return HttpMethod.DELETE;
+            case "PutMapping":
+                return HttpMethod.PUT;
+            case "PatchMapping":
+                return HttpMethod.PATCH;
+            case "RequestMapping":
+                if (ae instanceof NormalAnnotationExpr) {
+                    NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
+                    if (nae.getPairs().isEmpty()) {
+                        // This is a RequestMapping without parameters
+                        return HttpMethod.NONE; // or set a default method, if you prefer
+                    } else {
+                        for (MemberValuePair pair : nae.getPairs()) {
+                            if (pair.getNameAsString().equals("method")) {
+                                String methodValue = pair.getValue().toString();
+                                switch (methodValue) {
                                     case "RequestMethod.GET":
-                                        httpMethod = HttpMethod.GET;
-                                        break;
-                                    case "RequestMethod.PATCH":
-                                        httpMethod = HttpMethod.PATCH;
-                                        break;
+                                        return HttpMethod.GET;
                                     case "RequestMethod.POST":
-                                        httpMethod = HttpMethod.POST;
+                                        return HttpMethod.POST;
+                                    case "RequestMethod.DELETE":
+                                        return HttpMethod.DELETE;
+                                    case "RequestMethod.PUT":
+                                        return HttpMethod.PUT;
                                 }
                             }
                         }
                     }
-                    break;
-            }
+                }
+            default:
+                return httpMethod;
+        }
+    }
+
+    private static String getPathFromAnnotation(AnnotationExpr ae, String url) {
+        // Annotations of type @Mapping("/endpoint")
+        if (ae.isSingleMemberAnnotationExpr()) {
+            url = url + StringParserUtils.simplifyEndpointURL(
+                    StringParserUtils.removeOuterQuotations(
+                            ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
         }
 
-        return new Endpoint(method, url, httpMethod, microserviceName);
+        // Annotations of type @Mapping(path="/endpoint")
+        else if (ae.isNormalAnnotationExpr() && !ae.asNormalAnnotationExpr().getPairs().isEmpty()) {
+            for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
+                if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
+                    url = url + StringParserUtils.simplifyEndpointURL(
+                            StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
+                    break;
+                }
+            }
+        }
+        return url;
     }
 
     /**
@@ -241,7 +291,7 @@ public class SourceToObjectUtils {
      * This method converts a valid MethodCall to an RestCall
      *
      * @param methodCallExpr the MethodDeclaration associated with Method
-     * @param methodCall the MethodCall to be converted
+     * @param methodCall     the MethodCall to be converted
      * @return returns methodCall if it is invalid, otherwise a new RestCall
      */
     public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
@@ -262,12 +312,6 @@ public class SourceToObjectUtils {
             httpMethod = HttpMethod.DELETE;
         } else if (methodCall.getParameterContents().contains("HttpMethod.PUT")) {
             httpMethod = HttpMethod.PUT;
-        } else if(methodCall.getParameterContents().contains("HttpMethod.PATCH")) {
-            httpMethod = HttpMethod.PATCH;
-        }
-
-        if(httpMethod.equals(HttpMethod.NONE)) {
-            httpMethod = RestCallTemplate.findHttpMethodByName(methodCall.getName());
         }
 
         return new RestCall(methodCall, url, httpMethod, microserviceName);
@@ -314,32 +358,6 @@ public class SourceToObjectUtils {
                     break;
                 case "PutMapping":
                     httpMethod = HttpMethod.PUT;
-                    break;
-                case "RequestMapping":
-                    httpMethod = HttpMethod.GET;
-                    if(ae instanceof NormalAnnotationExpr) {
-                        NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
-                        for(MemberValuePair mvp : nae.getPairs()) {
-                            if(mvp.getNameAsString().equals("method")) {
-                                switch (mvp.getValue().toString()) {
-                                    case "RequestMethod.DELETE":
-                                        httpMethod = HttpMethod.DELETE;
-                                        break;
-                                    case "RequestMethod.PUT":
-                                        httpMethod = HttpMethod.PUT;
-                                        break;
-                                    case "RequestMethod.GET":
-                                        httpMethod = HttpMethod.GET;
-                                        break;
-                                    case "RequestMethod.PATCH":
-                                        httpMethod = HttpMethod.PATCH;
-                                        break;
-                                    case "RequestMethod.POST":
-                                        httpMethod = HttpMethod.POST;
-                                }
-                            }
-                        }
-                    }
                     break;
             }
 
@@ -424,7 +442,7 @@ public class SourceToObjectUtils {
         Expression exp = mce.getArguments().get(0);
 
         if (exp.isStringLiteralExpr()) {
-            return formatURL(StringParserUtils.removeOuterQuotations(exp.toString()));
+            return StringParserUtils.removeOuterQuotations(exp.toString());
         } else if (exp.isFieldAccessExpr()) {
             return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
         } else if (exp.isNameExpr()) {
@@ -534,35 +552,40 @@ public class SourceToObjectUtils {
     }
 
     /**
-     * This method searches a set of Annotation models and returns a ClassRole found
+     * This method searches a list of Annotation expressions and returns a ClassRole found
      *
-     * @param annotations the set of annotations to search
+     * @param annotations the list of annotations to search
      * @return the ClassRole determined
      */
-    private static ClassRole parseClassRole(Set<Annotation> annotations) {
-        ClassRole classRole = ClassRole.UNKNOWN;
-        for (Annotation annotation : annotations) {
-            switch (annotation.getName()) {
+    private static ClassRole parseClassRole(List<AnnotationExpr> annotations) {
+        for (AnnotationExpr annotation : annotations) {
+            switch (annotation.getNameAsString()) {
                 case "RestController":
-                    classRole = ClassRole.CONTROLLER;
-                    break;
+                case "Controller":
+                    return ClassRole.CONTROLLER;
                 case "Service":
-                    classRole = ClassRole.SERVICE;
-                    break;
+                    return ClassRole.SERVICE;
                 case "Repository":
-                    classRole = ClassRole.REPOSITORY;
-                    break;
+                case "RepositoryRestResource":
+                    return ClassRole.REPOSITORY;
                 case "Entity":
-                    classRole = ClassRole.ENTITY;
-                    break;
+                    return ClassRole.ENTITY;
+                case "Embeddable":
+                    return ClassRole.EMBEDDABLE;
+                case "FeignClient":
+                    return ClassRole.FEIGN_CLIENT;
             }
         }
-
-        return classRole;
+        return ClassRole.UNKNOWN;
     }
 
     //TODO Generalize and move out
     private static String getMicroserviceName(File sourceFile) {
-        return sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL)[3];
+        List<String> split = Arrays.asList(sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL));
+        int index = split.indexOf("src");
+        if (index == -1) {
+            index = split.indexOf("java");
+        }
+        return split.get(--index);
     }
 }

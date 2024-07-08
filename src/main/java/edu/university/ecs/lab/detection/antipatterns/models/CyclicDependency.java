@@ -27,15 +27,15 @@ public class CyclicDependency extends AntiPattern{
     /**
      * List of one cycle detected
      */
-    private List<String> cycle;
+    private List<List<String>> cycles;
 
     /**
      * Constructs a CyclicDependency object initialized with the given cycle.
      *
      * @param cycle the list of nodes representing the cycle
      */
-    public CyclicDependency(List<String> cycle) {
-        this.cycle = cycle;
+    public CyclicDependency(List<List<String>> cycles) {
+        this.cycles = cycles;
     }
 
     @Override
@@ -54,8 +54,12 @@ public class CyclicDependency extends AntiPattern{
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(cycle).getAsJsonArray());
+        jsonObject.add("Cyclic Dependencies Found", gson.toJsonTree(cycles).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numCyclicDep(){
+        return cycles.size();
     }
 }

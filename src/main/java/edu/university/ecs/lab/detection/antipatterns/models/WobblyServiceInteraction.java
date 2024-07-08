@@ -1,60 +1,39 @@
 package edu.university.ecs.lab.detection.antipatterns.models;
 
+import java.util.List;
+
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import lombok.Data;
 
 /**
- * Represents a wobbly service interaction, characterized by a microservice name,
- * class name, and method name.
+ * Represents a wobbly service interaction.
  */
 @Data
-public class WobblyServiceInteraction extends AntiPattern{
+public class WobblyServiceInteraction extends AntiPattern {
     /**
      * Anti-pattern name
      */
     private static final String NAME = "Wobbly Service Interaction";
 
     /**
-     * Anti-pattern descsription
+     * Anti-pattern description
      */
     private static final String DESCRIPTION = "Unpredictable behavior or instability caused by inconsistent communication patterns or unreliable interactions between microservices.";
-    
-    /**
-     * The name of the microservice involved in the wobbly service interaction.
-     */
-    private String microserviceName;
-    /**
-     * The name of the class where the wobbly service interaction occurs.
-     */
-    private String className;
-    /**
-     * The name of the method where the wobbly service interaction occurs.
-     */
-    private String methodName;
 
     /**
-     * Constructs a WobblyServiceInteraction object initialized with the given parameteres.
-     *
-     * @param microserviceName  the name of the Microservice
-     * @param className         the name of the class where the wobbly service interaction occured
-     * @param methodName        the name of the method where the wobbly service interaction occured
+     * List of wobbly service interactions in the format: microserviceName.className.methodName
      */
-    public WobblyServiceInteraction(String microserviceName, String className, String methodName){
-        this.microserviceName = microserviceName;
-        this.className = className;
-        this.methodName = methodName;
-    }
+    private List<String> wobblyServiceInteractions;
 
     /**
-     * Returns a string representation of the wobbly service interaction in the format:
-     * microserviceName.className.methodName
+     * Constructs a WobblyServiceInteraction object initialized with the given list of interactions.
      *
-     * @return string representation of the wobbly service interaction
+     * @param wobblyServiceInteractions the list of wobbly service interactions
      */
-    @Override
-    public String toString() {
-        return microserviceName + "." + className + "." + methodName;
+    public WobblyServiceInteraction(List<String> wobblyServiceInteractions) {
+        this.wobblyServiceInteractions = wobblyServiceInteractions;
     }
 
     @Override
@@ -71,10 +50,13 @@ public class WobblyServiceInteraction extends AntiPattern{
     protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("Microservice Name", microserviceName);
-        jsonObject.addProperty("Class Name", className);
-        jsonObject.addProperty("Method Name", methodName);
-
+        Gson gson = new Gson();
+        
+        jsonObject.add("Wobbly Service Interactions Found", gson.toJsonTree(wobblyServiceInteractions).getAsJsonArray());
         return jsonObject;
+    }
+
+    public int numWobbblyService(){
+        return wobblyServiceInteractions.size();
     }
 }

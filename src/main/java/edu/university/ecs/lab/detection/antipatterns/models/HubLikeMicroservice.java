@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Represents a collection of microservices identified as hub-like.
@@ -24,14 +24,14 @@ public class HubLikeMicroservice extends AntiPattern {
     /**
      * Set of microservices identified as hub-like.
      */
-    private Set<String> hublikeMicroservices;
+    private List<String> hublikeMicroservices;
 
     /**
      * Constructor to initialize with a set of hub-like microservices.
      *
      * @param hublikeMicroservices set of microservices identified as hub-like
      */
-    public HubLikeMicroservice(Set<String> hublikeMicroservices) {
+    public HubLikeMicroservice(List<String> hublikeMicroservices) {
         this.hublikeMicroservices = hublikeMicroservices;
     }
 
@@ -60,8 +60,12 @@ public class HubLikeMicroservice extends AntiPattern {
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(hublikeMicroservices).getAsJsonArray());
+        jsonObject.add("Hub-like Microservices Found", gson.toJsonTree(hublikeMicroservices).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numHubLike(){
+        return hublikeMicroservices.size();
     }
 }

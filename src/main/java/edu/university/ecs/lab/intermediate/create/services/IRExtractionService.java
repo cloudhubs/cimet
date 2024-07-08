@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -90,10 +94,10 @@ public class IRExtractionService {
     }
 
     /**
-     * Recursively search for directories containing a Dockerfile.
+     * Recursively search for directories containing a microservice (pom.xml file)
      *
      * @param directory the directory to start the search from
-     * @return a list of directory paths containing a Dockerfile
+     * @return a list of directory paths containing pom.xml
      */
     private List<String> findRootDirectories(String directory) {
         List<String> rootDirectories = new ArrayList<>();
@@ -101,16 +105,35 @@ public class IRExtractionService {
         if (root.exists() && root.isDirectory()) {
             // Check if the current directory contains a Dockerfile
             File[] files = root.listFiles();
-            boolean containsDockerfile = false;
+            boolean containsPom = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
-                        containsDockerfile = true;
-                        break;
+                    if (file.isFile() && file.getName().equals("pom.xml")) {
+                        try {
+
+                            // Create a DocumentBuilder
+                            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+                            // Parse the XML file
+                            Document document = builder.parse(file);
+
+                            // Normalize the XML Structure
+                            document.getDocumentElement().normalize();
+
+                            // Get all elements with the specific tag name
+                            NodeList nodeList = document.getElementsByTagName("modules");
+                            // Check if the tag is present
+                            if (nodeList.getLength() == 0) {
+                                containsPom = true;
+                                break;
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException("Error parsing pom.xml");
+                        }
                     }
                 }
             }
-            if (containsDockerfile) {
+            if (containsPom) {
                 rootDirectories.add(root.getPath());
                 return rootDirectories;
             } else {
@@ -169,18 +192,10 @@ public class IRExtractionService {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        Set<JClass> controllers = new HashSet<>();
-        Set<JClass> services = new HashSet<>();
-        Set<JClass> repositories = new HashSet<>();
-        Set<JClass> entities = new HashSet<>();
 
-
-        scanDirectory(localDir, controllers, services, repositories, entities);
-
-        String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
-
-        Microservice model =
-                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities);
+        Microservice model = new Microservice(FileUtils.getMicroserviceNameFromPath(rootMicroservicePath),
+                FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()));
+        scanDirectory(localDir, model);
 
         System.out.println("Done!");
         return model;
@@ -193,62 +208,21 @@ public class IRExtractionService {
      */
     public void scanDirectory(
             File directory,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities) {
+            Microservice microservice) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories, entities);
-                } else if (file.getName().endsWith(".java") && testFileFilter(file)) {
-                    scanFile(file, controllers, services, repositories, entities);
+                    scanDirectory(file, microservice);
+                } else if (file.getName().endsWith(".java")) {
+                    JClass jClass = SourceToObjectUtils.parseClass(file, config, microservice.getName());
+                    if (jClass != null) {
+                        microservice.addJClass(jClass);
+                    }
                 }
             }
         }
     }
 
-    /**
-     * Scan the given file for endpoints and calls to other services.
-     *
-     * @param file the file to scan
-     */
-    public void scanFile(
-            File file,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities) {
-        JClass jClass = SourceToObjectUtils.parseClass(file, config);
-
-        if (jClass == null) {
-            return;
-        }
-
-        //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
-        // Switch through class roles and handle additional logic if needed
-        switch (jClass.getClassRole()) {
-            case CONTROLLER:
-                controllers.add(jClass);
-                break;
-            case SERVICE:
-                services.add(jClass);
-                break;
-            case REPOSITORY:
-                repositories.add(jClass);
-                break;
-            case ENTITY:
-                entities.add(jClass);
-                break;
-            default:
-                break;
-        }
-
-    }
-
-    private boolean testFileFilter(File file) {
-        return !file.getPath().contains("/src/test/");
-    }
 }

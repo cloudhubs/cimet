@@ -92,7 +92,8 @@ public class FileUtils {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
 
-        return path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split(SEPARATOR_SPECIAL)[1];
+        String[] split = path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split(SEPARATOR_SPECIAL);
+        return split[split.length-1];
     }
 
     /**

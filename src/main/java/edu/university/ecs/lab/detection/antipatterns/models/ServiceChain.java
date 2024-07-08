@@ -26,14 +26,14 @@ public class ServiceChain extends AntiPattern{
     /**
      * List of services in the chain.
      */
-    private List<String> chain;
+    private List<List<String>> chain;
 
     /**
      * Constructs a ServiceChain object initialized with the given sequence of services.
      *
      * @param sequence the list of services representing the chain
      */
-    public ServiceChain(List<String> sequence) {
+    public ServiceChain(List<List<String>> sequence) {
         this.chain = sequence;
     }
 
@@ -53,8 +53,12 @@ public class ServiceChain extends AntiPattern{
 
         Gson gson = new Gson();
 
-        jsonObject.add(NAME, gson.toJsonTree(chain).getAsJsonArray());
+        jsonObject.add("Service Chains Found", gson.toJsonTree(chain).getAsJsonArray());
 
         return jsonObject;
+    }
+
+    public int numServiceChains(){
+        return chain.size();
     }
 }
