@@ -78,8 +78,8 @@ public class UseCase6 extends AbstractUseCase {
                         UseCase6 useCase6 = new UseCase6();
                         JsonObject jsonObject = new JsonObject();
 
-//                        jsonObject.addProperty("AffectedMethod", method.getID());
-//                        jsonObject.addProperty("MethodCall", methodCall.getID());
+                       jsonObject.add("AffectedMethod", method.toJsonObject());
+                       jsonObject.add("MethodCall", methodCall.toJsonObject());
                         useCase6.setOldCommitID(oldSystem.getCommitID());
                         useCase6.setNewCommitID(newSystem.getCommitID());
 

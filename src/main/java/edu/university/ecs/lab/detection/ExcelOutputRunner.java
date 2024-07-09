@@ -1,7 +1,6 @@
 package edu.university.ecs.lab.detection;
 
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,7 +13,6 @@ import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
 import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 
 import edu.university.ecs.lab.common.config.Config;
@@ -59,11 +57,9 @@ public class ExcelOutputRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
-
-        List<List<AbstractUseCase>> allUseCases = new ArrayList<>();
 
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -273,7 +269,7 @@ public class ExcelOutputRunner {
         metric_counts[22] = metrics.getOrDefault("avgLOMLC", 0.0);
         metric_counts[23] = metrics.getOrDefault("stdLOMLC", 0.0);
 
-        int[] arcrules_counts = new int[6];
+        int[] arcrules_counts = new int[4];
         Arrays.fill(arcrules_counts, 0);
 
         if (allARs != null && !allARs.isEmpty()) {

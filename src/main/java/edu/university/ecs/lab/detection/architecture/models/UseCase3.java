@@ -106,7 +106,7 @@ public class UseCase3 extends AbstractUseCase {
             if (!findMatch(restCall, newSystem)) {
                 UseCase3 useCase3 = new UseCase3();
                 JsonObject jsonObject = new JsonObject();
-//                jsonObject.add("RestCall", restCall.toJsonObject());
+                jsonObject.add("RestCall", restCall.toJsonObject());
                 useCase3.setMetaData(jsonObject);
                 useCase3.setOldCommitID(oldSystem.getCommitID());
                 useCase3.setNewCommitID(newSystem.getCommitID());

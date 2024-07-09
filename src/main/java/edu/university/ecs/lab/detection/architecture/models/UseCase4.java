@@ -178,7 +178,7 @@ public class UseCase4 extends AbstractUseCase {
             if(!findMatch(endpoint, newSystem)){
                 UseCase4 useCase4 = new UseCase4();
                 JsonObject jsonObject = new JsonObject();
-//                jsonObject.addProperty("Endpoint", endpoint.getID());
+                jsonObject.add("Endpoint", endpoint.toJsonObject());
                 useCase4.setMetaData(jsonObject);
                 useCase4.setOldCommitID(oldSystem.getCommitID());
                 useCase4.setNewCommitID(newSystem.getCommitID());

@@ -23,7 +23,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class UCDetectionRunner {
     public static void main(String[] args) {
@@ -41,7 +40,7 @@ public class UCDetectionRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
