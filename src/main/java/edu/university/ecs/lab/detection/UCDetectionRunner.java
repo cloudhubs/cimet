@@ -68,13 +68,13 @@ public class UCDetectionRunner {
             jsonArray.addAll(JsonSerializable.toJsonArray(useCases));
 
             obj.addProperty("commitID", commitIdNew);
-            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
-            obj.addProperty("UseCase2", useCases.stream().filter(uc -> uc instanceof UseCase3).count());
-            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof UseCase4).count());
-            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof UseCase6).count());
-            obj.addProperty("UseCase5", useCases.stream().filter(uc -> uc instanceof UseCase7).count());
-            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
-            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
+//            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
+            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof UseCase3).count());
+            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof UseCase4).count());
+            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase6).count());
+            obj.addProperty("UseCase20", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
+//            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
+//            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
 
             obj.add("useCases", jsonArray);
             allUseCases.add(obj);
