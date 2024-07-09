@@ -57,7 +57,7 @@ public class ExcelOutputRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
@@ -77,7 +77,7 @@ public class ExcelOutputRunner {
             cell.setCellValue(columnLabels[i]);
         }
 
-        for (int i = 0; i < list.size() - 1; i++) {
+        for (int i = 1; i < list.size() - 1; i++) {
             String commitIdOld = list.get(i).toString().split(" ")[1];
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
@@ -90,9 +90,6 @@ public class ExcelOutputRunner {
             if (!microserviceSystem.getMicroservices().isEmpty()) {
                 detectAntipatterns(allAntiPatterns, metrics);
             }
-
-
-            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs,i + 1);
 
             // Extract changes from one commit to the other
             deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
@@ -107,7 +104,20 @@ public class ExcelOutputRunner {
             allARs.addAll(ucDetectionService.scanDeltaUC());
             allARs.addAll(ucDetectionService.scanSystemUC());
 
-            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs, i + 1);
+
+            if((i + 1) == 2) {
+                // On the first run we will write initial row to be empty and write the next row
+                writeEmptyRow(sheet, i);
+                writeToExcel(sheet, allARs, i + 1);
+            } else if((i + 1) > (list.size() - 1)) {
+                // If i+1 goes over we will write an empty row
+                writeEmptyRow(sheet, i);
+            } else {
+                // Otherwise we will write the next row
+                writeToExcel(sheet, allARs, i + 1);
+            }
+
+            updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs, i);
 
             try {
                 Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
@@ -216,9 +226,58 @@ public class ExcelOutputRunner {
         metrics.put("stdLOMLC", cohesionMetrics.getStdDev("LackOfMessageLevelCohesion"));
 
     }
-
-    private static void writeToExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, List<AbstractUseCase> allARs, int rowIndex) {
+    private static void writeEmptyRow(XSSFSheet sheet, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
+        for(int i = 0; i < 35; i++) {
+            row.createCell(i).setCellValue(0);
+        }
+
+    }
+
+
+        private static void writeToExcel(XSSFSheet sheet, List<AbstractUseCase> allARs, int rowIndex) {
+        Row row = sheet.createRow(rowIndex);
+
+
+        int[] arcrules_counts = new int[4];
+        Arrays.fill(arcrules_counts, 0);
+
+        if (allARs != null && !allARs.isEmpty()) {
+            for (AbstractUseCase archRule : allARs) {
+                if (archRule instanceof UseCase3) {
+                    arcrules_counts[0]++;
+                } else if (archRule instanceof UseCase4) {
+                    arcrules_counts[1]++;
+                } else if (archRule instanceof UseCase6) {
+                    arcrules_counts[2]++;
+                } else if (archRule instanceof UseCase20) {
+                    arcrules_counts[3]++;
+                }
+            }
+        }
+
+        int[] antipattern_counts = new int[6]; // array to store the counts of each anti-pattern
+        double[] metric_counts = new double[24];
+
+
+        // Default value
+        for (int i = 0; i < antipattern_counts.length; i++) {
+            Cell cell = row.createCell(i + 1); // i + 1 because the first column is for commit ID
+            cell.setCellValue(0);
+        }
+        // Default value
+        for (int i = 0; i < metric_counts.length; i++) {
+            Cell cell = row.createCell(i + 1 + antipattern_counts.length); // first column is for commit ID + rest for anti-patterns
+            cell.setCellValue(0.0);
+        }
+        for (int i = 0; i < arcrules_counts.length; i++) {
+            Cell cell = row.createCell(i + 1 + antipattern_counts.length + metric_counts.length); // first column is for commit ID + rest for anti-patterns
+            cell.setCellValue(arcrules_counts[i]);
+        }
+    }
+
+    private static void updateExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, List<AbstractUseCase> allARs, int rowIndex) {
+        Row row = sheet.getRow(rowIndex);
         Cell commitIdCell = row.createCell(0);
         commitIdCell.setCellValue(commitID.substring(0, 7));
 
@@ -269,35 +328,21 @@ public class ExcelOutputRunner {
         metric_counts[22] = metrics.getOrDefault("avgLOMLC", 0.0);
         metric_counts[23] = metrics.getOrDefault("stdLOMLC", 0.0);
 
-        int[] arcrules_counts = new int[4];
-        Arrays.fill(arcrules_counts, 0);
-
-        if (allARs != null && !allARs.isEmpty()) {
-            for (AbstractUseCase archRule : allARs) {
-                if (archRule instanceof UseCase3) {
-                    arcrules_counts[0]++;
-                } else if (archRule instanceof UseCase4) {
-                    arcrules_counts[1]++;
-                } else if (archRule instanceof UseCase6) {
-                    arcrules_counts[2]++;
-                } else if (archRule instanceof UseCase20) {
-                    arcrules_counts[3]++;
-                }
-            }
-        }
+//        int[] arcrules_counts = new int[4];
+//        Arrays.fill(arcrules_counts, 0);
 
         for (int i = 0; i < antipattern_counts.length; i++) {
-            Cell cell = row.createCell(i + 1); // i + 1 because the first column is for commit ID
+            Cell cell = row.getCell(i + 1); // i + 1 because the first column is for commit ID
             cell.setCellValue(antipattern_counts[i]);
         }
         for (int i = 0; i < metric_counts.length; i++) {
-            Cell cell = row.createCell(i + 1 + antipattern_counts.length); // first column is for commit ID + rest for anti-patterns
+            Cell cell = row.getCell(i + 1 + antipattern_counts.length); // first column is for commit ID + rest for anti-patterns
             cell.setCellValue(metric_counts[i]);
         }
-        for (int i = 0; i < arcrules_counts.length; i++) {
-            Cell cell = row.createCell(i + 1 + antipattern_counts.length + metric_counts.length); // first column is for commit ID + rest for anti-patterns
-            cell.setCellValue(arcrules_counts[i]);
-        }
+//        for (int i = 0; i < arcrules_counts.length; i++) {
+//            Cell cell = row.createCell(i + 1 + antipattern_counts.length + metric_counts.length); // first column is for commit ID + rest for anti-patterns
+//            cell.setCellValue(arcrules_counts[i]);
+//        }
 
     }
 
