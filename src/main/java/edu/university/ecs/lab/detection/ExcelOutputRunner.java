@@ -63,6 +63,8 @@ public class ExcelOutputRunner {
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
+        List<List<AbstractUseCase>> allUseCases = new ArrayList<>();
+
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
 
@@ -87,16 +89,14 @@ public class ExcelOutputRunner {
             HashMap<String, Double> metrics = new HashMap<>();
             List<AbstractUseCase> allARs = new ArrayList<>();
 
-            try {
-                Gson gson = new Gson();
-                MicroserviceSystem microserviceSystem = gson.fromJson(new FileReader("./output/OldIR.json"), MicroserviceSystem.class);
+            MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
-                if (!microserviceSystem.getMicroservices().isEmpty()) {
-                    detectAntipatterns(allAntiPatterns, metrics);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!microserviceSystem.getMicroservices().isEmpty()) {
+                detectAntipatterns(allAntiPatterns, metrics);
             }
+
+
+            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs,i + 1);
 
             // Extract changes from one commit to the other
             deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
@@ -119,12 +119,10 @@ public class ExcelOutputRunner {
                 e.printStackTrace();
             }
 
-
         }
 
         try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
             workbook.write(fileOut);
-            workbook.wait();
             System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
         } catch (Exception e) {
             e.printStackTrace();
