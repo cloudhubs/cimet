@@ -8,7 +8,6 @@ import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
-import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -21,18 +20,10 @@ import java.util.stream.Collectors;
 public class UseCase6 extends AbstractUseCase {
     protected static final String TYPE = "UseCase6";
     protected static final String NAME = "Affected endpoint due to business logic update";
-    protected static final Scope SCOPE = Scope.METHOD_CALL;
     protected static final String DESC = "A service method was modified and now causes inconsistent results for calling endpoints";
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
-
-    @Override
-    public List<? extends AbstractUseCase> checkUseCase() {
-        // This method should return the list of UseCase3 instances relevant to UseCase7 logic, if any.
-        ArrayList<UseCase3> useCases = new ArrayList<>();
-        return useCases;
-    }
 
     @Override
     public String getName() {
@@ -42,11 +33,6 @@ public class UseCase6 extends AbstractUseCase {
     @Override
     public String getDescription() {
         return DESC;
-    }
-
-    @Override
-    public Scope getScope() {
-        return SCOPE;
     }
 
     @Override

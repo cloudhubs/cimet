@@ -12,25 +12,17 @@ import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.utils.FlowUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
-import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
 public class UseCase1 extends AbstractUseCase {
     protected static final String TYPE = "UseCase1";
     protected static final String NAME = "Floating call due to endpoint removal (internal)";
-    protected static final Scope SCOPE = Scope.ENDPOINT;
     protected static final String DESC = "An endpoint was removed, inter service calls depending on this method are no longer called";
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
 
-    @Override
-    public List<? extends AbstractUseCase> checkUseCase() {
-        ArrayList<UseCase3> useCases = new ArrayList<>();
-
-        return new ArrayList<>();
-    }
 
     @Override
     public String getName() {
@@ -40,11 +32,6 @@ public class UseCase1 extends AbstractUseCase {
     @Override
     public String getDescription() {
         return DESC;
-    }
-
-    @Override
-    public Scope getScope() {
-        return SCOPE;
     }
 
     @Override

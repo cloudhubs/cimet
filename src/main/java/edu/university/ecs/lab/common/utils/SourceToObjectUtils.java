@@ -19,7 +19,6 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
-import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
@@ -39,20 +38,14 @@ public class SourceToObjectUtils {
     private static String packageName;
     private static String packageAndClassName;
     private static CombinedTypeSolver combinedTypeSolver;
+
+
     static {
-        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
-        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver("C:\\Users\\ninja\\IdeaProjects\\cimet2\\clone\\train-ticket");
 
-        combinedTypeSolver = new CombinedTypeSolver();
-        combinedTypeSolver.add(reflectionTypeSolver);
-        combinedTypeSolver.add(javaParserTypeSolver);
-
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
     }
 
 
-    private static void generateStaticValues(File sourceFile) {
+    private static void generateStaticValues(File sourceFile, Config config) {
         // Parse the highest level node being compilation unit
         try {
             cu = StaticJavaParser.parse(sourceFile);
@@ -64,6 +57,16 @@ public class SourceToObjectUtils {
             packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
         }
 
+        TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
+        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(FileUtils.getClonePath(config.getRepoName()));
+
+        combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(reflectionTypeSolver);
+        combinedTypeSolver.add(javaParserTypeSolver);
+
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+
     }
 
     /**
@@ -72,8 +75,8 @@ public class SourceToObjectUtils {
      * @param sourceFile the file to parse
      * @return the JClass object representing the file
      */
-    public static JClass parseClass(File sourceFile, Config config) {
-        generateStaticValues(sourceFile);
+    public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
+        generateStaticValues(sourceFile, config);
         if (!microserviceName.isEmpty()) {
             SourceToObjectUtils.microserviceName = microserviceName;
         } else {

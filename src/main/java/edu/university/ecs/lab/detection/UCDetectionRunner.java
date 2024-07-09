@@ -62,7 +62,7 @@ public class UCDetectionRunner {
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
             UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            List<AbstractUseCase> useCases = ucDetectionService.scanDelta();
+            List<AbstractUseCase> useCases = ucDetectionService.scanUseCases();
             JsonObject obj = new JsonObject();
             JsonArray jsonArray = new JsonArray();
             jsonArray.addAll(JsonSerializable.toJsonArray(useCases));

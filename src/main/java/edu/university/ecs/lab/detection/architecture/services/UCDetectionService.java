@@ -5,6 +5,7 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.*;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,18 @@ public class UCDetectionService {
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
+    public List<AbstractUseCase> scanUseCases() {
+
+        List<AbstractUseCase> useCases = new ArrayList<>();
+        useCases.addAll(scanDeltaUC());
+        useCases.addAll(scanSystemUC());
+
+        return useCases;
+    }
 
 
-    public List<AbstractUseCase> scanDelta() {
+
+    public List<AbstractUseCase> scanDeltaUC() {
         List<AbstractUseCase> useCases = new ArrayList<>();
         
         for (Delta d : oldSystem.getChanges()){
@@ -34,11 +44,6 @@ public class UCDetectionService {
             if (!useCase1List.isEmpty()){
                 useCases.addAll(useCase1List);
             }
-
-//            List<UseCase2> useCase2List = UseCase2.scan(d, microserviceSystemOld, microserviceSystemNew);
-//            if (!useCase2List.isEmpty()){
-//                useCases.addAll(useCase2List);
-//            }
 
 
             List<UseCase6> useCase6List = UseCase6.scan(d, microserviceSystemOld, microserviceSystemNew);
@@ -52,6 +57,12 @@ public class UCDetectionService {
                 useCases.addAll(useCase7List);
             }
         }
+
+        return useCases;
+    }
+
+    public List<AbstractUseCase> scanSystemUC() {
+        List<AbstractUseCase> useCases = new ArrayList<>();
 
         List<UseCase3> useCase3List = UseCase3.scan2(microserviceSystemOld, microserviceSystemNew);
         if (!useCase3List.isEmpty()){

@@ -1,5 +1,3 @@
-package edu.university.ecs.lab.temporal;
-
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.*;
@@ -35,7 +33,7 @@ public class IRComparisonTest {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 

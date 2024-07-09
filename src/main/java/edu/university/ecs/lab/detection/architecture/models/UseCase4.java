@@ -13,24 +13,16 @@ import edu.university.ecs.lab.common.models.ir.RestCall;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
-import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
 
 @Data
 public class UseCase4 extends AbstractUseCase {
     protected static final String TYPE = "UseCase4";
     protected static final String NAME = "Floating endpoint due to last call removal";
-    protected static final Scope SCOPE = Scope.REST_CALL;
     protected static final String DESC = "Any rest calls referencing an endpoint are now gone. This endpoint is now unused by any other microservice";
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
-
-    @Override
-    public List<? extends AbstractUseCase> checkUseCase() {
-        // To be implemented if needed
-        return new ArrayList<>();
-    }
 
     @Override
     public String getName() {
@@ -40,11 +32,6 @@ public class UseCase4 extends AbstractUseCase {
     @Override
     public String getDescription() {
         return DESC;
-    }
-
-    @Override
-    public Scope getScope() {
-        return SCOPE;
     }
 
     @Override

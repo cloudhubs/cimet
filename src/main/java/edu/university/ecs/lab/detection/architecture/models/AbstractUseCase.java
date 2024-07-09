@@ -5,21 +5,13 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.Delta;
-import edu.university.ecs.lab.delta.models.SystemChange;
-import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
-import edu.university.ecs.lab.detection.architecture.models.interfaces.UseCaseInterface;
 
 /**
  * Use case class template for all architectural use cases.
  * Children should not host public constructors and all logic
  * should be held in UseCaseInterface methods.
  */
-public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterface {
-    protected Delta delta;
-    protected MicroserviceSystem oldSystem;
-    protected MicroserviceSystem newSystem;
-
-
+public abstract class AbstractUseCase implements JsonSerializable {
 
     /**
      * Get the name of the Architectural Use Case
@@ -35,12 +27,6 @@ public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterf
      */
     public abstract String getDescription();
 
-    /**
-     * Get the scope of the Architectural Use Case
-     *
-     * @return scope of the Use Case
-     */
-    public abstract Scope getScope();
 
     public abstract JsonObject getMetaData();
 
@@ -83,4 +69,5 @@ public abstract class AbstractUseCase implements JsonSerializable, UseCaseInterf
 
         return jsonObject;
     }
+
 }

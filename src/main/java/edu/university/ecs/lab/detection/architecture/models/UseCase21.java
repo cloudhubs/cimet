@@ -1,34 +1,20 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
-import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.detection.antipatterns.models.WrongCuts;
-import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
 import lombok.Data;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 public class UseCase21 extends AbstractUseCase {
     protected static final String TYPE = "UseCase21";
     protected static final String NAME = "Wrongcuts Service";
-    protected static final Scope SCOPE = Scope.ENDPOINT;
     protected static final String DESC = "";
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
-
-    @Override
-    public List<? extends AbstractUseCase> checkUseCase() {
-        // This method should return the list of UseCase3 instances relevant to UseCase7 logic, if any.
-        ArrayList<UseCase21> useCases = new ArrayList<>();
-        return useCases;
-    }
 
     @Override
     public String getName() {
@@ -38,11 +24,6 @@ public class UseCase21 extends AbstractUseCase {
     @Override
     public String getDescription() {
         return DESC;
-    }
-
-    @Override
-    public Scope getScope() {
-        return SCOPE;
     }
 
     @Override
@@ -86,12 +67,12 @@ public class UseCase21 extends AbstractUseCase {
      * @param graph The network graph representing microservices and their dependencies.
      * @return A list of {@link WrongCuts} objects, each representing a cluster of wrongly interconnected services.
      */
-    public List<WrongCuts> identifyAndReportWrongCuts(ServiceDependencyGraph graph) {
-        List<Set<String>> wrongCutsList = detectWrongCuts(graph);
-
-        return wrongCutsList.stream().filter(wrongCut -> wrongCut.size() > 1).map(WrongCuts::new)
-                .collect(Collectors.toList());
-    }
+//    public List<WrongCuts> identifyAndReportWrongCuts(ServiceDependencyGraph graph) {
+//        List<Set<String>> wrongCutsList = detectWrongCuts(graph);
+//
+//        return wrongCutsList.stream().filter(wrongCut -> wrongCut.size() > 1).map(WrongCuts::new)
+//                .collect(Collectors.toList());
+//    }
 
     /**
      * Detects all clusters of wrongly interconnected services in the given network graph.
