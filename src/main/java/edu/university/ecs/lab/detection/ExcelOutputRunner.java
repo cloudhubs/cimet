@@ -109,7 +109,7 @@ public class ExcelOutputRunner {
                 // On the first run we will write initial row to be empty and write the next row
                 writeEmptyRow(sheet, i);
                 writeToExcel(sheet, allARs, i + 1);
-            } else if((i + 1) > (list.size() - 1)) {
+            } else if((i + 1) >= (list.size() - 1)) {
                 // If i+1 goes over we will write an empty row
                 writeEmptyRow(sheet, i);
             } else {
