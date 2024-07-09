@@ -40,10 +40,10 @@ public class UCDetectionService {
             if((d.getNewPath() != null) && d.getNewPath().contains("pom.xml") || (d.getOldPath() != null && d.getOldPath().contains("pom.xml"))){
                 continue;
             }
-            List<UseCase1> useCase1List = UseCase1.scan(d, microserviceSystemOld, microserviceSystemNew);
-            if (!useCase1List.isEmpty()){
-                useCases.addAll(useCase1List);
-            }
+            // List<UseCase1> useCase1List = UseCase1.scan(d, microserviceSystemOld, microserviceSystemNew);
+            // if (!useCase1List.isEmpty()){
+            //     useCases.addAll(useCase1List);
+            // }
 
 
             List<UseCase6> useCase6List = UseCase6.scan(d, microserviceSystemOld, microserviceSystemNew);
@@ -52,10 +52,10 @@ public class UCDetectionService {
             }
 
             
-            List<UseCase7> useCase7List = UseCase7.scan(d, microserviceSystemOld, microserviceSystemNew);
-            if(!useCase7List.isEmpty()){
-                useCases.addAll(useCase7List);
-            }
+            // List<UseCase7> useCase7List = UseCase7.scan(d, microserviceSystemOld, microserviceSystemNew);
+            // if(!useCase7List.isEmpty()){
+            //     useCases.addAll(useCase7List);
+            // }
         }
 
         return useCases;
@@ -79,10 +79,10 @@ public class UCDetectionService {
             useCases.addAll(useCase20List);
         }
 
-        List<UseCase21> useCase21List = UseCase21.scan(microserviceSystemOld, microserviceSystemNew);
-        if(!useCase21List.isEmpty()){
-            useCases.addAll(useCase21List);
-        }
+        // List<UseCase21> useCase21List = UseCase21.scan(microserviceSystemOld, microserviceSystemNew);
+        // if(!useCase21List.isEmpty()){
+        //     useCases.addAll(useCase21List);
+        // }
 
         return useCases;
     }

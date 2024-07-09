@@ -28,6 +28,10 @@ import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
 import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
+import edu.university.ecs.lab.detection.architecture.models.UseCase20;
+import edu.university.ecs.lab.detection.architecture.models.UseCase3;
+import edu.university.ecs.lab.detection.architecture.models.UseCase4;
+import edu.university.ecs.lab.detection.architecture.models.UseCase6;
 import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
@@ -39,7 +43,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelOutputRunner {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String config_path = args[0];
         Config config = ConfigUtil.readConfig(config_path);
         DeltaExtractionService deltaExtractionService;
@@ -59,8 +63,6 @@ public class ExcelOutputRunner {
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
-        List<List<AbstractUseCase>> allUseCases = new ArrayList<>();
-
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
 
@@ -69,7 +71,7 @@ public class ExcelOutputRunner {
                 "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions", "maxAIS",
                 "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
                 "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
-                "maxLOMLC", "avgLOMLC", "stdLOMLC"};
+                "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
 
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < columnLabels.length; i++) {
@@ -83,19 +85,18 @@ public class ExcelOutputRunner {
 
             List<AntiPattern> allAntiPatterns = new ArrayList<>();
             HashMap<String, Double> metrics = new HashMap<>();
+            List<AbstractUseCase> allARs = new ArrayList<>();
 
             try {
                 Gson gson = new Gson();
                 MicroserviceSystem microserviceSystem = gson.fromJson(new FileReader("./output/OldIR.json"), MicroserviceSystem.class);
 
                 if (!microserviceSystem.getMicroservices().isEmpty()) {
-                    detectAntipatterns("./output/OldIR.json", allAntiPatterns, metrics);
+                    detectAntipatterns(allAntiPatterns, metrics);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, i + 1);
 
             // Extract changes from one commit to the other
             deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
@@ -106,8 +107,11 @@ public class ExcelOutputRunner {
             mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
 
-            //UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            //allUseCases.add(ucDetectionService.scanDelta());
+            UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+            allARs.addAll(ucDetectionService.scanDeltaUC());
+            allARs.addAll(ucDetectionService.scanSystemUC());
+
+            writeToExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs, i + 1);
 
             try {
                 Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
@@ -115,18 +119,21 @@ public class ExcelOutputRunner {
                 e.printStackTrace();
             }
 
+
         }
 
         try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
             workbook.write(fileOut);
-            workbook.close();
+            workbook.wait();
             System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            workbook.close();
         }
 
-        JsonArray jsonArray = toJsonArray(allUseCases);
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
+        // JsonArray jsonArray = toJsonArray(allUseCases);
+        // JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
     }
 
     private static void createIRSystem(Config config, String fileName) {
@@ -141,8 +148,8 @@ public class ExcelOutputRunner {
     }
 
     //Need to implement NoAPI & Healthcheck -> need yaml in IR
-    private static void detectAntipatterns(String IRPath, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics) {
-        MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
+    private static void detectAntipatterns(List<AntiPattern> allAntiPatterns, Map<String, Double> metrics) {
+        MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
@@ -203,7 +210,7 @@ public class ExcelOutputRunner {
             metrics.put("SCCmodularity", mod.getModularity());
         }
 
-        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(IRPath);
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics("./output/OldIR.json");
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
         metrics.put("stdSIDC", cohesionMetrics.getStdDev("ServiceInterfaceDataCohesion"));
@@ -216,31 +223,32 @@ public class ExcelOutputRunner {
 
     }
 
-    private static void writeToExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, int rowIndex) {
+    private static void writeToExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, List<AbstractUseCase> allARs, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
         Cell commitIdCell = row.createCell(0);
         commitIdCell.setCellValue(commitID.substring(0, 7));
 
-        int[] counts = new int[6]; // array to store the counts of each anti-pattern
-        Arrays.fill(counts, 0);
+        int[] antipattern_counts = new int[6]; // array to store the counts of each anti-pattern
+        Arrays.fill(antipattern_counts, 0);
 
         if (allAntiPatterns != null && !allAntiPatterns.isEmpty()) {
             for (AntiPattern antiPattern : allAntiPatterns) {
                 if (antiPattern instanceof GreedyMicroservice) {
-                    counts[0] = ((GreedyMicroservice) antiPattern).numGreedyMicro();
+                    antipattern_counts[0] = ((GreedyMicroservice) antiPattern).numGreedyMicro();
                 } else if (antiPattern instanceof HubLikeMicroservice) {
-                    counts[1] = ((HubLikeMicroservice) antiPattern).numHubLike();
+                    antipattern_counts[1] = ((HubLikeMicroservice) antiPattern).numHubLike();
                 } else if (antiPattern instanceof ServiceChain) {
-                    counts[2] = ((ServiceChain) antiPattern).numServiceChains();
+                    antipattern_counts[2] = ((ServiceChain) antiPattern).numServiceChains();
                 } else if (antiPattern instanceof WrongCuts) {
-                    counts[3] = ((WrongCuts) antiPattern).numWrongCuts();
+                    antipattern_counts[3] = ((WrongCuts) antiPattern).numWrongCuts();
                 } else if (antiPattern instanceof CyclicDependency) {
-                    counts[4] = ((CyclicDependency) antiPattern).numCyclicDep();
+                    antipattern_counts[4] = ((CyclicDependency) antiPattern).numCyclicDep();
                 } else if (antiPattern instanceof WobblyServiceInteraction) {
-                    counts[5] = ((WobblyServiceInteraction) antiPattern).numWobbblyService();
+                    antipattern_counts[5] = ((WobblyServiceInteraction) antiPattern).numWobbblyService();
                 }
             }
         }
+
         double[] metric_counts = new double[24];
         metric_counts[0] = metrics.getOrDefault("maxAIS", 0.0);
         metric_counts[1] = metrics.getOrDefault("avgAIS", 0.0);
@@ -267,15 +275,36 @@ public class ExcelOutputRunner {
         metric_counts[22] = metrics.getOrDefault("avgLOMLC", 0.0);
         metric_counts[23] = metrics.getOrDefault("stdLOMLC", 0.0);
 
+        int[] arcrules_counts = new int[6];
+        Arrays.fill(arcrules_counts, 0);
 
-        for (int i = 0; i < counts.length; i++) {
+        if (allARs != null && !allARs.isEmpty()) {
+            for (AbstractUseCase archRule : allARs) {
+                if (archRule instanceof UseCase3) {
+                    arcrules_counts[0]++;
+                } else if (archRule instanceof UseCase4) {
+                    arcrules_counts[1]++;
+                } else if (archRule instanceof UseCase6) {
+                    arcrules_counts[2]++;
+                } else if (archRule instanceof UseCase20) {
+                    arcrules_counts[3]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < antipattern_counts.length; i++) {
             Cell cell = row.createCell(i + 1); // i + 1 because the first column is for commit ID
-            cell.setCellValue(counts[i]);
+            cell.setCellValue(antipattern_counts[i]);
         }
         for (int i = 0; i < metric_counts.length; i++) {
-            Cell cell = row.createCell(i + 1 + counts.length); // first column is for commit ID + rest for anti-patterns
+            Cell cell = row.createCell(i + 1 + antipattern_counts.length); // first column is for commit ID + rest for anti-patterns
             cell.setCellValue(metric_counts[i]);
         }
+        for (int i = 0; i < arcrules_counts.length; i++) {
+            Cell cell = row.createCell(i + 1 + antipattern_counts.length + metric_counts.length); // first column is for commit ID + rest for anti-patterns
+            cell.setCellValue(arcrules_counts[i]);
+        }
+
     }
 
     private static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
