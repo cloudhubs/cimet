@@ -77,13 +77,16 @@ public class ExcelOutputRunner {
             cell.setCellValue(columnLabels[i]);
         }
 
+        // Used for AR validation
+        List<List<AbstractUseCase>> allARs = new ArrayList<>();
+
         for (int i = 1; i < list.size() - 1; i++) {
             String commitIdOld = list.get(i).toString().split(" ")[1];
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
             List<AntiPattern> allAntiPatterns = new ArrayList<>();
             HashMap<String, Double> metrics = new HashMap<>();
-            List<AbstractUseCase> allARs = new ArrayList<>();
+            List<AbstractUseCase> currARs = new ArrayList<>();
 
             MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
@@ -98,32 +101,33 @@ public class ExcelOutputRunner {
             // Merge Delta changes to old IR to create new IR representing new commit changes
             MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", config_path);
             mergeService.generateMergeIR();
-            //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
 
             UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            allARs.addAll(ucDetectionService.scanDeltaUC());
-            allARs.addAll(ucDetectionService.scanSystemUC());
+            currARs.addAll(ucDetectionService.scanDeltaUC());
+            currARs.addAll(ucDetectionService.scanSystemUC());
 
 
             if((i + 1) == 2) {
                 // On the first run we will write initial row to be empty and write the next row
                 writeEmptyRow(sheet, i);
-                writeToExcel(sheet, allARs, i + 1);
+                writeToExcel(sheet, currARs, i + 1);
             } else if((i + 1) >= (list.size() - 1)) {
                 // If i+1 goes over we will write an empty row
                 writeEmptyRow(sheet, i);
             } else {
                 // Otherwise we will write the next row
-                writeToExcel(sheet, allARs, i + 1);
+                writeToExcel(sheet, currARs, i + 1);
             }
 
-            updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, allARs, i);
+            updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, i);
 
             try {
                 Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            allARs.add(currARs);
 
         }
 
@@ -136,8 +140,9 @@ public class ExcelOutputRunner {
             workbook.close();
         }
 
-        // JsonArray jsonArray = toJsonArray(allUseCases);
-        // JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
+        // Used to validate the ARs
+        JsonArray jsonArray = toJsonArray(allARs);
+        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
     }
 
     private static void createIRSystem(Config config, String fileName) {
@@ -151,7 +156,7 @@ public class ExcelOutputRunner {
         irExtractionService.generateIR(fileName);
     }
 
-    //Need to implement NoAPI & Healthcheck -> need yaml in IR
+    //TODO: Need to implement NoAPI & Healthcheck -> need yaml in IR
     private static void detectAntipatterns(List<AntiPattern> allAntiPatterns, Map<String, Double> metrics) {
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
@@ -226,6 +231,7 @@ public class ExcelOutputRunner {
         metrics.put("stdLOMLC", cohesionMetrics.getStdDev("LackOfMessageLevelCohesion"));
 
     }
+
     private static void writeEmptyRow(XSSFSheet sheet, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
         for(int i = 0; i < 35; i++) {
@@ -234,16 +240,15 @@ public class ExcelOutputRunner {
 
     }
 
-
-        private static void writeToExcel(XSSFSheet sheet, List<AbstractUseCase> allARs, int rowIndex) {
+    private static void writeToExcel(XSSFSheet sheet, List<AbstractUseCase> currARs, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
 
 
         int[] arcrules_counts = new int[4];
         Arrays.fill(arcrules_counts, 0);
 
-        if (allARs != null && !allARs.isEmpty()) {
-            for (AbstractUseCase archRule : allARs) {
+        if (currARs != null && !currARs.isEmpty()) {
+            for (AbstractUseCase archRule : currARs) {
                 if (archRule instanceof UseCase3) {
                     arcrules_counts[0]++;
                 } else if (archRule instanceof UseCase4) {
@@ -276,7 +281,7 @@ public class ExcelOutputRunner {
         }
     }
 
-    private static void updateExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, List<AbstractUseCase> allARs, int rowIndex) {
+    private static void updateExcel(XSSFSheet sheet, String commitID, List<AntiPattern> allAntiPatterns, Map<String, Double> metrics, int rowIndex) {
         Row row = sheet.getRow(rowIndex);
         Cell commitIdCell = row.createCell(0);
         commitIdCell.setCellValue(commitID.substring(0, 7));
@@ -328,9 +333,6 @@ public class ExcelOutputRunner {
         metric_counts[22] = metrics.getOrDefault("avgLOMLC", 0.0);
         metric_counts[23] = metrics.getOrDefault("stdLOMLC", 0.0);
 
-//        int[] arcrules_counts = new int[4];
-//        Arrays.fill(arcrules_counts, 0);
-
         for (int i = 0; i < antipattern_counts.length; i++) {
             Cell cell = row.getCell(i + 1); // i + 1 because the first column is for commit ID
             cell.setCellValue(antipattern_counts[i]);
@@ -339,10 +341,6 @@ public class ExcelOutputRunner {
             Cell cell = row.getCell(i + 1 + antipattern_counts.length); // first column is for commit ID + rest for anti-patterns
             cell.setCellValue(metric_counts[i]);
         }
-//        for (int i = 0; i < arcrules_counts.length; i++) {
-//            Cell cell = row.createCell(i + 1 + antipattern_counts.length + metric_counts.length); // first column is for commit ID + rest for anti-patterns
-//            cell.setCellValue(arcrules_counts[i]);
-//        }
 
     }
 
