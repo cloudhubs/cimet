@@ -2,7 +2,7 @@ package edu.university.ecs.lab.detection;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
+import edu.university.ecs.lab.detection.architecture.models.AbstractAR;
 import edu.university.ecs.lab.detection.architecture.models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -61,17 +61,17 @@ public class UCDetectionRunner {
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
             UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            List<AbstractUseCase> useCases = ucDetectionService.scanUseCases();
+            List<AbstractAR> useCases = ucDetectionService.scanUseCases();
             JsonObject obj = new JsonObject();
             JsonArray jsonArray = new JsonArray();
             jsonArray.addAll(JsonSerializable.toJsonArray(useCases));
 
             obj.addProperty("commitID", commitIdNew);
 //            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
-            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof UseCase3).count());
-            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof UseCase4).count());
-            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase6).count());
-            obj.addProperty("UseCase20", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
+            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof AR3).count());
+            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof AR4).count());
+            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof AR6).count());
+            obj.addProperty("UseCase20", useCases.stream().filter(uc -> uc instanceof AR20).count());
 //            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
 //            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
 
@@ -100,13 +100,13 @@ public class UCDetectionRunner {
         irExtractionService.generateIR(fileName);
     }
 
-    public static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
+    public static JsonArray toJsonArray(List<List<AbstractAR>> archRulesList) {
         JsonArray outerArray = new JsonArray();
         
-        for (List<AbstractUseCase> useCaseList : useCaseLists) {
+        for (List<AbstractAR> archRules : archRulesList) {
             JsonArray innerArray = new JsonArray();
-            for (AbstractUseCase useCase : useCaseList) {
-                innerArray.add(useCase.toJsonObject());
+            for (AbstractAR archRule : archRules) {
+                innerArray.add(archRule.toJsonObject());
             }
             outerArray.add(innerArray);
         }

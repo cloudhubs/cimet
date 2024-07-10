@@ -20,8 +20,8 @@ import com.google.gson.JsonObject;
  *
  */
 @Data
-public class UseCase3 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase3";
+public class AR3 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 3";
     protected static final String NAME = "Floating call due to invalid call creation";
     protected static final String DESC = "A rest call is added that references a nonexistent endpoint";
     private String oldCommitID;
@@ -54,12 +54,12 @@ public class UseCase3 extends AbstractUseCase {
         return metaData;
     }
 
-    public List<UseCase3> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase3> useCases = new ArrayList<>();
+    public List<AR3> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR3> archRules = new ArrayList<>();
 
         // If it isn't add or modify, or not a service
         if (delta.getChangeType().equals(ChangeType.DELETE) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
-            return useCases;
+            return archRules;
         }
 
 
@@ -67,17 +67,17 @@ public class UseCase3 extends AbstractUseCase {
         // TODO this technically includes RestCalls that have already been flagged in the past
         for (RestCall restCall : delta.getClassChange().getRestCalls()) {
             if (!findMatch(restCall, newSystem)) {
-                UseCase3 useCase3 = new UseCase3();
+                AR3 archRule3 = new AR3();
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("RestCall", restCall.getID());
-                useCase3.setMetaData(jsonObject);
-                useCase3.setOldCommitID(oldSystem.getCommitID());
-                useCase3.setNewCommitID(newSystem.getCommitID());
-                useCases.add(useCase3);
+                archRule3.setMetaData(jsonObject);
+                archRule3.setOldCommitID(oldSystem.getCommitID());
+                archRule3.setNewCommitID(newSystem.getCommitID());
+                archRules.add(archRule3);
             }
         }
 
-        return useCases;
+        return archRules;
     }
 
     private static boolean findMatch(RestCall restCall, MicroserviceSystem newSystem) {
@@ -94,8 +94,8 @@ public class UseCase3 extends AbstractUseCase {
     }
 
 
-    public static List<UseCase3> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase3> useCases = new ArrayList<>();
+    public static List<AR3> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR3> archRules = new ArrayList<>();
 
         List<RestCall> allRestCalls = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).flatMap(jClass -> jClass.getRestCalls().stream()).collect(Collectors.toList());
 
@@ -104,17 +104,17 @@ public class UseCase3 extends AbstractUseCase {
         // TODO this technically includes RestCalls that have already been flagged in the past
         for (RestCall restCall : allRestCalls) {
             if (!findMatch(restCall, newSystem)) {
-                UseCase3 useCase3 = new UseCase3();
+                AR3 archRule3 = new AR3();
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.add("RestCall", restCall.toJsonObject());
-                useCase3.setMetaData(jsonObject);
-                useCase3.setOldCommitID(oldSystem.getCommitID());
-                useCase3.setNewCommitID(newSystem.getCommitID());
-                useCases.add(useCase3);
+                archRule3.setMetaData(jsonObject);
+                archRule3.setOldCommitID(oldSystem.getCommitID());
+                archRule3.setNewCommitID(newSystem.getCommitID());
+                archRules.add(archRule3);
             }
         }
 
-        return useCases;
+        return archRules;
     }
 }
 

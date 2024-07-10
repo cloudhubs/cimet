@@ -16,8 +16,8 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
 @Data
-public class UseCase4 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase4";
+public class AR4 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 4";
     protected static final String NAME = "Floating endpoint due to last call removal";
     protected static final String DESC = "Any rest calls referencing an endpoint are now gone. This endpoint is now unused by any other microservice";
     private String oldCommitID;
@@ -44,14 +44,14 @@ public class UseCase4 extends AbstractUseCase {
         return metaData;
     }
 
-    public static List<UseCase4> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase4> useCases = new ArrayList<>();
+    public static List<AR4> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR4> archRules = new ArrayList<>();
 
         // If we are not removing or modifying a service
         JClass jClass = delta.getChangeType().equals(ChangeType.MODIFY) ? delta.getClassChange() : oldSystem.findClass(delta.getOldPath());
 
         if (delta.getChangeType().equals(ChangeType.ADD) || !jClass.getClassRole().equals(ClassRole.SERVICE)) {
-            return useCases;
+            return archRules;
         }
 
         // Get endpoints that do not have any calls
@@ -75,13 +75,13 @@ public class UseCase4 extends AbstractUseCase {
                 for (Endpoint endpoint : uncalledEndpoints) {
                     // If we match, they once called but no longer call
                     if (RestCall.matchEndpoint(restCall, endpoint)) {
-                        UseCase4 useCase4 = new UseCase4();
+                        AR4 archRule4 = new AR4();
                         JsonObject jsonObject = new JsonObject();
                         jsonObject.add("RestCall", restCall.toJsonObject());
-                        useCase4.setMetaData(jsonObject);
-                        useCase4.setOldCommitID(oldSystem.getCommitID());
-                        useCase4.setNewCommitID(newSystem.getCommitID());
-                        useCases.add(useCase4);
+                        archRule4.setMetaData(jsonObject);
+                        archRule4.setOldCommitID(oldSystem.getCommitID());
+                        archRule4.setNewCommitID(newSystem.getCommitID());
+                        archRules.add(archRule4);
                         removeEndpoint = endpoint;
                         break endpointLoop;
                     }
@@ -96,7 +96,7 @@ public class UseCase4 extends AbstractUseCase {
         }
 
 
-        return useCases;
+        return archRules;
     }
 
     /**
@@ -165,8 +165,8 @@ public class UseCase4 extends AbstractUseCase {
         return TYPE;
     }
 
-    public static List<UseCase4> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase4> useCases = new ArrayList<>();
+    public static List<AR4> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR4> archRules = new ArrayList<>();
 
         // If we are not removing or modifying a service
 
@@ -176,18 +176,18 @@ public class UseCase4 extends AbstractUseCase {
 
         for(Endpoint endpoint: allEndpoints){
             if(!findMatch(endpoint, newSystem)){
-                UseCase4 useCase4 = new UseCase4();
+                AR4 archRule4 = new AR4();
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.add("Endpoint", endpoint.toJsonObject());
-                useCase4.setMetaData(jsonObject);
-                useCase4.setOldCommitID(oldSystem.getCommitID());
-                useCase4.setNewCommitID(newSystem.getCommitID());
-                useCases.add(useCase4);
+                archRule4.setMetaData(jsonObject);
+                archRule4.setOldCommitID(oldSystem.getCommitID());
+                archRule4.setNewCommitID(newSystem.getCommitID());
+                archRules.add(archRule4);
             }
         }
 
 
-        return useCases;
+        return archRules;
     }
 
     // Check for modified/deleted endpoint in new system

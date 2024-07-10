@@ -3,13 +3,12 @@ package edu.university.ecs.lab.detection.architecture.models;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
-import edu.university.ecs.lab.detection.antipatterns.models.WrongCuts;
 import lombok.Data;
 import java.util.*;
 
 @Data
-public class UseCase21 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase21";
+public class AR21 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 21";
     protected static final String NAME = "Wrongcuts Service";
     protected static final String DESC = "";
     private String oldCommitID;
@@ -41,23 +40,23 @@ public class UseCase21 extends AbstractUseCase {
         return metaData;
     }
 
-    public static List<UseCase21> scan(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase21> useCases = new ArrayList<>();
+    public static List<AR21> scan(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR21> archRules = new ArrayList<>();
 
         ServiceDependencyGraph graph = new ServiceDependencyGraph(newSystem);
         List<Set<String>> wrongCuts = detectWrongCuts(graph);
 
         wrongCuts.forEach(s -> {
-            UseCase21 useCase = new UseCase21();
+            AR21 archRule21 = new AR21();
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("Microservice", String.join(",", s));
-            useCase.setMetaData(jsonObject);
-            useCase.setOldCommitID(oldSystem.getCommitID());
-            useCase.setNewCommitID(newSystem.getCommitID());
-            useCases.add(useCase);
+            archRule21.setMetaData(jsonObject);
+            archRule21.setOldCommitID(oldSystem.getCommitID());
+            archRule21.setNewCommitID(newSystem.getCommitID());
+            archRules.add(archRule21);
         });
 
-        return useCases;
+        return archRules;
 
     }
 

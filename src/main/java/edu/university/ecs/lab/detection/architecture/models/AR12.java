@@ -1,4 +1,4 @@
 //package edu.university.ecs.lab.detection.architecture.models;
 //
-//public class UseCase12 {
+//public class AR12 {
 //}

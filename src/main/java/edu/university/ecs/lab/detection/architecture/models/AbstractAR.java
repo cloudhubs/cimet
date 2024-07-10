@@ -2,28 +2,24 @@ package edu.university.ecs.lab.detection.architecture.models;
 
 import com.google.gson.JsonObject;
 
-import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.delta.models.Delta;
 
 /**
- * Use case class template for all architectural use cases.
- * Children should not host public constructors and all logic
- * should be held in UseCaseInterface methods.
+ * Architectural Rule class template for all architectural rules.
  */
-public abstract class AbstractUseCase implements JsonSerializable {
+public abstract class AbstractAR implements JsonSerializable {
 
     /**
-     * Get the name of the Architectural Use Case
+     * Get the name of the Architectural Rule
      *
-     * @return string name of the Use Case
+     * @return string name of the Architectural Rule
      */
     public abstract String getName();
 
     /**
-     * Get the description of the Architectural Use Case
+     * Get the description of the Architectural Rule
      *
-     * @return string description of the Use Case
+     * @return string description of the Architectural Rule
      */
     public abstract String getDescription();
 
@@ -31,9 +27,9 @@ public abstract class AbstractUseCase implements JsonSerializable {
     public abstract JsonObject getMetaData();
 
     /**
-     * Get the weight of the Use Case
+     * Get the weight of the Architectural Rule
      *
-     * @return double weight of the Use Case
+     * @return double weight of the Architectural Rule
      */
     public abstract double getWeight();
 

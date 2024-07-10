@@ -15,8 +15,8 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
 @Data
-public class UseCase7 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase7";
+public class AR7 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 7";
     protected static final String NAME = "Affected endpoint due to data access logic update";
     protected static final String DESC = "A repository method was modified and now causes inconsistent results";
     private String oldCommitID;
@@ -49,8 +49,8 @@ public class UseCase7 extends AbstractUseCase {
         return TYPE;
     }
 
-    public static List<UseCase7> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase7> useCases = new ArrayList<>();
+    public static List<AR7> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR7> useCases = new ArrayList<>();
 
         JClass oldClass = oldSystem.findClass(delta.getOldPath());
 
@@ -69,7 +69,7 @@ public class UseCase7 extends AbstractUseCase {
                         for (Annotation annotationNew : methodNew.getAnnotations()) {
                             // Annotation names match but not the contents
                             if (annotationNew.getName().equals(annotationOld.getName()) && !annotationNew.getContents().equals(annotationOld.getContents())) {
-                                UseCase7 useCase7 = new UseCase7();
+                                AR7 useCase7 = new AR7();
                                 JsonObject jsonObject = new JsonObject();
                                 jsonObject.isJsonNull();
                                 jsonObject.addProperty("OldMethodDeclaration", methodOld.getID());

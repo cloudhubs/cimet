@@ -25,11 +25,11 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
-import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
-import edu.university.ecs.lab.detection.architecture.models.UseCase20;
-import edu.university.ecs.lab.detection.architecture.models.UseCase3;
-import edu.university.ecs.lab.detection.architecture.models.UseCase4;
-import edu.university.ecs.lab.detection.architecture.models.UseCase6;
+import edu.university.ecs.lab.detection.architecture.models.AbstractAR;
+import edu.university.ecs.lab.detection.architecture.models.AR20;
+import edu.university.ecs.lab.detection.architecture.models.AR3;
+import edu.university.ecs.lab.detection.architecture.models.AR4;
+import edu.university.ecs.lab.detection.architecture.models.AR6;
 import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
@@ -78,7 +78,7 @@ public class ExcelOutputRunner {
         }
 
         // Used for AR validation
-        List<List<AbstractUseCase>> allARs = new ArrayList<>();
+        List<List<AbstractAR>> allARs = new ArrayList<>();
 
         for (int i = 1; i < list.size() - 1; i++) {
             String commitIdOld = list.get(i).toString().split(" ")[1];
@@ -86,7 +86,7 @@ public class ExcelOutputRunner {
 
             List<AntiPattern> allAntiPatterns = new ArrayList<>();
             HashMap<String, Double> metrics = new HashMap<>();
-            List<AbstractUseCase> currARs = new ArrayList<>();
+            List<AbstractAR> currARs = new ArrayList<>();
 
             MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
@@ -240,7 +240,7 @@ public class ExcelOutputRunner {
 
     }
 
-    private static void writeToExcel(XSSFSheet sheet, List<AbstractUseCase> currARs, int rowIndex) {
+    private static void writeToExcel(XSSFSheet sheet, List<AbstractAR> currARs, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
 
 
@@ -248,14 +248,14 @@ public class ExcelOutputRunner {
         Arrays.fill(arcrules_counts, 0);
 
         if (currARs != null && !currARs.isEmpty()) {
-            for (AbstractUseCase archRule : currARs) {
-                if (archRule instanceof UseCase3) {
+            for (AbstractAR archRule : currARs) {
+                if (archRule instanceof AR3) {
                     arcrules_counts[0]++;
-                } else if (archRule instanceof UseCase4) {
+                } else if (archRule instanceof AR4) {
                     arcrules_counts[1]++;
-                } else if (archRule instanceof UseCase6) {
+                } else if (archRule instanceof AR6) {
                     arcrules_counts[2]++;
-                } else if (archRule instanceof UseCase20) {
+                } else if (archRule instanceof AR20) {
                     arcrules_counts[3]++;
                 }
             }
@@ -344,17 +344,17 @@ public class ExcelOutputRunner {
 
     }
 
-    private static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
+    public static JsonArray toJsonArray(List<List<AbstractAR>> archRulesList) {
         JsonArray outerArray = new JsonArray();
-
-        for (List<AbstractUseCase> useCaseList : useCaseLists) {
+        
+        for (List<AbstractAR> archRules : archRulesList) {
             JsonArray innerArray = new JsonArray();
-            for (AbstractUseCase useCase : useCaseList) {
-                innerArray.add(useCase.toJsonObject());
+            for (AbstractAR archRule : archRules) {
+                innerArray.add(archRule.toJsonObject());
             }
             outerArray.add(innerArray);
         }
-
+        
         return outerArray;
     }
 

@@ -15,8 +15,8 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
 @Data
-public class UseCase1 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase1";
+public class AR1 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rules 1";
     protected static final String NAME = "Floating call due to endpoint removal (internal)";
     protected static final String DESC = "An endpoint was removed, inter service calls depending on this method are no longer called";
     private String oldCommitID;
@@ -49,8 +49,8 @@ public class UseCase1 extends AbstractUseCase {
         return TYPE;
     }
 
-    public static List<UseCase1> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
-        List<UseCase1> useCases = new ArrayList<>();
+    public static List<AR1> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
+        List<AR1> useCases = new ArrayList<>();
 
         // Old class for delete, delta class for modify
         JClass jClass = delta.getChangeType().equals(ChangeType.MODIFY) ? delta.getClassChange() : oldSystem.findClass(delta.getOldPath());
@@ -73,7 +73,7 @@ public class UseCase1 extends AbstractUseCase {
                     for(RestCall restCall : flow.getService().getRestCalls()) {
                         // If this restCall is called in the severed flow
                         if(flow.getServiceMethod() != null && restCall.getCalledFrom().equals(flow.getServiceMethod().getName())){
-                            UseCase1 useCase1 = new UseCase1();
+                            AR1 useCase1 = new AR1();
                             JsonObject jsonObject = new JsonObject();
 //                            jsonObject.add("RestCall", restCall.toJsonObject());
 //                            jsonObject.add("Endpoint", endpointMatch == null ? new JsonObject() : endpointMatch.toJsonObject());
@@ -94,8 +94,8 @@ public class UseCase1 extends AbstractUseCase {
         return useCases;
     }
 
-    public static List<UseCase1> scan2(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
-        List<UseCase1> useCases = new ArrayList<>();
+    public static List<AR1> scan2(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
+        List<AR1> useCases = new ArrayList<>();
 
         List<Flow> flows = FlowUtils.buildFlows(oldSystem);
         List<RestCall> allRestCalls = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).flatMap(jClass -> jClass.getRestCalls().stream()).collect(Collectors.toList());
@@ -110,13 +110,13 @@ public class UseCase1 extends AbstractUseCase {
                 }
 
                 // If the restCall is not in any flows (flows start at controller)
-                UseCase1 useCase1 = new UseCase1();
+                AR1 archRule1 = new AR1();
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("RestCall", restCall.getID());
-                useCase1.setMetaData(jsonObject);
-                useCase1.setOldCommitID(oldSystem.getCommitID());
-                useCase1.setNewCommitID(newSystem.getCommitID());
-                useCases.add(useCase1);
+                archRule1.setMetaData(jsonObject);
+                archRule1.setOldCommitID(oldSystem.getCommitID());
+                archRule1.setNewCommitID(newSystem.getCommitID());
+                useCases.add(archRule1);
 
             }
         }
