@@ -68,14 +68,14 @@ public class UCDetectionRunner {
 
             obj.addProperty("commitID", commitIdNew);
 //            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
-            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof AR3).count());
-            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof AR4).count());
-            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof AR6).count());
-            obj.addProperty("UseCase20", useCases.stream().filter(uc -> uc instanceof AR20).count());
+            obj.addProperty("Architectural Rule 3", useCases.stream().filter(uc -> uc instanceof AR3).count());
+            obj.addProperty("Architectural Rule 4", useCases.stream().filter(uc -> uc instanceof AR4).count());
+            obj.addProperty("Architectural Rule 6", useCases.stream().filter(uc -> uc instanceof AR6).count());
+            obj.addProperty("Architectural Rule 20", useCases.stream().filter(uc -> uc instanceof AR20).count());
 //            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
 //            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
 
-            obj.add("useCases", jsonArray);
+            obj.add("Architectural Rules", jsonArray);
             allUseCases.add(obj);
 
             try {
@@ -85,7 +85,7 @@ public class UCDetectionRunner {
             }
         }
 
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", allUseCases);
+        JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", allUseCases);
     }
 
 

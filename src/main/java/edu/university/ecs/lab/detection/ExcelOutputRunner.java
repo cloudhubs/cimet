@@ -142,7 +142,7 @@ public class ExcelOutputRunner {
 
         // Used to validate the ARs
         JsonArray jsonArray = toJsonArray(allARs);
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", jsonArray);
+        JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
     }
 
     private static void createIRSystem(Config config, String fileName) {
