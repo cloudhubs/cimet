@@ -15,6 +15,7 @@ import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
@@ -76,6 +77,11 @@ public class SourceToObjectUtils {
      * @return the JClass object representing the file
      */
     public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
+        // Guard condition
+        if(Objects.isNull(sourceFile) || FileUtils.isConfigurationFile(sourceFile)) {
+            return null;
+        }
+
         generateStaticValues(sourceFile, config);
         if (!microserviceName.isEmpty()) {
             SourceToObjectUtils.microserviceName = microserviceName;
@@ -111,16 +117,23 @@ public class SourceToObjectUtils {
                 }
             }
         }
+
         preURL = preURL.replace("\"", "");
 
         ClassRole classRole = parseClassRole(classAnnotations);
+
         // Return unknown classRoles where annotation not found
         if (classRole.equals(ClassRole.UNKNOWN)) {
             return null;
         }
 
+        JClass feignClass = null;
+        if(classRole == ClassRole.FEIGN_CLIENT) {
+            feignClass = handleFeignClient(sourceFile, config, preURL, preMethod, classRole, classAnnotations);
+        }
+
         // Build the JClass
-        return new JClass(
+        return feignClass == null ? new JClass(
                 sourceFile.getName().replace(".java", ""),
                 FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                 packageName,
@@ -129,7 +142,7 @@ public class SourceToObjectUtils {
                 parseFields(cu.findAll(FieldDeclaration.class)),
                 parseAnnotations(classAnnotations),
                 parseMethodCalls(cu.findAll(MethodDeclaration.class)),
-                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet())) : feignClass;
 
     }
 
@@ -146,7 +159,6 @@ public class SourceToObjectUtils {
         // Get params and returnType
         Set<Method> methods = new HashSet<>();
 
-
         for (MethodDeclaration methodDeclaration : methodDeclarations) {
             Set<Field> parameters = new HashSet<>();
             for (Parameter parameter : methodDeclaration.getParameters()) {
@@ -161,7 +173,6 @@ public class SourceToObjectUtils {
                     parseAnnotations(methodDeclaration.getAnnotations()));
 
             method = convertValidEndpoints(methodDeclaration, method, preURL, preMethod);
-
 
             methods.add(method);
         }
@@ -191,8 +202,8 @@ public class SourceToObjectUtils {
                 // And getAnnotations() return them in order, so we can return immediately
                 return new Endpoint(method, url, httpMethod, microserviceName);
             }
-
         }
+
         return method;
     }
 
@@ -582,13 +593,64 @@ public class SourceToObjectUtils {
         return ClassRole.UNKNOWN;
     }
 
-    //TODO Generalize and move out
+    /**
+     * Get the name of the microservice based on the file
+     *
+     * @param sourceFile the file we are getting microservice name for
+     * @return
+     */
     private static String getMicroserviceName(File sourceFile) {
         List<String> split = Arrays.asList(sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL));
-        int index = split.indexOf("src");
-        if (index == -1) {
-            index = split.indexOf("java");
+        return split.get(3);
+    }
+
+    private static JClass handleFeignClient(File sourceFile, Config config, String preURL, HttpMethod preMethod, ClassRole classRole, List<AnnotationExpr> classAnnotations) {
+
+        Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod);
+//        String preURL
+//
+//        for(AnnotationExpr annotationExpr : classAnnotations) {
+//            if(annotationExpr.getName().equals("FeignClient")) {
+//
+//            }
+//        }
+
+        Set<Method> newMethods = new HashSet<>();
+        Set<MethodCall> newRestCalls = new HashSet<>();
+
+        // For each method that is detected as an endpoint convert into a Method + RestCall
+        for(Method method : methods) {
+            if(method instanceof Endpoint) {
+                newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations()));
+                newRestCalls.add(new RestCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), ""));
+            } else {
+                newMethods.add(method);
+            }
         }
-        return split.get(--index);
+
+
+        // Build the JClass
+        return new JClass(
+                sourceFile.getName().replace(".java", ""),
+                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                packageName,
+                classRole,
+                newMethods,
+                parseFields(cu.findAll(FieldDeclaration.class)),
+                parseAnnotations(classAnnotations),
+                newRestCalls,
+                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+    }
+
+    public static JsonObject parseConfigurationFile(File file) {
+        if(file.getName().endsWith(".yml")) {
+            return NonJsonReadWriteUtils.readFromYaml(file.getPath());
+        } else if(file.getName().equals("DockerFile")) {
+            return NonJsonReadWriteUtils.readFromDocker(file.getPath());
+        } else if(file.getName().equals("pom.xml")) {
+            return NonJsonReadWriteUtils.readFromPom(file.getPath());
+        } else {
+            return null;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.common.models.ir;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
@@ -57,6 +58,11 @@ public class Microservice implements JsonSerializable {
      */
     private final Set<JClass> feignClients;
 
+    /**
+     * Static files belonging to the microservice.
+     */
+    private final Set<JsonObject> files;
+
     public Microservice(String name, String path) {
         this.name = name;
         this.path = path;
@@ -66,6 +72,7 @@ public class Microservice implements JsonSerializable {
         this.entities = new HashSet<>();
         this.embeddables = new HashSet<>();
         this.feignClients = new HashSet<>();
+        this.files = new HashSet<>();
     }
 
     /**
@@ -80,11 +87,21 @@ public class Microservice implements JsonSerializable {
         jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
         jsonObject.add("entities", JsonSerializable.toJsonArray(entities));
         jsonObject.add("embeddables", JsonSerializable.toJsonArray(embeddables));
-        jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
+//        jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
         jsonObject.add("services", JsonSerializable.toJsonArray(services));
         jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
+        jsonObject.add("files", toJsonArray(files));
 
         return jsonObject;
+    }
+
+
+    private static JsonArray toJsonArray(Iterable<JsonObject> list) {
+        JsonArray jsonArray = new JsonArray();
+        for (JsonObject object : list) {
+            jsonArray.add(object);
+        }
+        return jsonArray;
     }
 
     public void addJClass(JClass jClass) {

@@ -40,7 +40,7 @@ public class UCDetectionRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(1).toString().split(" ")[1]);
+        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem(config, "OldIR.json");
 
@@ -94,7 +94,7 @@ public class UCDetectionRunner {
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(fileName);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

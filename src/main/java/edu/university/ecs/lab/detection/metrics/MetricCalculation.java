@@ -59,7 +59,7 @@ public class MetricCalculation {
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(fileName);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

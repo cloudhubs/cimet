@@ -35,9 +35,10 @@ public class Delta implements JsonSerializable {
     private ChangeType changeType;
 
     /**
-     * The class that was added or changed
+     * The changed contents, could be a changed class or
+     * a changed configuration file
      */
-    private JClass classChange;
+    private JsonObject metaData;
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -48,7 +49,7 @@ public class Delta implements JsonSerializable {
         jsonObject.addProperty("changeType", changeType.name());
         jsonObject.addProperty("oldPath", oldPath);
         jsonObject.addProperty("newPath", newPath);
-        jsonObject.add("classChange", classChange.toJsonObject());
+        jsonObject.add("metaData", metaData);
 
         return jsonObject;
     }
