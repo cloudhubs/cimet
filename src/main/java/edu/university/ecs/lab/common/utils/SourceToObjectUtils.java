@@ -78,7 +78,7 @@ public class SourceToObjectUtils {
      */
     public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
         // Guard condition
-        if(Objects.isNull(sourceFile) || FileUtils.isConfigurationFile(sourceFile)) {
+        if(Objects.isNull(sourceFile) || FileUtils.isConfigurationFile(sourceFile.getPath())) {
             return null;
         }
 
@@ -94,29 +94,6 @@ public class SourceToObjectUtils {
         HttpMethod preMethod = HttpMethod.NONE;
         List<AnnotationExpr> classAnnotations = new ArrayList<>();
         String feignClient = "";
-
-        for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
-            if (ae.getNameAsString().equals("FeignClient")) {
-                feignClient = ae.getChildNodes().get(1).getChildNodes().get(1).toString().replace("\"", "");
-            }
-
-            if (ae.getParentNode().isPresent()) {
-                Node n = ae.getParentNode().get();
-
-                if (n instanceof ClassOrInterfaceDeclaration || call_annotations.contains(ae.getNameAsString())) {
-                    classAnnotations.add(ae);
-                    if (call_annotations.contains(ae.getNameAsString())) {
-                        if (preURL.isEmpty()) {
-                            preURL = getPathFromAnnotation(ae, feignClient);
-                        }
-                        if (preMethod.equals(HttpMethod.NONE)) {
-                            preMethod = getHttpMethodFromAnnotation(ae, preMethod);
-                        }
-
-                    }
-                }
-            }
-        }
 
         preURL = preURL.replace("\"", "");
 
@@ -651,6 +628,31 @@ public class SourceToObjectUtils {
             return NonJsonReadWriteUtils.readFromPom(file.getPath());
         } else {
             return null;
+        }
+    }
+
+    private static List<AnnotationExpr> filterClassAnnotations() {
+        for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
+            if (ae.getNameAsString().equals("FeignClient")) {
+                feignClient = ae.getChildNodes().get(1).getChildNodes().get(1).toString().replace("\"", "");
+            }
+
+            if (ae.getParentNode().isPresent()) {
+                Node n = ae.getParentNode().get();
+
+                if (n instanceof ClassOrInterfaceDeclaration || call_annotations.contains(ae.getNameAsString())) {
+                    classAnnotations.add(ae);
+                    if (call_annotations.contains(ae.getNameAsString())) {
+                        if (preURL.isEmpty()) {
+                            preURL = getPathFromAnnotation(ae, feignClient);
+                        }
+                        if (preMethod.equals(HttpMethod.NONE)) {
+                            preMethod = getHttpMethodFromAnnotation(ae, preMethod);
+                        }
+
+                    }
+                }
+            }
         }
     }
 }

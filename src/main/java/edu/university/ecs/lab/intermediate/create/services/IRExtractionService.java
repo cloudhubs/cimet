@@ -192,9 +192,9 @@ public class IRExtractionService {
             for (File file : files) {
                 if (file.isDirectory()) {
                     scanDirectory(file, microservice);
-                } else if (FileUtils.isValidFile(Path.of(file.getPath()))) {
+                } else if (FileUtils.isValidFile(file.getPath())) {
 
-                    if(FileUtils.isConfigurationFile(Path.of(file.getPath()))) {
+                    if(FileUtils.isConfigurationFile(file.getPath())) {
                         JsonObject jsonObject = SourceToObjectUtils.parseConfigurationFile(file);
                         if(jsonObject != null) {
                             microservice.getFiles().add(jsonObject);
