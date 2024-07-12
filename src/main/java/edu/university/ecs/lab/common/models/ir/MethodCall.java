@@ -11,18 +11,17 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public class MethodCall extends Node {
 
     /**
-     * Name of object this method call is from (Maybe a static class instance, just whatever is before
+     * Name of object that defines the called method (Maybe a static class instance, just whatever is before
      * the ".")
      */
     protected String objectName;
 
     /**
-     * Name of object this method call is from (Maybe a static class instance, just whatever is before
-     * the ".")
+     * Type of object that defines that method
      */
     protected String objectType;
 

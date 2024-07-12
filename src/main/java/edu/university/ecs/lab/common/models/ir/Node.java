@@ -26,6 +26,6 @@ public abstract class Node implements JsonSerializable {
      * @return the string unique ID
      */
     public final String getID() {
-        return packageAndClassName + name;
+        return packageAndClassName + "." + name;
     }
 }
