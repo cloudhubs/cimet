@@ -23,7 +23,7 @@ public enum EndpointTemplate {
     EndpointTemplate(String name, HttpMethod httpMethod) {
         this.name = name;
         this.httpMethod = httpMethod;
-        Objects.eq
+        this.url = "/" + name;
 
 
     }

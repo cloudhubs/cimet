@@ -61,7 +61,7 @@ public class Microservice implements JsonSerializable {
     /**
      * Static files belonging to the microservice.
      */
-    private final Set<JsonObject> files;
+    private final Set<ConfigFile> files;
 
     public Microservice(String name, String path) {
         this.name = name;
@@ -90,7 +90,7 @@ public class Microservice implements JsonSerializable {
 //        jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
         jsonObject.add("services", JsonSerializable.toJsonArray(services));
         jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
-        jsonObject.add("files", toJsonArray(files));
+        jsonObject.add("files", JsonSerializable.toJsonArray(files));
 
         return jsonObject;
     }

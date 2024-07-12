@@ -92,7 +92,7 @@ public class SourceToObjectUtils {
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
         String preURL = "";
         HttpMethod preMethod = HttpMethod.NONE;
-        List<AnnotationExpr> classAnnotations = new ArrayList<>();
+        List<AnnotationExpr> classAnnotations = filterClassAnnotations();
         String feignClient = "";
 
         preURL = preURL.replace("\"", "");
@@ -619,7 +619,7 @@ public class SourceToObjectUtils {
                 cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
     }
 
-    public static JsonObject parseConfigurationFile(File file) {
+    public static ConfigFile parseConfigurationFile(File file) {
         if(file.getName().endsWith(".yml")) {
             return NonJsonReadWriteUtils.readFromYaml(file.getPath());
         } else if(file.getName().equals("DockerFile")) {
@@ -632,27 +632,15 @@ public class SourceToObjectUtils {
     }
 
     private static List<AnnotationExpr> filterClassAnnotations() {
+        List<AnnotationExpr> classAnnotations = new ArrayList<>();
         for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
-            if (ae.getNameAsString().equals("FeignClient")) {
-                feignClient = ae.getChildNodes().get(1).getChildNodes().get(1).toString().replace("\"", "");
-            }
-
             if (ae.getParentNode().isPresent()) {
                 Node n = ae.getParentNode().get();
-
-                if (n instanceof ClassOrInterfaceDeclaration || call_annotations.contains(ae.getNameAsString())) {
+                if (n instanceof ClassOrInterfaceDeclaration) {
                     classAnnotations.add(ae);
-                    if (call_annotations.contains(ae.getNameAsString())) {
-                        if (preURL.isEmpty()) {
-                            preURL = getPathFromAnnotation(ae, feignClient);
-                        }
-                        if (preMethod.equals(HttpMethod.NONE)) {
-                            preMethod = getHttpMethodFromAnnotation(ae, preMethod);
-                        }
-
-                    }
                 }
             }
         }
+        return classAnnotations;
     }
 }

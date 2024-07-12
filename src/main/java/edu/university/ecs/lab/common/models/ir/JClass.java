@@ -17,15 +17,8 @@ import java.util.stream.Collectors;
  */
 @Data
 @EqualsAndHashCode
-public class JClass implements JsonSerializable {
+public class JClass extends ProjectFile implements JsonSerializable {
     private String packageName;
-
-    private String name;
-
-    /**
-     * Path to the class
-     */
-    private String path;
 
     /**
      * Class implementations
@@ -75,12 +68,10 @@ public class JClass implements JsonSerializable {
      */
     @Override
     public JsonObject toJsonObject() {
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = super.toJsonObject();
         Gson gson = new Gson();
 
         jsonObject.addProperty("packageName", getPackageName());
-        jsonObject.addProperty("name", getName());
-        jsonObject.addProperty("path", getPath());
         jsonObject.addProperty("classRole", getClassRole().name());
         jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
         jsonObject.add("fields", JsonSerializable.toJsonArray(getFields()));

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.*;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.enums.FileType;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -13,6 +15,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +37,7 @@ public class NonJsonReadWriteUtils {
      * @return JsonObject YAML file structure as json object
      * @throws IOException If there is an error reading the YAML file.
      */
-    public static JsonObject readFromYaml(String path) {
+    public static ConfigFile readFromYaml(String path) {
         JsonNode yamlNode = null;
         try {
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
@@ -52,10 +55,10 @@ public class NonJsonReadWriteUtils {
 
         jsonObject.addProperty("path", path);
 
-        return jsonObject;
+        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.CONFIG);
     }
 
-    public static JsonObject readFromDocker(String path) {
+    public static ConfigFile readFromDocker(String path) {
         List<String> instructions = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
@@ -75,10 +78,10 @@ public class NonJsonReadWriteUtils {
         jsonObject.add("instructions", jsonArray);
         jsonObject.addProperty("path", path);
 
-        return jsonObject;
+        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.CONFIG);
     }
 
-    public static JsonObject readFromPom(String path) {
+    public static ConfigFile readFromPom(String path) {
         String xmlContent = null;
         try {
             // Read the entire file content
@@ -95,6 +98,6 @@ public class NonJsonReadWriteUtils {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         jsonObject.addProperty("path", path);
 
-        return jsonElement.getAsJsonObject();
+        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.POM);
     }
 }

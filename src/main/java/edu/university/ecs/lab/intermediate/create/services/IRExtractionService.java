@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
@@ -195,9 +196,9 @@ public class IRExtractionService {
                 } else if (FileUtils.isValidFile(file.getPath())) {
 
                     if(FileUtils.isConfigurationFile(file.getPath())) {
-                        JsonObject jsonObject = SourceToObjectUtils.parseConfigurationFile(file);
-                        if(jsonObject != null) {
-                            microservice.getFiles().add(jsonObject);
+                        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(file);
+                        if(configFile != null) {
+                            microservice.getFiles().add(configFile);
                         }
 
                     } else {
