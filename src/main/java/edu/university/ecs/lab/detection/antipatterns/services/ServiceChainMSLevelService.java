@@ -9,17 +9,21 @@ import java.util.*;
 /**
  * Service class for detecting and managing service chains in a network graph.
  */
-public class ServiceChainService {
+public class ServiceChainMSLevelService {
 
     /**
      * Length of the chain to consider an anti-pattern.
      */
     private final int CHAIN_LENGTH;
-    
+    private Set<Microservice> visited = new HashSet<>();
+    private List<List<String>> allChains = new ArrayList<>();
+    private ServiceDependencyGraph graph = null;
+    private List<String> currentPath = new ArrayList<>();
+
     /**
      * Constructs the service with a default chain length of 3.
      */
-    public ServiceChainService() {
+    public ServiceChainMSLevelService() {
         this.CHAIN_LENGTH = 3;
     }
     
@@ -28,7 +32,7 @@ public class ServiceChainService {
      * 
      * @param CHAIN_LENGTH the length of the chain to consider an anti-pattern
      */
-    public ServiceChainService(int CHAIN_LENGTH) {
+    public ServiceChainMSLevelService(int CHAIN_LENGTH) {
         this.CHAIN_LENGTH = CHAIN_LENGTH;
     }
 
@@ -39,16 +43,14 @@ public class ServiceChainService {
      * @return a ServiceChain object representing all detected service chains
      */
     public ServiceChain getServiceChains(ServiceDependencyGraph graph) {
-        List<List<String>> allChains = new ArrayList<>();
-        Map<Microservice, Set<Microservice>> adjacencyList = graph.getAdjacency();
+        allChains = new ArrayList<>();
+        this.graph = graph;
+        visited = new HashSet<>();
 
-        Set<Microservice> globalVisited = new HashSet<>();
-
-        for (Microservice node : graph.vertexSet()) {
-            if (!globalVisited.contains(node)) {
-                dfs(node, new ArrayList<>(), allChains, adjacencyList, globalVisited);
-            }
-        }
+        graph.vertexSet().stream().filter(node -> !visited.contains(node)).forEach(node -> {
+            this.currentPath = new ArrayList<>();
+            dfs(node);
+        });
 
         return new ServiceChain(allChains);
     }
@@ -57,28 +59,12 @@ public class ServiceChainService {
      * Depth-first search (DFS) to explore and detect service chains starting from currentNode.
      *
      * @param currentNode the current node being visited
-     * @param currentPath the current path of nodes being explored
-     * @param allChains   list to store detected service chains
-     * @param adjacencyList adjacency list representation of the network graph
-     * @param globalVisited set of globally visited nodes
      */
-    private void dfs(Microservice currentNode, List<String> currentPath, List<List<String>> allChains,
-                     Map<Microservice, Set<Microservice>> adjacencyList, Set<Microservice> globalVisited) {
-        if (globalVisited.contains(currentNode)) {
-            return;
-        }
-
+    private void dfs(Microservice currentNode) {
         currentPath.add(currentNode.getName());
-        globalVisited.add(currentNode);
+        visited.add(currentNode);
 
-        Set<Microservice> neighbors = adjacencyList.get(currentNode);
-        if (neighbors != null && !neighbors.isEmpty()) {
-            for (Microservice neighbor : neighbors) {
-                if (!globalVisited.contains(neighbor)) {
-                    dfs(neighbor, currentPath, allChains, adjacencyList, globalVisited);
-                }
-            }
-        }
+        graph.getAdjacency(currentNode).stream().filter(neighbor -> !visited.contains(neighbor)).forEach(this::dfs);
 
         if (currentPath.size() >= CHAIN_LENGTH) {
             allChains.add(new ArrayList<>(currentPath));

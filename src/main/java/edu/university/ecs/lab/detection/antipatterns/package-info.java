@@ -27,13 +27,13 @@
  * </p>
  * <p>
  * Services Package:
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.CyclicDependencyService}: Service for detecting
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.CyclicDependencyMSLevelService}: Service for detecting
  *   cyclic dependencies in a network graph.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.GreedyService}: Service for identifying and managing
  *   microservices identified as greedy based on REST call thresholds.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.HubLikeService}: Service for identifying and managing
  *   microservices identified as hub-like based on REST call thresholds.
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.ServiceChainService}: Service for detecting and
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.ServiceChainMSLevelService}: Service for detecting and
  *   managing service chains in a network graph.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.WrongCutsService}: Service for identifying and
  *   reporting clusters of services that are incorrectly interconnected in a network graph.

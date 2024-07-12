@@ -4,13 +4,13 @@
  * generating reports or performing corrective actions.
  * <p>
  * Services:
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.CyclicDependencyService}: Service for detecting
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.CyclicDependencyMSLevelService}: Service for detecting
  *   cyclic dependencies within a microservice network graph.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.GreedyService}: Service for identifying and managing
  *   microservices identified as greedy based on REST call thresholds.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.HubLikeService}: Service for identifying and managing
  *   microservices identified as hub-like based on REST call thresholds.
- * - {@link edu.university.ecs.lab.detection.antipatterns.services.ServiceChainService}: Service for detecting and managing
+ * - {@link edu.university.ecs.lab.detection.antipatterns.services.ServiceChainMSLevelService}: Service for detecting and managing
  *   service chains within a microservice network graph.
  * - {@link edu.university.ecs.lab.detection.antipatterns.services.WrongCutsService}: Service for identifying and reporting
  *   clusters of services that are incorrectly interconnected within a microservice network graph.

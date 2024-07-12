@@ -173,7 +173,7 @@ public class ExcelOutputRunner {
             allAntiPatterns.add(hublikeMicroservices);
         }
 
-        ServiceChainService chainService = new ServiceChainService();
+        ServiceChainMSLevelService chainService = new ServiceChainMSLevelService();
         ServiceChain allChains = chainService.getServiceChains(sdg);
         if (!allChains.getChain().isEmpty()) {
             allAntiPatterns.add(allChains);
@@ -185,7 +185,7 @@ public class ExcelOutputRunner {
             allAntiPatterns.add(wrongCuts);
         }
 
-        CyclicDependencyService cycles = new CyclicDependencyService();
+        CyclicDependencyMSLevelService cycles = new CyclicDependencyMSLevelService();
         CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
         if (!cycleDependencies.getCycles().isEmpty()) {
             allAntiPatterns.add(cycleDependencies);

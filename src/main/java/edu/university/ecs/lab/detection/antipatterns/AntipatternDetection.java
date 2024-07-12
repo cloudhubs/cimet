@@ -41,7 +41,7 @@ public class AntipatternDetection {
         }
         
 
-        ServiceChainService chainService = new ServiceChainService();
+        ServiceChainMSLevelService chainService = new ServiceChainMSLevelService();
         ServiceChain allChains = chainService.getServiceChains(sdg);
         if (!allChains.getChain().isEmpty()){
             detectedAntipatterns++;
@@ -55,7 +55,7 @@ public class AntipatternDetection {
             JsonReadWriteUtils.writeToJSON("./output/wrongcuts.json", wrongCuts.toJsonObject());
         }
         
-        CyclicDependencyService cycles = new CyclicDependencyService();
+        CyclicDependencyMSLevelService cycles = new CyclicDependencyMSLevelService();
         CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
         if (!cycleDependencies.getCycles().isEmpty()){
             detectedAntipatterns++;

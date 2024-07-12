@@ -9,7 +9,13 @@ import java.util.*;
 /**
  * Service class for detecting cyclic dependencies in a network graph.
  */
-public class CyclicDependencyService {
+public class CyclicDependencyMSLevelService {
+
+    private List<List<String>> allCycles = new ArrayList<>(); //
+    private Set<Microservice> visited = new HashSet<>();
+    private Set<Microservice> recStack = new HashSet<>();
+    private Map<Microservice, Microservice> parentMap = new HashMap<>();
+    private ServiceDependencyGraph graph = null;
 
     /**
      * Finds all cyclic dependencies in the given network graph.
@@ -18,17 +24,13 @@ public class CyclicDependencyService {
      * @return a CyclicDependency object representing all detected cycles
      */
     public CyclicDependency findCyclicDependencies(ServiceDependencyGraph graph) {
-        List<List<String>> allCycles = new ArrayList<>();
-        Set<Microservice> visited = new HashSet<>();
-        Set<Microservice> recStack = new HashSet<>();
-        Map<Microservice, Microservice> parentMap = new HashMap<>();
-        Map<Microservice, Set<Microservice>> adjacency = graph.getAdjacency();
+        allCycles = new ArrayList<>();
+        visited = new HashSet<>();
+        recStack = new HashSet<>();
+        parentMap = new HashMap<>();
+        this.graph = graph;
 
-        for (Microservice node : graph.vertexSet()) {
-            if (!visited.contains(node)) {
-                findCycles(node, adjacency, visited, recStack, parentMap, allCycles);
-            }
-        }
+        graph.vertexSet().stream().filter(node -> !visited.contains(node)).forEach(this::findCycles);
 
         return new CyclicDependency(allCycles);
     }
@@ -37,27 +39,20 @@ public class CyclicDependencyService {
      * Checks if there is a cycle starting from the current node.
      *
      * @param currentNode        the current node to check
-     * @param adjacencyList      mapping from nodes to their outgoing neighbors
-     * @param visited            set of visited nodes
-     * @param recStack           stack of nodes in the current recursion stack
-     * @param parentMap          map of node to its parent in the traversal
-     * @param allCycles          list to store detected cyclic dependencies
      */
-    private void findCycles(Microservice currentNode, Map<Microservice, Set<Microservice>> adjacencyList,
-                            Set<Microservice> visited, Set<Microservice> recStack,
-                            Map<Microservice,Microservice> parentMap, List<List<String>> allCycles) {
+    private void findCycles(Microservice currentNode) {
         visited.add(currentNode);
         recStack.add(currentNode);
 
-        for (Microservice neighbor : adjacencyList.get(currentNode)) {
+        this.graph.getAdjacency(currentNode).forEach(neighbor -> {
             if (!visited.contains(neighbor)) {
                 parentMap.put(neighbor, currentNode);
-                findCycles(neighbor, adjacencyList, visited, recStack, parentMap, allCycles);
+                findCycles(neighbor);
             } else if (recStack.contains(neighbor)) {
-                List<String> cyclePath = reconstructCyclePath(neighbor, currentNode, parentMap);
+                List<String> cyclePath = reconstructCyclePath(neighbor, currentNode);
                 allCycles.add(cyclePath);
             }
-        }
+        });
         recStack.remove(currentNode);
     }
 
@@ -66,11 +61,9 @@ public class CyclicDependencyService {
      * 
      * @param startNode  the start node of the cycle
      * @param currentNode the current node to reconstruct path to
-     * @param parentMap  map of node to its parent in the traversal
      * @return the list of nodes representing the cycle path
      */
-    private List<String> reconstructCyclePath(Microservice startNode, Microservice currentNode,
-                                              Map<Microservice, Microservice> parentMap) {
+    private List<String> reconstructCyclePath(Microservice startNode, Microservice currentNode) {
         List<String> fullCyclePath = new ArrayList<>();
         Microservice node = currentNode;
 
