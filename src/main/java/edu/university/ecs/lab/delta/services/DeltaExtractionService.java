@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
@@ -334,8 +335,8 @@ public class DeltaExtractionService {
 
             ChangeType changeType = ChangeType.fromDiffEntry(entry);
 
-            // Special check for configuration file manipulations only
-            if(FileUtils.isConfigurationFile(path)) {
+            // Special check for pom file manipulations only
+            if(path.endsWith("/pom.xml")) {
                 configurationChange(entry, path);
             } else {
 
@@ -377,7 +378,11 @@ public class DeltaExtractionService {
     private JsonObject add(String path) {
         JsonObject jsonObject = new JsonObject();
         if(FileUtils.isConfigurationFile(path)) {
-            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)).toJsonObject());
+            ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(new File(path));
+            if(configFile == null) {
+                return null;
+            }
+            jsonObject.add("config", configFile.toJsonObject());
         } else {
             JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(path, config.getRepoName())), config, "");
             if(jClass == null) {
@@ -402,9 +407,13 @@ public class DeltaExtractionService {
         JsonObject jsonObject = new JsonObject();
 
         if(FileUtils.isConfigurationFile(path)) {
-            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)).toJsonObject());
+            ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(new File(path));
+            if(configFile == null) {
+                return null;
+            }
+            jsonObject.add("config", configFile.toJsonObject());
         } else {
-            JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(path, config.getRepoName())), config, "");
+            JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(oldPath, config.getRepoName())), config, "");
 
             // Similar to add check, but if we couldn't parse and the class exists in old system we must allow it
             if (jClass == null && oldSystem.findClass(oldPath) == null) {
@@ -412,9 +421,11 @@ public class DeltaExtractionService {
             // If the class is unparsable and the class exists in the old system we must delete it now
             } else if (jClass == null && oldSystem.findClass(oldPath) != null) {
                 changeType = ChangeType.DELETE;
+                return delete(oldPath);
             // If the class is parsable and the class doesn't exist in the old system we must add it now
             } else if (jClass != null && oldSystem.findClass(oldPath) == null) {
                 changeType = ChangeType.ADD;
+                return add(oldPath);
             }
 
             jsonObject.add("jClass", jClass.toJsonObject());
@@ -445,7 +456,7 @@ public class DeltaExtractionService {
     private JsonObject configurationChange(DiffEntry entry, String path) {
         // Special manipulation for poms, they control creation/deletion of microservices
         // If we are modifying the pom, the microservice remains, let's just update the files for it
-        if(path.endsWith("pom.xml") && !entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
+        if(!entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
             // If we add a pom
             if(entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
                 DiffEntry remove = null;

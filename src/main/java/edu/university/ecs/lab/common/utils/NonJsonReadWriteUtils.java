@@ -44,7 +44,7 @@ public class NonJsonReadWriteUtils {
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
             yamlNode = yamlMapper.readTree(new File(path));
         } catch (IOException e) {
-            Error.reportAndExit(Error.UNKNOWN_ERROR);
+            return null;
         }
         String jsonString = yamlNode.toString();
         JsonObject jsonObject;
