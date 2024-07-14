@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.*;
+import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
@@ -37,7 +38,7 @@ public class NonJsonReadWriteUtils {
      * @return JsonObject YAML file structure as json object
      * @throws IOException If there is an error reading the YAML file.
      */
-    public static ConfigFile readFromYaml(String path) {
+    public static ConfigFile readFromYaml(String path, Config config) {
         JsonNode yamlNode = null;
         try {
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
@@ -53,12 +54,11 @@ public class NonJsonReadWriteUtils {
             return null;
         }
 
-        jsonObject.addProperty("path", path);
 
-        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.CONFIG);
+        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.CONFIG);
     }
 
-    public static ConfigFile readFromDocker(String path) {
+    public static ConfigFile readFromDocker(String path, Config config) {
         List<String> instructions = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
@@ -76,12 +76,11 @@ public class NonJsonReadWriteUtils {
             jsonArray.add(instruction);
         }
         jsonObject.add("instructions", jsonArray);
-        jsonObject.addProperty("path", path);
 
-        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.CONFIG);
+        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.CONFIG);
     }
 
-    public static ConfigFile readFromPom(String path) {
+    public static ConfigFile readFromPom(String path, Config config) {
         String xmlContent = null;
         try {
             // Read the entire file content
@@ -96,8 +95,7 @@ public class NonJsonReadWriteUtils {
         // Convert JSONObject to Gson JsonObject
         JsonElement jsonElement = JsonParser.parseString(jsonObjectOld.toString());
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        jsonObject.addProperty("path", path);
 
-        return new ConfigFile(path, Path.of(path).getFileName().toString(), jsonObject, FileType.POM);
+        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.POM);
     }
 }

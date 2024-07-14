@@ -377,7 +377,7 @@ public class DeltaExtractionService {
     private JsonObject add(String path) {
         JsonObject jsonObject = new JsonObject();
         if(FileUtils.isConfigurationFile(path)) {
-            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)));
+            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)).toJsonObject());
         } else {
             JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(path, config.getRepoName())), config, "");
             if(jClass == null) {
@@ -402,7 +402,7 @@ public class DeltaExtractionService {
         JsonObject jsonObject = new JsonObject();
 
         if(FileUtils.isConfigurationFile(path)) {
-            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)));
+            jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)).toJsonObject());
         } else {
             JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(path, config.getRepoName())), config, "");
 
@@ -523,7 +523,7 @@ public class DeltaExtractionService {
             }
         }
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("pom", SourceToObjectUtils.parseConfigurationFile(new File(path)));
+        jsonObject.add("config", SourceToObjectUtils.parseConfigurationFile(new File(path)).toJsonObject());
 
         return jsonObject;
 

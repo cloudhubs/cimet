@@ -109,7 +109,7 @@ public class MicroserviceSystem implements JsonSerializable {
         JClass returnClass = null;
         returnClass = getMicroservices().stream().flatMap(m -> m.getClasses().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
         if(returnClass == null){
-            returnClass = getOrphans().stream().filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
+            returnClass = getOrphans().stream().filter(c -> c instanceof JClass).filter(c -> c.getPath().equals(path)).map(c -> (JClass) c).findFirst().orElse(null);
         }
 
         return returnClass;

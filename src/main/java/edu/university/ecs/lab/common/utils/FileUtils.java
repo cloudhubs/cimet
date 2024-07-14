@@ -119,7 +119,7 @@ public class FileUtils {
      * @return boolean true if it belongs in the project
      */
     public static boolean isValidFile(String path) {
-        return path.endsWith(".java") || path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path);
+        return (path.endsWith(".java") || path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path)) && !path.contains(".github");
     }
 
     /**

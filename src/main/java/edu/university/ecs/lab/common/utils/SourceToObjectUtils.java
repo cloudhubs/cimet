@@ -39,15 +39,12 @@ public class SourceToObjectUtils {
     private static String packageName;
     private static String packageAndClassName;
     private static CombinedTypeSolver combinedTypeSolver;
+    private static Config config;
 
 
-    static {
-
-    }
-
-
-    private static void generateStaticValues(File sourceFile, Config config) {
+    private static void generateStaticValues(File sourceFile, Config config1) {
         // Parse the highest level node being compilation unit
+        config = config1;
         try {
             cu = StaticJavaParser.parse(sourceFile);
         } catch (FileNotFoundException e) {
@@ -621,11 +618,11 @@ public class SourceToObjectUtils {
 
     public static ConfigFile parseConfigurationFile(File file) {
         if(file.getName().endsWith(".yml")) {
-            return NonJsonReadWriteUtils.readFromYaml(file.getPath());
+            return NonJsonReadWriteUtils.readFromYaml(file.getPath(), config);
         } else if(file.getName().equals("DockerFile")) {
-            return NonJsonReadWriteUtils.readFromDocker(file.getPath());
+            return NonJsonReadWriteUtils.readFromDocker(file.getPath(), config);
         } else if(file.getName().equals("pom.xml")) {
-            return NonJsonReadWriteUtils.readFromPom(file.getPath());
+            return NonJsonReadWriteUtils.readFromPom(file.getPath(), config);
         } else {
             return null;
         }

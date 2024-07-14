@@ -2,7 +2,9 @@ package edu.university.ecs.lab.delta.models;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.AllArgsConstructor;
@@ -45,6 +47,15 @@ public class Delta implements JsonSerializable {
         Gson gson = new Gson();
         if(data.has("jClass")) {
             return gson.fromJson(data.get("jClass"), JClass.class);
+        } else {
+            return null;
+        }
+    }
+
+    public ConfigFile getConfigChange() {
+        Gson gson = new Gson();
+        if(data.has("config")) {
+            return gson.fromJson(data.get("config"), ConfigFile.class);
         } else {
             return null;
         }

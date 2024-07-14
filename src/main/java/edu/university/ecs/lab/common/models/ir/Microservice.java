@@ -186,7 +186,7 @@ public class Microservice implements JsonSerializable {
         classes.addAll(repositories);
         classes.addAll(entities);
         classes.addAll(embeddables);
-        classes.addAll(feignClients);
+//        classes.addAll(feignClients);
 
         return classes;
     }

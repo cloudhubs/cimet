@@ -3,6 +3,7 @@ package edu.university.ecs.lab.common.models.ir;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -60,6 +61,7 @@ public class JClass extends ProjectFile implements JsonSerializable {
         this.annotations = classAnnotations;
         this.methodCalls = methodCalls;
         this.implementedTypes = implementedTypes;
+        this.fileType = FileType.JCLASS;
     }
 
 

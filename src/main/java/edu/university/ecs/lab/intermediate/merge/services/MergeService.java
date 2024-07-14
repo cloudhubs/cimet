@@ -5,6 +5,7 @@ import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
@@ -60,9 +61,9 @@ public class MergeService {
             String path = d.getChangeType().equals(ChangeType.ADD) ? d.getOldPath() : d.getNewPath();
 
             // Check for pom.xml
-            if (!path.endsWith(".java")) {
-                continue;
-            }
+//            if (!path.endsWith(".java")) {
+//                continue;
+//            }
 
             switch (d.getChangeType()) {
                 case ADD:
@@ -94,7 +95,7 @@ public class MergeService {
         // If we dont find a microservice
         if (Objects.isNull(ms)) {
             // Check the orphan pool
-            for (JClass orphan : microserviceSystem.getOrphans()) {
+            for (ProjectFile orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
                 if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
@@ -147,13 +148,14 @@ public class MergeService {
 
         // If we cant find his microservice after we called updateMicroservices then a file was pushed without a pom.xml
         // so it will be held as an orphan
-        if(FileUtils.isConfigurationFile(delta.getNewPath())) {
+        if (Objects.isNull(ms)) {
+            microserviceSystem.getOrphans().add(delta.getClassChange());
+            return;
+        }
 
+        if(FileUtils.isConfigurationFile(delta.getNewPath())) {
+            ms.getFiles().add(delta.getConfigChange());
         } else {
-            if (Objects.isNull(ms)) {
-                microserviceSystem.getOrphans().add(delta.getClassChange());
-                return;
-            }
             ms.addJClass(delta.getClassChange());
 
         }
@@ -172,7 +174,7 @@ public class MergeService {
         // If we are removing a file and it's microservice doesn't exist
         if (Objects.isNull(ms)) {
             // Check the orphan pool
-            for (JClass orphan : microserviceSystem.getOrphans()) {
+            for (ProjectFile orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
                 if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
@@ -182,7 +184,12 @@ public class MergeService {
             return;
         }
 
-        ms.removeJClass(delta.getOldPath());
+        if(FileUtils.isConfigurationFile(delta.getOldPath())) {
+            ms.getFiles().remove(delta.getConfigChange());
+        } else {
+            ms.removeJClass(delta.getOldPath());
+
+        }
 
 
     }
