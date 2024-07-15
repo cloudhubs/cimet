@@ -208,7 +208,7 @@ public class SourceToObjectUtils {
                 String parameterContents = mce.getArguments().stream().map(Objects::toString).collect(Collectors.joining(","));
 
                 if (Objects.nonNull(calledServiceName)) {
-                    MethodCall methodCall = new MethodCall(methodName, packageAndClassName, calledServiceType, calledServiceName, methodDeclaration.getNameAsString(), parameterContents);
+                    MethodCall methodCall = new MethodCall(methodName, packageAndClassName, calledServiceType, calledServiceName, methodDeclaration.getNameAsString(), parameterContents, microserviceName);
 
                     methodCall = convertValidRestCalls(mce, methodCall);
 
@@ -238,9 +238,7 @@ public class SourceToObjectUtils {
             return methodCall;
         }
 
-
-
-        return new RestCall(methodCall, restCallTemplate.getUrl(), restCallTemplate.getHttpMethod(), microserviceName);
+        return new RestCall(methodCall, restCallTemplate.getUrl(), restCallTemplate.getHttpMethod());
     }
 
     /**
@@ -403,7 +401,7 @@ public class SourceToObjectUtils {
             if(method instanceof Endpoint) {
                 Endpoint endpoint = (Endpoint) method;
                 newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations()));
-                newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), ""), endpoint.getUrl(), endpoint.getHttpMethod(), endpoint.getMicroserviceName()));
+                newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), "", endpoint.getMicroserviceName()), endpoint.getUrl(), endpoint.getHttpMethod()));
             } else {
                 newMethods.add(method);
             }

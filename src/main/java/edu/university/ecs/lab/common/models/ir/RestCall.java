@@ -26,20 +26,15 @@ public class RestCall extends MethodCall {
      */
     private HttpMethod httpMethod;
 
-    /**
-     * The name of the microservice this RestCall is called from
-     */
-    private String microserviceName;
 
-    public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents) {
-        super(methodName, packageAndClassName, objectType, objectName, calledFrom, parameterContents);
+    public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents, String microserviceName) {
+        super(methodName, packageAndClassName, objectType, objectName, calledFrom, parameterContents, microserviceName);
     }
 
-    public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod, String microserviceName) {
-        super(methodCall.getName(), methodCall.getPackageAndClassName(), methodCall.getObjectType(), methodCall.getObjectName(), methodCall.getCalledFrom(), methodCall.getParameterContents());
+    public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod) {
+        super(methodCall.name, methodCall.packageAndClassName, methodCall.objectType, methodCall.objectName, methodCall.calledFrom, methodCall.parameterContents, methodCall.microserviceName);
         this.url = url;
         this.httpMethod = httpMethod;
-        this.microserviceName = microserviceName;
     }
 
     /**
@@ -50,7 +45,6 @@ public class RestCall extends MethodCall {
 
         jsonObject.addProperty("url", url);
         jsonObject.addProperty("httpMethod", httpMethod.name());
-        jsonObject.addProperty("microserviceName", microserviceName);
 
         return jsonObject;
     }

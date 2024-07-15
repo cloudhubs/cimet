@@ -18,31 +18,37 @@ public class MethodCall extends Node {
      * Name of object this method call is from (Maybe a static class instance, just whatever is before
      * the ".")
      */
-    private String objectName;
+    protected String objectName;
 
     /**
      * Name of object this method call is from (Maybe a static class instance, just whatever is before
      * the ".")
      */
-    private String objectType;
+    protected String objectType;
 
     /**
      * Name of method that contains this call
      */
-    private String calledFrom;
+    protected String calledFrom;
 
     /**
      * Contents within the method call (params) but as a raw string
      */
-    private String parameterContents;
+    protected String parameterContents;
 
-    public MethodCall(String name, String packageName,String objectType, String objectName, String calledFrom, String parameterContents) {
+    /**
+     * The name of the microservice this RestCall is called from
+     */
+    protected String microserviceName;
+
+    public MethodCall(String name, String packageName,String objectType, String objectName, String calledFrom, String parameterContents, String microserviceName) {
         this.name = name;
         this.packageAndClassName = packageName;
         this.objectName = objectName;
         this.objectType = objectType;
         this.calledFrom = calledFrom;
         this.parameterContents = parameterContents;
+        this.microserviceName = microserviceName;
     }
 
     /**
@@ -58,6 +64,7 @@ public class MethodCall extends Node {
         jsonObject.addProperty("calledFrom", getCalledFrom());
         jsonObject.addProperty("objectType", getObjectType());
         jsonObject.addProperty("parameterContents", getParameterContents());
+        jsonObject.addProperty("microserviceName", microserviceName);
 
         return jsonObject;
     }
