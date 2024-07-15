@@ -14,6 +14,7 @@ public class HubLikeService {
     /**
      * Threshold for the number of REST calls indicating a microservice is hub-like.
      */
+    protected static final int DEFAULT_RESTCALL_THRESHOLD = GreedyService.DEFAULT_RESTCALL_THRESHOLD;
     private final int RESTCALL_THRESHOLD;
 
     /**
@@ -31,7 +32,7 @@ public class HubLikeService {
     }
 
     public HubLikeService() {
-        RESTCALL_THRESHOLD = 6;
+        RESTCALL_THRESHOLD = DEFAULT_RESTCALL_THRESHOLD;
     }
 
     public HubLikeService(int RESTCALL_THRESHOLD) {

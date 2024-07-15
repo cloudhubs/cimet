@@ -14,6 +14,7 @@ public class ServiceChainMethodLevelService {
     /**
      * Length of the chain to consider an anti-pattern.
      */
+    protected static final int DEFAULT_CHAIN_LENGTH = ServiceChainMSLevelService.DEFAULT_CHAIN_LENGTH;
     private final int CHAIN_LENGTH;
     private Set<Method> visited = new HashSet<>();
     private List<List<String>> allChains = new ArrayList<>();
@@ -24,7 +25,7 @@ public class ServiceChainMethodLevelService {
      * Constructs the service with a default chain length of 3.
      */
     public ServiceChainMethodLevelService() {
-        this.CHAIN_LENGTH = 3;
+        this.CHAIN_LENGTH = DEFAULT_CHAIN_LENGTH;
     }
 
     /**
