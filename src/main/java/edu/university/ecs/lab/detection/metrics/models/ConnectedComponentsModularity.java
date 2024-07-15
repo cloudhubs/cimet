@@ -35,15 +35,12 @@ public class ConnectedComponentsModularity {
     public ConnectedComponentsModularity(ServiceDependencyGraph graph) {
         KosarajuStrongConnectivityInspector<Microservice, RestCallEdge> inspector = new KosarajuStrongConnectivityInspector<>(graph);
         SCC = inspector.stronglyConnectedSets();
-        // all nodes that are part of some SCC
-        Set<Microservice> allSCC = SCC.stream().flatMap(Set::stream).collect(Collectors.toSet());
-        // all nodes that are now part of any SCC
-        Set<Microservice> notSCC = graph.vertexSet().stream().filter(vertex -> !allSCC.contains(vertex)).collect(Collectors.toSet());
-        // Partition of all nodes (SCCs + extra nodes)
-        ArrayList<Set<Microservice>> allNodes = new ArrayList<>(SCC);
-        allNodes.add(notSCC);
         AsUndirectedGraph<Microservice, RestCallEdge> undirected = new AsUndirectedGraph<>(graph);
         UndirectedModularityMeasurer<Microservice, RestCallEdge> measurer = new UndirectedModularityMeasurer<>(undirected);
-        modularity = measurer.modularity(allNodes);
+        if (SCC.size() == graph.vertexSet().size()) {
+            modularity = 0.0;
+            return;
+        }
+        modularity = measurer.modularity(SCC);
     }
 }

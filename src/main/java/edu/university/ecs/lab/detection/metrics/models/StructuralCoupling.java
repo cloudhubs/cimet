@@ -86,8 +86,22 @@ public class StructuralCoupling {
                 }
             }
         }
-        double max_degree = degree.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
-                orElseThrow(() -> new RuntimeException("Degree map is empty after processing the SDG"));
+        double max_degree;
+        try {
+            max_degree = degree.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
+                    orElseThrow(() -> new NullPointerException("Degree map is empty after processing the SDG"));
+        } catch (NullPointerException e) {
+            avgLWF = 0.0;
+            avgGWF = 0.0;
+            avgSC = 0.0;
+            maxLWF = 0.0;
+            maxGWF = 0.0;
+            maxSC = 0.0;
+            stdLWF = 0.0;
+            stdGWF = 0.0;
+            stdSC = 0.0;
+            return;
+        }
         for (List<String> pair: LWF.keySet()) {
             GWF.put(pair, degree.get(pair)/max_degree);
             SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
@@ -103,11 +117,11 @@ public class StructuralCoupling {
 
         // Maxima
         maxLWF = LWF.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
-                 orElseThrow(() -> new RuntimeException("Cannot find maximum of LWF"));
+                 orElse(0.0);
         maxGWF = GWF.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
-                 orElseThrow(() -> new RuntimeException("Cannot find maximum of GWF"));
+                 orElse(0.0);
         maxSC = SC.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
-                orElseThrow(() -> new RuntimeException("Cannot find maximum of SC"));
+                orElse(0.0);
 
         // Standard deviations
         stdLWF = Math.sqrt(LWF.values().stream().map(value -> Math.pow(value - avgLWF, 2))

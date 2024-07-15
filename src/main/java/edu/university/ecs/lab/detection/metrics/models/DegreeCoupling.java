@@ -119,11 +119,11 @@ public class DegreeCoupling {
 
         // Maxima
         maxAIS = AIS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
-            orElseThrow(() -> new RuntimeException("Cannot find maximum of AIS"));
+            orElse(0);
         maxADS = ADS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
-                orElseThrow(() -> new RuntimeException("Cannot find maximum of ADS"));
+                orElse(0);
         maxACS = ACS.values().stream().max(Comparator.comparingInt(Integer::intValue)).
-                orElseThrow(() -> new RuntimeException("Cannot find maximum of ACS"));
+                orElse(0);
 
         // Standard deviations
         stdAIS = Math.sqrt(AIS.values().stream().map(value -> Math.pow(value - avgAIS, 2))
