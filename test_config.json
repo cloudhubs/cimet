@@ -1,0 +1,6 @@
+{
+    "systemName": "testproject",
+    "repositoryURL": "https://github.com/samnperry/testproject.git",
+    "baseCommit": "d187f309b70e9255f5cb34e9851077f6678f43a1",
+    "baseBranch": "main"
+  }
