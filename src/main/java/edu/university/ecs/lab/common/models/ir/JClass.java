@@ -104,7 +104,7 @@ public class JClass extends ProjectFile implements JsonSerializable {
      * @return set of all restCalls
      */
     public Set<RestCall> getRestCalls() {
-        if(!getClassRole().equals(ClassRole.SERVICE) || getMethodCalls().isEmpty()) {
+        if((!getClassRole().equals(ClassRole.SERVICE) && !getClassRole().equals(ClassRole.FEIGN_CLIENT)) || getMethodCalls().isEmpty()) {
             return new HashSet<>();
         }
         return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableSet());

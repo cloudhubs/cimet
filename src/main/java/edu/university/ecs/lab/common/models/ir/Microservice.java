@@ -51,7 +51,7 @@ public class Microservice implements JsonSerializable {
     /**
      * Embeddable classes belonging to the microservice.
      */
-    private final Set<JClass> embeddables;
+//    private final Set<JClass> embeddables;
 
     /**
      * Feign client classes belonging to the microservice.
@@ -70,7 +70,7 @@ public class Microservice implements JsonSerializable {
         this.services = new HashSet<>();
         this.repositories = new HashSet<>();
         this.entities = new HashSet<>();
-        this.embeddables = new HashSet<>();
+//        this.embeddables = new HashSet<>();
         this.feignClients = new HashSet<>();
         this.files = new HashSet<>();
     }
@@ -86,8 +86,8 @@ public class Microservice implements JsonSerializable {
         jsonObject.addProperty("path", path);
         jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
         jsonObject.add("entities", JsonSerializable.toJsonArray(entities));
-        jsonObject.add("embeddables", JsonSerializable.toJsonArray(embeddables));
-//        jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
+//        jsonObject.add("embeddables", JsonSerializable.toJsonArray(embeddables));
+        jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
         jsonObject.add("services", JsonSerializable.toJsonArray(services));
         jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
         jsonObject.add("files", JsonSerializable.toJsonArray(files));
@@ -117,9 +117,6 @@ public class Microservice implements JsonSerializable {
                 break;
             case ENTITY:
                 entities.add(jClass);
-                break;
-            case EMBEDDABLE:
-                embeddables.add(jClass);
                 break;
             case FEIGN_CLIENT:
                 feignClients.add(jClass);
@@ -165,9 +162,6 @@ public class Microservice implements JsonSerializable {
             case ENTITY:
                 entities.remove(removeClass);
                 break;
-            case EMBEDDABLE:
-                embeddables.remove(removeClass);
-                break;
             case FEIGN_CLIENT:
                 feignClients.remove(removeClass);
                 break;
@@ -185,8 +179,8 @@ public class Microservice implements JsonSerializable {
         classes.addAll(services);
         classes.addAll(repositories);
         classes.addAll(entities);
-        classes.addAll(embeddables);
-//        classes.addAll(feignClients);
+//        classes.addAll(embeddables);
+        classes.addAll(feignClients);
 
         return classes;
     }

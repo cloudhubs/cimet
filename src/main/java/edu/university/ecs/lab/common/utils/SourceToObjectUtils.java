@@ -19,7 +19,9 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.enums.EndpointTemplate;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
+import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
@@ -87,12 +89,8 @@ public class SourceToObjectUtils {
         }
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
-        String preURL = "";
-        HttpMethod preMethod = HttpMethod.NONE;
         List<AnnotationExpr> classAnnotations = filterClassAnnotations();
-        String feignClient = "";
-
-        preURL = preURL.replace("\"", "");
+        AnnotationExpr requestMapping = classAnnotations.stream().filter(ae -> ae.getNameAsString().equals("RequestMapping")).findFirst().orElse(null);
 
         ClassRole classRole = parseClassRole(classAnnotations);
 
@@ -101,22 +99,35 @@ public class SourceToObjectUtils {
             return null;
         }
 
-        JClass feignClass = null;
+        JClass jClass = null;
         if(classRole == ClassRole.FEIGN_CLIENT) {
-            feignClass = handleFeignClient(sourceFile, config, preURL, preMethod, classRole, classAnnotations);
+            jClass = handleFeignClient(sourceFile, config, requestMapping, classAnnotations);
+        } else if(classRole == ClassRole.REP_REST_RSC) {
+            jClass = new JClass(
+                    sourceFile.getName().replace(".java", ""),
+                    FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                    packageName,
+                    classRole,
+                    parseMethods(cu.findAll(MethodDeclaration.class), requestMapping),
+                    parseFields(cu.findAll(FieldDeclaration.class)),
+                    parseAnnotations(classAnnotations),
+                    parseMethodCalls(cu.findAll(MethodDeclaration.class)),
+                    cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+        } else {
+            jClass = new JClass(
+                    sourceFile.getName().replace(".java", ""),
+                    FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                    packageName,
+                    classRole,
+                    parseMethods(cu.findAll(MethodDeclaration.class), requestMapping),
+                    parseFields(cu.findAll(FieldDeclaration.class)),
+                    parseAnnotations(classAnnotations),
+                    parseMethodCalls(cu.findAll(MethodDeclaration.class)),
+                    cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
         }
 
         // Build the JClass
-        return feignClass == null ? new JClass(
-                sourceFile.getName().replace(".java", ""),
-                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
-                packageName,
-                classRole,
-                parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod),
-                parseFields(cu.findAll(FieldDeclaration.class)),
-                parseAnnotations(classAnnotations),
-                parseMethodCalls(cu.findAll(MethodDeclaration.class)),
-                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet())) : feignClass;
+        return jClass;
 
     }
 
@@ -125,11 +136,9 @@ public class SourceToObjectUtils {
      * This method parses methodDeclarations list and returns a Set of Method models
      *
      * @param methodDeclarations the list of methodDeclarations to be parsed
-     * @param preURL             initial part of the URL in case of recursion
-     * @param preMethod          pre-defined HTTP method in case of recursion
      * @return a set of Method models representing the MethodDeclarations
      */
-    public static Set<Method> parseMethods(List<MethodDeclaration> methodDeclarations, String preURL, HttpMethod preMethod) {
+    public static Set<Method> parseMethods(List<MethodDeclaration> methodDeclarations, AnnotationExpr requestMapping) {
         // Get params and returnType
         Set<Method> methods = new HashSet<>();
 
@@ -146,7 +155,7 @@ public class SourceToObjectUtils {
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()));
 
-            method = convertValidEndpoints(methodDeclaration, method, preURL, preMethod);
+            method = convertValidEndpoints(methodDeclaration, method, requestMapping);
 
             methods.add(method);
         }
@@ -159,89 +168,25 @@ public class SourceToObjectUtils {
      *
      * @param methodDeclaration the MethodDeclaration associated with Method
      * @param method            the Method to be converted
-     * @param preURL            initial part of the URL in case of recursion
-     * @param preMethod         pre-defined HTTP method in case of recursion
+     * @param requestMapping    the class level requestMapping
      * @return returns method if it is invalid, otherwise a new Endpoint
      */
-    public static Method convertValidEndpoints(MethodDeclaration methodDeclaration, Method method, String preURL, HttpMethod preMethod) {
-        HttpMethod httpMethod = HttpMethod.NONE;
+    public static Method convertValidEndpoints(MethodDeclaration methodDeclaration, Method method, AnnotationExpr requestMapping) {
         for (AnnotationExpr ae : methodDeclaration.getAnnotations()) {
             String ae_name = ae.getNameAsString();
-            if (call_annotations.contains(ae_name)) {
-                String url = getPathFromAnnotation(ae, preURL);
-                if (preMethod.equals(HttpMethod.NONE)) {
-                    httpMethod = getHttpMethodFromAnnotation(ae, httpMethod);
-                }
+            if (EndpointTemplate.ENDPOINT_ANNOTATIONS.contains(ae_name)) {
+                EndpointTemplate endpointTemplate = new EndpointTemplate(requestMapping, ae);
+
                 // By Spring documentation, only the first valid @Mapping annotation is considered;
                 // And getAnnotations() return them in order, so we can return immediately
-                return new Endpoint(method, url, httpMethod, microserviceName);
+                return new Endpoint(method, endpointTemplate.getUrl(), endpointTemplate.getHttpMethod(), microserviceName);
             }
         }
 
         return method;
     }
 
-    private static HttpMethod getHttpMethodFromAnnotation(AnnotationExpr ae, HttpMethod httpMethod) {
-        switch (ae.getNameAsString()) {
-            case "GetMapping":
-                return HttpMethod.GET;
-            case "PostMapping":
-                return HttpMethod.POST;
-            case "DeleteMapping":
-                return HttpMethod.DELETE;
-            case "PutMapping":
-                return HttpMethod.PUT;
-            case "PatchMapping":
-                return HttpMethod.PATCH;
-            case "RequestMapping":
-                if (ae instanceof NormalAnnotationExpr) {
-                    NormalAnnotationExpr nae = (NormalAnnotationExpr) ae;
-                    if (nae.getPairs().isEmpty()) {
-                        // This is a RequestMapping without parameters
-                        return HttpMethod.NONE; // or set a default method, if you prefer
-                    } else {
-                        for (MemberValuePair pair : nae.getPairs()) {
-                            if (pair.getNameAsString().equals("method")) {
-                                String methodValue = pair.getValue().toString();
-                                switch (methodValue) {
-                                    case "RequestMethod.GET":
-                                        return HttpMethod.GET;
-                                    case "RequestMethod.POST":
-                                        return HttpMethod.POST;
-                                    case "RequestMethod.DELETE":
-                                        return HttpMethod.DELETE;
-                                    case "RequestMethod.PUT":
-                                        return HttpMethod.PUT;
-                                }
-                            }
-                        }
-                    }
-                }
-            default:
-                return httpMethod;
-        }
-    }
 
-    private static String getPathFromAnnotation(AnnotationExpr ae, String url) {
-        // Annotations of type @Mapping("/endpoint")
-        if (ae.isSingleMemberAnnotationExpr()) {
-            url = url + StringParserUtils.simplifyEndpointURL(
-                    StringParserUtils.removeOuterQuotations(
-                            ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
-        }
-
-        // Annotations of type @Mapping(path="/endpoint")
-        else if (ae.isNormalAnnotationExpr() && !ae.asNormalAnnotationExpr().getPairs().isEmpty()) {
-            for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
-                if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
-                    url = url + StringParserUtils.simplifyEndpointURL(
-                            StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
-                    break;
-                }
-            }
-        }
-        return url;
-    }
 
     /**
      * This method parses methodDeclarations list and returns a Set of MethodCall models
@@ -283,26 +228,19 @@ public class SourceToObjectUtils {
      * @return returns methodCall if it is invalid, otherwise a new RestCall
      */
     public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
-        if (!methodCall.getObjectName().equals("restTemplate")) {
-            return methodCall;
-        }
-        String url = parseURL(methodCallExpr);
-        if (url.isEmpty()) {
+        if (!methodCall.getObjectType().equals("RestTemplate") || !RestCallTemplate.REST_METHODS.contains(methodCallExpr.getNameAsString())) {
             return methodCall;
         }
 
-        HttpMethod httpMethod = HttpMethod.NONE;
-        if (methodCall.getParameterContents().contains("HttpMethod.GET")) {
-            httpMethod = HttpMethod.GET;
-        } else if (methodCall.getParameterContents().contains("HttpMethod.POST")) {
-            httpMethod = HttpMethod.POST;
-        } else if (methodCall.getParameterContents().contains("HttpMethod.DELETE")) {
-            httpMethod = HttpMethod.DELETE;
-        } else if (methodCall.getParameterContents().contains("HttpMethod.PUT")) {
-            httpMethod = HttpMethod.PUT;
+        RestCallTemplate restCallTemplate = new RestCallTemplate(methodCallExpr, cu);
+
+        if (restCallTemplate.getUrl().isEmpty()) {
+            return methodCall;
         }
 
-        return new RestCall(methodCall, url, httpMethod, microserviceName);
+
+
+        return new RestCall(methodCall, restCallTemplate.getUrl(), restCallTemplate.getHttpMethod(), microserviceName);
     }
 
     /**
@@ -325,51 +263,6 @@ public class SourceToObjectUtils {
         return javaFields;
     }
 
-    /**
-     * This method gets url path from a list of annotation expressions
-     *
-     * @param annotationExprs the annotation expressions to parse
-     * @return the string url
-     */
-    private static String getPathFromAnnotations(List<AnnotationExpr> annotationExprs) {
-        for (AnnotationExpr ae : annotationExprs) {
-            HttpMethod httpMethod = HttpMethod.NONE;
-            switch (ae.getNameAsString()) {
-                case "GetMapping":
-                    httpMethod = HttpMethod.GET;
-                    break;
-                case "PostMapping":
-                    httpMethod = HttpMethod.POST;
-                    break;
-                case "DeleteMapping":
-                    httpMethod = HttpMethod.DELETE;
-                    break;
-                case "PutMapping":
-                    httpMethod = HttpMethod.PUT;
-                    break;
-            }
-
-
-            if (ae.isSingleMemberAnnotationExpr() && httpMethod != HttpMethod.NONE) {
-                return StringParserUtils.simplifyEndpointURL(
-                        StringParserUtils.removeOuterQuotations(
-                                ae.asSingleMemberAnnotationExpr().getMemberValue().toString()));
-            }
-
-            if (ae.isNormalAnnotationExpr() && ae.asNormalAnnotationExpr().getPairs().size() > 0 && httpMethod != HttpMethod.NONE) {
-                for (MemberValuePair mvp : ae.asNormalAnnotationExpr().getPairs()) {
-                    if (mvp.getName().toString().equals("path") || mvp.getName().toString().equals("value")) {
-                        return StringParserUtils.simplifyEndpointURL(
-                                StringParserUtils.removeOuterQuotations(mvp.getValue().toString()));
-                    }
-                }
-            }
-
-        }
-
-
-        return "";
-    }
 
     /**
      * Get the name of the object a method is being called from (callingObj.methodName())
@@ -413,98 +306,6 @@ public class SourceToObjectUtils {
             }
             return "";
         }
-    }
-
-    /**
-     * Find the URL from the given method call expression.
-     *
-     * @param mce the method call to extract url from
-     * @return the URL found
-     */
-    private static String parseURL(MethodCallExpr mce) {
-        if (mce.getArguments().isEmpty()) {
-            return "";
-        }
-
-        // Arbitrary index of the url parameter
-        Expression exp = mce.getArguments().get(0);
-
-        if (exp.isStringLiteralExpr()) {
-            return StringParserUtils.removeOuterQuotations(exp.toString());
-        } else if (exp.isFieldAccessExpr()) {
-            return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
-        } else if (exp.isNameExpr()) {
-            return parseFieldValue(exp.asNameExpr().getNameAsString());
-        } else if (exp.isBinaryExpr()) {
-            return parseUrlFromBinaryExp(exp.asBinaryExpr());
-        }
-
-        return "";
-    }
-
-    private static String parseFieldValue(String fieldName) {
-        for (FieldDeclaration fd : cu.findAll(FieldDeclaration.class)) {
-            if (fd.getVariables().toString().contains(fieldName)) {
-                Expression init = fd.getVariable(0).getInitializer().orElse(null);
-                if (init != null) {
-                    return StringParserUtils.removeOuterQuotations(init.toString());
-                }
-            }
-        }
-
-        return "";
-    }
-
-    private static String parseUrlFromBinaryExp(BinaryExpr exp) {
-        StringBuilder returnString = new StringBuilder();
-        Expression left = exp.getLeft();
-        Expression right = exp.getRight();
-
-        if (left instanceof BinaryExpr) {
-            returnString.append(parseUrlFromBinaryExp((BinaryExpr) left));
-        } else if (left instanceof StringLiteralExpr) {
-            returnString.append(formatURL(left.toString()));
-        } else if (left instanceof NameExpr
-                && !left.asNameExpr().getNameAsString().contains("url")
-                && !left.asNameExpr().getNameAsString().contains("uri")) {
-            returnString.append("/{?}");
-        }
-
-        // Check if right side is a binary expression
-        if (right instanceof BinaryExpr) {
-            returnString.append(parseUrlFromBinaryExp((BinaryExpr) right));
-        } else if (right instanceof StringLiteralExpr) {
-            returnString.append(formatURL(right.toString()));
-        } else if (right instanceof NameExpr) {
-            returnString.append("/{?}");
-        }
-
-        return returnString.toString(); // URL not found in subtree
-    }
-
-    private static String formatURL(String str) {
-        str = str.replace("http://", "");
-        str = str.replace("https://", "");
-
-        int backslashNdx = str.indexOf("/");
-        if (backslashNdx > 0) {
-            str = str.substring(backslashNdx);
-        }
-
-        int questionNdx = str.indexOf("?");
-        if (questionNdx > 0) {
-            str = str.substring(0, questionNdx);
-        }
-
-        if (str.endsWith("\"")) {
-            str = str.substring(0, str.length() - 1);
-        }
-
-        if (str.endsWith("/")) {
-            str = str.substring(0, str.length() - 1);
-        }
-
-        return str;
     }
 
 
@@ -558,8 +359,6 @@ public class SourceToObjectUtils {
                     return ClassRole.REPOSITORY;
                 case "Entity":
                     return ClassRole.ENTITY;
-                case "Embeddable":
-                    return ClassRole.EMBEDDABLE;
                 case "FeignClient":
                     return ClassRole.FEIGN_CLIENT;
             }
@@ -578,25 +377,33 @@ public class SourceToObjectUtils {
         return split.get(3);
     }
 
-    private static JClass handleFeignClient(File sourceFile, Config config, String preURL, HttpMethod preMethod, ClassRole classRole, List<AnnotationExpr> classAnnotations) {
+    /**
+     * FeignClient represents an interface for making rest calls to a service
+     * other than the current one. As such this method converts feignClient
+     * interfaces into a service class whose methods simply contain the exact
+     * rest call outlined by the interface annotations.
+     *
+     * @param sourceFile
+     * @param config
+     * @param classAnnotations
+     * @return
+     */
+    private static JClass handleFeignClient(File sourceFile, Config config, AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
 
-        Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), preURL, preMethod);
-//        String preURL
-//
-//        for(AnnotationExpr annotationExpr : classAnnotations) {
-//            if(annotationExpr.getName().equals("FeignClient")) {
-//
-//            }
-//        }
+        // Parse the methods
+        Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);
 
+        // New methods for conversion
         Set<Method> newMethods = new HashSet<>();
+        // New rest calls for conversion
         Set<MethodCall> newRestCalls = new HashSet<>();
 
         // For each method that is detected as an endpoint convert into a Method + RestCall
         for(Method method : methods) {
             if(method instanceof Endpoint) {
+                Endpoint endpoint = (Endpoint) method;
                 newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations()));
-                newRestCalls.add(new RestCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), ""));
+                newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), ""), endpoint.getUrl(), endpoint.getHttpMethod(), endpoint.getMicroserviceName()));
             } else {
                 newMethods.add(method);
             }
@@ -608,7 +415,7 @@ public class SourceToObjectUtils {
                 sourceFile.getName().replace(".java", ""),
                 FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                 packageName,
-                classRole,
+                ClassRole.FEIGN_CLIENT,
                 newMethods,
                 parseFields(cu.findAll(FieldDeclaration.class)),
                 parseAnnotations(classAnnotations),
