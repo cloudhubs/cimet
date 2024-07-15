@@ -38,6 +38,7 @@ public class SourceToObjectUtils {
             "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource", "FeignClient");
     private static CompilationUnit cu;
     private static String microserviceName;
+    private static String className;
     private static String packageName;
     private static String packageAndClassName;
     private static CombinedTypeSolver combinedTypeSolver;
@@ -66,6 +67,7 @@ public class SourceToObjectUtils {
 
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
         StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+        className = sourceFile.getName().replace(".java", "");
 
     }
 
@@ -104,7 +106,7 @@ public class SourceToObjectUtils {
             jClass = handleFeignClient(sourceFile, config, requestMapping, classAnnotations);
         } else if(classRole == ClassRole.REP_REST_RSC) {
             jClass = new JClass(
-                    sourceFile.getName().replace(".java", ""),
+                    className,
                     FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                     packageName,
                     classRole,
@@ -115,7 +117,7 @@ public class SourceToObjectUtils {
                     cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
         } else {
             jClass = new JClass(
-                    sourceFile.getName().replace(".java", ""),
+                    className,
                     FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                     packageName,
                     classRole,
@@ -154,7 +156,8 @@ public class SourceToObjectUtils {
                     parameters,
                     methodDeclaration.getTypeAsString(),
                     parseAnnotations(methodDeclaration.getAnnotations()),
-                    microserviceName);
+                    microserviceName,
+                    className);
 
             method = convertValidEndpoints(methodDeclaration, method, requestMapping);
 
@@ -401,7 +404,7 @@ public class SourceToObjectUtils {
         for(Method method : methods) {
             if(method instanceof Endpoint) {
                 Endpoint endpoint = (Endpoint) method;
-                newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations(), method.getMicroserviceName()));
+                newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations(), method.getMicroserviceName(), method.getClassName()));
                 newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), "", endpoint.getMicroserviceName()), endpoint.getUrl(), endpoint.getHttpMethod()));
             } else {
                 newMethods.add(method);
@@ -411,7 +414,7 @@ public class SourceToObjectUtils {
 
         // Build the JClass
         return new JClass(
-                sourceFile.getName().replace(".java", ""),
+                className,
                 FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
                 packageName,
                 ClassRole.FEIGN_CLIENT,

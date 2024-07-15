@@ -29,12 +29,13 @@ public class Endpoint extends Method {
     private HttpMethod httpMethod;
 
 
-    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, List<Annotation> annotations, String microserviceName) {
-        super(methodName, packageName, parameters, returnType, annotations, microserviceName);
+    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, List<Annotation> annotations, String microserviceName,
+                    String className) {
+        super(methodName, packageName, parameters, returnType, annotations, microserviceName, className);
     }
 
     public Endpoint(Method method, String url, HttpMethod httpMethod) {
-        super(method.name, method.packageAndClassName, method.parameters, method.returnType, method.annotations, method.microserviceName);
+        super(method.name, method.packageAndClassName, method.parameters, method.returnType, method.annotations, method.microserviceName, method.className);
         this.url = url;
         this.httpMethod = httpMethod;
     }

@@ -38,13 +38,20 @@ public class Method extends Node {
      */
     protected List<Annotation> annotations;
 
-    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations, String microserviceName) {
+    /**
+     * The class id that this method belongs to
+     */
+    protected String className;
+
+    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations, String microserviceName,
+                  String className) {
         this.name = name;
         this.packageAndClassName = packageAndClassName;
         this.parameters = parameters;
         this.returnType = typeAsString;
         this.annotations = annotations;
         this.microserviceName = microserviceName;
+        this.className = className;
     }
 
     /**
@@ -60,6 +67,7 @@ public class Method extends Node {
         jsonObject.add("parameters", JsonSerializable.toJsonArray(getParameters()));
         jsonObject.addProperty("returnType", getReturnType());
         jsonObject.addProperty("microserviceName", microserviceName);
+        jsonObject.addProperty("className", className);
 
         return jsonObject;
     }

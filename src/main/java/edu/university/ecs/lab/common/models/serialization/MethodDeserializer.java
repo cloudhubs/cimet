@@ -45,6 +45,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         method.setParameters(fields);
         method.setPackageAndClassName(json.get("packageAndClassName").getAsString());
         method.setMicroserviceName(json.get("microserviceName").getAsString());
+        method.setClassName(json.get("className").getAsString());
 
 
         return method;
