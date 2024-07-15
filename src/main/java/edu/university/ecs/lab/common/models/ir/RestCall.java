@@ -27,12 +27,15 @@ public class RestCall extends MethodCall {
     private HttpMethod httpMethod;
 
 
-    public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents, String microserviceName) {
-        super(methodName, packageAndClassName, objectType, objectName, calledFrom, parameterContents, microserviceName);
+    public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents,
+                    String microserviceName, String className) {
+        super(methodName, packageAndClassName, objectType, objectName, calledFrom, parameterContents,
+                microserviceName, className);
     }
 
     public RestCall(MethodCall methodCall, String url, HttpMethod httpMethod) {
-        super(methodCall.name, methodCall.packageAndClassName, methodCall.objectType, methodCall.objectName, methodCall.calledFrom, methodCall.parameterContents, methodCall.microserviceName);
+        super(methodCall.name, methodCall.packageAndClassName, methodCall.objectType, methodCall.objectName, methodCall.calledFrom, methodCall.parameterContents,
+                methodCall.microserviceName, methodCall.className);
         this.url = url;
         this.httpMethod = httpMethod;
     }

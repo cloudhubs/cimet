@@ -30,6 +30,7 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
         methodCall.setPackageAndClassName(json.get("packageAndClassName").getAsString());
         methodCall.setObjectType(json.get("objectType").getAsString());
         methodCall.setMicroserviceName(json.get("microserviceName").getAsString());
+        methodCall.setClassName(json.get("className").getAsString());
 
 
         return methodCall;

@@ -37,11 +37,17 @@ public class MethodCall extends Node {
     protected String parameterContents;
 
     /**
-     * The name of the microservice this RestCall is called from
+     * The name of the microservice this MethodCall is called from
      */
     protected String microserviceName;
 
-    public MethodCall(String name, String packageName,String objectType, String objectName, String calledFrom, String parameterContents, String microserviceName) {
+    /**
+     * The class id that this MethodCall is called from
+     */
+    protected String className;
+
+    public MethodCall(String name, String packageName,String objectType, String objectName, String calledFrom, String parameterContents, String microserviceName,
+                      String className) {
         this.name = name;
         this.packageAndClassName = packageName;
         this.objectName = objectName;
@@ -49,6 +55,7 @@ public class MethodCall extends Node {
         this.calledFrom = calledFrom;
         this.parameterContents = parameterContents;
         this.microserviceName = microserviceName;
+        this.className = className;
     }
 
     /**
@@ -65,6 +72,7 @@ public class MethodCall extends Node {
         jsonObject.addProperty("objectType", getObjectType());
         jsonObject.addProperty("parameterContents", getParameterContents());
         jsonObject.addProperty("microserviceName", microserviceName);
+        jsonObject.addProperty("className", className);
 
         return jsonObject;
     }
