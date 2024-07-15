@@ -76,4 +76,10 @@ public class MethodCall extends Node {
 
         return jsonObject;
     }
+
+    public static boolean matchMethod(MethodCall methodCall, Method method) {
+        return methodCall.microserviceName.equals(method.microserviceName) && methodCall.objectType.equals(method.className)
+                && methodCall.name.equals(method.name);
+
+    }
 }
