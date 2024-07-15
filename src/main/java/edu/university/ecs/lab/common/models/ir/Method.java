@@ -21,24 +21,30 @@ public class Method extends Node {
     /**
      * Set of fields representing parameters
      */
-    private Set<Field> parameters;
+    protected Set<Field> parameters;
 
     /**
      * Java return type of the method
      */
-    private String returnType;
+    protected String returnType;
+
+    /**
+     * The microservice id that this method belongs to
+     */
+    protected String microserviceName;
 
     /**
      * Method definition level annotations
      */
-    private List<Annotation> annotations;
+    protected List<Annotation> annotations;
 
-    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations) {
+    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations, String microserviceName) {
         this.name = name;
         this.packageAndClassName = packageAndClassName;
         this.parameters = parameters;
         this.returnType = typeAsString;
         this.annotations = annotations;
+        this.microserviceName = microserviceName;
     }
 
     /**
@@ -53,6 +59,7 @@ public class Method extends Node {
         jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
         jsonObject.add("parameters", JsonSerializable.toJsonArray(getParameters()));
         jsonObject.addProperty("returnType", getReturnType());
+        jsonObject.addProperty("microserviceName", microserviceName);
 
         return jsonObject;
     }

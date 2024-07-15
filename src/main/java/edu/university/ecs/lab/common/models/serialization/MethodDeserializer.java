@@ -44,6 +44,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         }
         method.setParameters(fields);
         method.setPackageAndClassName(json.get("packageAndClassName").getAsString());
+        method.setMicroserviceName(json.get("microserviceName").getAsString());
 
 
         return method;
@@ -51,12 +52,11 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
 
     private Method jsonToEndpoint(JsonObject json, JsonDeserializationContext context) throws JsonParseException {
         Method method = jsonToMethod(json, context);
-        String microserviceName = json.get("microserviceName").getAsString();
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
 
 
-        return new Endpoint(method, url, HttpMethod.valueOf(httpMethod), microserviceName);
+        return new Endpoint(method, url, HttpMethod.valueOf(httpMethod));
     }
 
 }

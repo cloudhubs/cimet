@@ -153,7 +153,8 @@ public class SourceToObjectUtils {
                     packageAndClassName,
                     parameters,
                     methodDeclaration.getTypeAsString(),
-                    parseAnnotations(methodDeclaration.getAnnotations()));
+                    parseAnnotations(methodDeclaration.getAnnotations()),
+                    microserviceName);
 
             method = convertValidEndpoints(methodDeclaration, method, requestMapping);
 
@@ -179,7 +180,7 @@ public class SourceToObjectUtils {
 
                 // By Spring documentation, only the first valid @Mapping annotation is considered;
                 // And getAnnotations() return them in order, so we can return immediately
-                return new Endpoint(method, endpointTemplate.getUrl(), endpointTemplate.getHttpMethod(), microserviceName);
+                return new Endpoint(method, endpointTemplate.getUrl(), endpointTemplate.getHttpMethod());
             }
         }
 
@@ -400,7 +401,7 @@ public class SourceToObjectUtils {
         for(Method method : methods) {
             if(method instanceof Endpoint) {
                 Endpoint endpoint = (Endpoint) method;
-                newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations()));
+                newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations(), method.getMicroserviceName()));
                 newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), "", endpoint.getMicroserviceName()), endpoint.getUrl(), endpoint.getHttpMethod()));
             } else {
                 newMethods.add(method);
