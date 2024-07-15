@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a method declaration in Java.
@@ -31,9 +31,9 @@ public class Method extends Node {
     /**
      * Method definition level annotations
      */
-    private Set<Annotation> annotations;
+    private List<Annotation> annotations;
 
-    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, Set<Annotation> annotations) {
+    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations) {
         this.name = name;
         this.packageAndClassName = packageAndClassName;
         this.parameters = parameters;

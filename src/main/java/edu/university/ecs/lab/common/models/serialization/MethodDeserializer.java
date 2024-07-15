@@ -7,8 +7,10 @@ import edu.university.ecs.lab.common.models.ir.Field;
 import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 /**
  * Class for deserializing a Method when using Gson
@@ -30,7 +32,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         method.setName(json.get("name").getAsString());
         method.setReturnType(json.get("returnType").getAsString());
 
-        Set<Annotation> annotations = new HashSet<Annotation>();
+        List<Annotation> annotations = new ArrayList<Annotation>();
         for (JsonElement annotationJson : json.get("annotations").getAsJsonArray()) {
             annotations.add(context.deserialize(annotationJson, Annotation.class));
         }

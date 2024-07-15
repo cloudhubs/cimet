@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Set;
+import java.util.List;
 
 /**
  * Represents an extension of a method declaration. An endpoint exists at the controller level and
@@ -32,7 +33,7 @@ public class Endpoint extends Method {
      */
     private String microserviceName;
 
-    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, Set<Annotation> annotations) {
+    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, List<Annotation> annotations) {
         super(methodName, packageName, parameters, returnType, annotations);
     }
 

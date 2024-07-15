@@ -17,7 +17,6 @@ public class WobblyServiceInteractionService {
         List<String> wobblyInteractions = new ArrayList<>();
 
         for (Microservice microservice : currentSystem.getMicroservices()) {
-            String methodName = "";
             Set<JClass> classes = microservice.getClasses();
 
             for (JClass jClass : classes) {
@@ -39,14 +38,17 @@ public class WobblyServiceInteractionService {
                             hasBulkhead = true;
                         }
                     }
-                    methodName = method.getName();
+                    if (hasCircuitBreaker && hasRateLimiter && hasRetry && hasBulkhead) {
+                        String interaction = microservice.getName() + "." + jClass.getName() + "." + method.getName();
+                        wobblyInteractions.add(interaction);
+                        
+                        hasCircuitBreaker= false;
+                        hasRateLimiter = false;
+                        hasRetry = false;
+                        hasBulkhead = false;
+                    }
                 }
-
-                // If all required annotations are present, consider it a wobbly service interaction
-                if (hasCircuitBreaker && hasRateLimiter && hasRetry && hasBulkhead) {
-                    String interaction = microservice.getName() + "." + jClass.getName() + "." + methodName;
-                    wobblyInteractions.add(interaction);
-                }
+                
             }
         }
 

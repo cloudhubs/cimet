@@ -41,7 +41,7 @@ public class WobblyServiceInteractionsTest {
 
         assertTrue(wobblyServiceInteraction.numWobbblyService() > 0);
 
-        List<String> expectedWobblyServiceInt = new ArrayList<>(Arrays.asList("microservice-a"));
+        List<String> expectedWobblyServiceInt = new ArrayList<>(Arrays.asList("microservice-a.ServiceA.callServiceC"));
 
         assertTrue(wobblyServiceInteraction.getWobblyServiceInteractions().equals(expectedWobblyServiceInt));
     }

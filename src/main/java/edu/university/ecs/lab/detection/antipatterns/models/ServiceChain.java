@@ -37,6 +37,15 @@ public class ServiceChain extends AntiPattern{
         this.chain = sequence;
     }
 
+    /**
+     * Checks if the list of nodes considered greedy is empty.
+     *
+     * @return true if the list of nodes is empty, false otherwise
+     */
+    public boolean isEmpty(){
+        return this.chain.isEmpty();
+    }
+
     @Override
     protected String getName() {
         return NAME;

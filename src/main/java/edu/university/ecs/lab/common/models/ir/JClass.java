@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -50,14 +51,14 @@ public class JClass implements JsonSerializable {
     /**
      * Set of class level annotations
      */
-    private Set<Annotation> annotations;
+    private List<Annotation> annotations;
 
     /**
      * Set of method invocations made from within this class
      */
     private Set<MethodCall> methodCalls;
 
-    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, Set<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
+    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, List<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
         this.name = name;
         this.packageName = packageName;
         this.path = path;
