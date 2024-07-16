@@ -89,6 +89,11 @@ public class ExcelOutputRunner {
         for (int i = 1; i < list.size() - 1; i++) {
             String commitIdOld = list.get(i).toString().split(" ")[1];
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
+            writeEmptyRow(sheet, i);
+            Row row = sheet.getRow(i);
+
+            Cell commitIdCell = row.createCell(0);
+            commitIdCell.setCellValue(commitIdOld.substring(0, 7));
 
             Map<String, Integer> allAntiPatterns = new HashMap<>();
             HashMap<String, Double> metrics = new HashMap<>();
@@ -112,7 +117,16 @@ public class ExcelOutputRunner {
             currARs.addAll(ucDetectionService.scanDeltaUC());
             currARs.addAll(ucDetectionService.scanSystemUC());
             allARs.add(currARs);
-            updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, currARs, i);
+
+            if (!allAntiPatterns.isEmpty()) {
+                updateAntiPatterns(row, allAntiPatterns);
+            }
+            if (!metrics.isEmpty()) {
+                updateMetrics(row, metrics);
+            }
+            if (!currARs.isEmpty()) {
+                updateAR(row, currARs);
+            }
 
             try {
                 Files.move(Paths.get(NEW_IR_PATH), Paths.get(OLD_IR_PATH), StandardCopyOption.REPLACE_EXISTING);
@@ -204,13 +218,7 @@ public class ExcelOutputRunner {
 
     }
 
-    private static void updateExcel(XSSFSheet sheet, String commitID, Map<String, Integer> allAntiPatterns, Map<String, Double> metrics, List<AbstractAR> currARs, int rowIndex) {
-        writeEmptyRow(sheet, rowIndex);
-        Row row = sheet.getRow(rowIndex);
-
-        Cell commitIdCell = row.createCell(0);
-        commitIdCell.setCellValue(commitID.substring(0, 7));
-
+    private static void updateAR(Row row, List<AbstractAR> currARs) {
         int[] arcrules_counts = new int[ARCHRULES];
         Arrays.fill(arcrules_counts, 0);
 
@@ -227,21 +235,26 @@ public class ExcelOutputRunner {
                 }
             }
         }
+        for (int i = 0; i < arcrules_counts.length; i++) {
+            Cell cell = row.getCell(i + 1 + ANTIPATTERNS + METRICS); // first column is for commit ID + rest for anti-patterns+metrics
+            cell.setCellValue(arcrules_counts[i]);
+        }
+    }
+
+    private static void updateAntiPatterns(Row row, Map<String, Integer> allAntiPatterns) {
         for (int i = 0; i < ANTIPATTERNS; i++) {
             int offset = i + 1; // i + 1 because the first column is for commit ID
             Cell cell = row.getCell(offset);
             cell.setCellValue(allAntiPatterns.getOrDefault(columnLabels[offset], 0));
         }
+    }
+
+    private static void updateMetrics(Row row, Map<String, Double> metrics) {
         for (int i = 0; i < METRICS; i++) {
             int offset = i + 1 + ANTIPATTERNS; // first column is for commit ID + rest for anti-patterns
             Cell cell = row.getCell(offset);
             cell.setCellValue(metrics.getOrDefault(columnLabels[offset],0.0));
         }
-        for (int i = 0; i < arcrules_counts.length; i++) {
-            Cell cell = row.getCell(i + 1 + ANTIPATTERNS + METRICS); // first column is for commit ID + rest for anti-patterns+metrics
-            cell.setCellValue(arcrules_counts[i]);
-        }
-
     }
 
     public static JsonArray toJsonArray(List<List<AbstractAR>> archRulesList) {
