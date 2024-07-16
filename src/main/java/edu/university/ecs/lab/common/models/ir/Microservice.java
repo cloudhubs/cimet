@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents the overarching structure of a microservice system. It is composed of classes which
@@ -183,6 +184,23 @@ public class Microservice implements JsonSerializable {
         classes.addAll(feignClients);
 
         return classes;
+    }
+
+    public Set<RestCall> getRestCalls () {
+        return this.services.stream().flatMap(service -> service.getRestCalls().stream()).collect(Collectors.toSet());
+    }
+
+    public Set<Endpoint> getEndpoints () {
+        return this.controllers.stream().flatMap(controller ->
+                controller.getEndpoints().stream()).collect(Collectors.toSet());
+    }
+
+    public Set<MethodCall> getMethodCalls () {
+        return this.getClasses().stream().flatMap(jClass -> jClass.getMethodCalls().stream()).collect(Collectors.toSet());
+    }
+
+    public Set<Method> getMethods () {
+        return this.getClasses().stream().flatMap(jClass -> jClass.getMethods().stream()).collect(Collectors.toSet());
     }
 
 }
