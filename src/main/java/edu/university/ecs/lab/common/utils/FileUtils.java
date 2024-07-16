@@ -2,12 +2,16 @@ package edu.university.ecs.lab.common.utils;
 
 import edu.university.ecs.lab.common.error.Error;
 import java.io.File;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
  * Manages all file paths and file path conversion functions.
  */
 public class FileUtils {
+    public static final Set<String> VALID_FILES = Set.of("pom.xml", "DockerFile");
     private static final String PROJECT_PATH = System.getProperty("user.dir");
     public static final String SEPARATOR = System.getProperty("file.separator");
     public static final String SEPARATOR_SPECIAL = SEPARATOR.replace("\\", "\\\\");
@@ -106,6 +110,27 @@ public class FileUtils {
         } catch (Exception e) {
             Error.reportAndExit(Error.INVALID_REPO_PATHS);
         }
+    }
+
+    /**
+     * This method filters the file's that should be present in the project
+     *
+     * @param path the file for checking
+     * @return boolean true if it belongs in the project
+     */
+    public static boolean isValidFile(String path) {
+        return (path.endsWith(".java") || path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path)) && !path.contains(".github");
+    }
+
+    /**
+     * This method filters the static files present in the project,
+     * not including Java source file but configuration files only
+     *
+     * @param path the file for checking
+     * @return boolean true if it is a configuration file
+     */
+    public static boolean isConfigurationFile(String path) {
+        return path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path);
     }
 
 }

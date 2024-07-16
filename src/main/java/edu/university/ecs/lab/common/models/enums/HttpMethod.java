@@ -11,5 +11,6 @@ public enum HttpMethod {
     OPTIONS,
     HEAD,
     PATCH,
+    ALL,
     NONE
 }

@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.models.ir;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,9 +34,9 @@ public class MicroserviceSystem implements JsonSerializable {
     private Set<Microservice> microservices;
 
     /**
-     * Set of present classes who have no microservice
+     * Set of present files (class or configurations) who have no microservice
      */
-    private Set<JClass> orphans;
+    private Set<ProjectFile> orphans;
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -85,13 +86,17 @@ public class MicroserviceSystem implements JsonSerializable {
      * @param microservice the microservice adopting orphans
      */
     public void adopt(Microservice microservice) {
-        Set<JClass> updatedOrphans = new HashSet<>(getOrphans());
+        Set<ProjectFile> updatedOrphans = new HashSet<>(getOrphans());
 
-        for (JClass jClass : getOrphans()) {
+        for (ProjectFile file : getOrphans()) {
             // If the microservice is in the same folder as the path to the microservice
-            if (jClass.getPath().contains(microservice.getPath())) {
-                microservice.addJClass(jClass);
-                updatedOrphans.remove(jClass);
+            if (file.getPath().contains(microservice.getPath())) {
+                if(file.getFileType().equals(FileType.JCLASS)) {
+                    microservice.addJClass((JClass) file);
+                    updatedOrphans.remove(file);
+                } else {
+                    microservice.getFiles().add((ConfigFile) file);
+                }
             }
 
         }
@@ -104,7 +109,7 @@ public class MicroserviceSystem implements JsonSerializable {
         JClass returnClass = null;
         returnClass = getMicroservices().stream().flatMap(m -> m.getClasses().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
         if(returnClass == null){
-            returnClass = getOrphans().stream().filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
+            returnClass = getOrphans().stream().filter(c -> c instanceof JClass).filter(c -> c.getPath().equals(path)).map(c -> (JClass) c).findFirst().orElse(null);
         }
 
         return returnClass;

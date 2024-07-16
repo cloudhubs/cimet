@@ -1,7 +1,10 @@
 package edu.university.ecs.lab.delta.models;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.AllArgsConstructor;
@@ -35,9 +38,28 @@ public class Delta implements JsonSerializable {
     private ChangeType changeType;
 
     /**
-     * The class that was added or changed
+     * The changed contents, could be a changed class or
+     * a changed configuration file
      */
-    private JClass classChange;
+    private JsonObject data;
+
+    public JClass getClassChange() {
+        Gson gson = new Gson();
+        if(data.has("jClass")) {
+            return gson.fromJson(data.get("jClass"), JClass.class);
+        } else {
+            return null;
+        }
+    }
+
+    public ConfigFile getConfigChange() {
+        Gson gson = new Gson();
+        if(data.has("config")) {
+            return gson.fromJson(data.get("config"), ConfigFile.class);
+        } else {
+            return null;
+        }
+    }
 
     /**
      * see {@link JsonSerializable#toJsonObject()}
@@ -48,7 +70,7 @@ public class Delta implements JsonSerializable {
         jsonObject.addProperty("changeType", changeType.name());
         jsonObject.addProperty("oldPath", oldPath);
         jsonObject.addProperty("newPath", newPath);
-        jsonObject.add("classChange", classChange.toJsonObject());
+        jsonObject.add("data", data);
 
         return jsonObject;
     }

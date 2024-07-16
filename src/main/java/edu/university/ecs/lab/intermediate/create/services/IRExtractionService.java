@@ -3,6 +3,7 @@ package edu.university.ecs.lab.intermediate.create.services;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
@@ -10,7 +11,6 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,12 +42,6 @@ public class IRExtractionService {
         config = ConfigUtil.readConfig(configPath);
     }
 
-    // TODO REMOVE FOR TESTING ONLY
-    public IRExtractionService(Config config) {
-        gitService = new GitService(config);
-        this.config = config;
-    }
-
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
@@ -59,9 +53,6 @@ public class IRExtractionService {
         if (microservices.isEmpty()) {
             System.out.println("No microservices found");
         }
-
-        // Scan through each endpoint to update rest call destinations
-//    updateCallDestinations(msDataMap);
 
         //  Write each service and endpoints to IR
         writeToFile(microservices, fileName);
@@ -164,28 +155,12 @@ public class IRExtractionService {
     }
 
     /**
-     * Get name of output file for the IR
-     *
-     * @return the output file name
-     */
-    private String getOutputFileName() {
-        return FileUtils.getBaseOutputPath()
-                + "/rest-extraction-output-["
-                + config.getBaseBranch()
-                + "-"
-                + config.getBaseCommit().substring(0, 7)
-                + "].json";
-    }
-
-    /**
      * Recursively scan the files in the given repository path and extract the endpoints and
      * dependencies for a single microservice.
      *
      * @return model of a single service containing the extracted endpoints and dependencies
      */
     public Microservice recursivelyScanFiles(String rootMicroservicePath) {
-//        System.out.println("Scanning repository '" + rootMicroservicePath + "'...");
-
         // Validate path exists and is a directory
         File localDir = new File(rootMicroservicePath);
         if (!localDir.exists() || !localDir.isDirectory()) {
@@ -215,14 +190,26 @@ public class IRExtractionService {
             for (File file : files) {
                 if (file.isDirectory()) {
                     scanDirectory(file, microservice);
-                } else if (file.getName().endsWith(".java")) {
-                    JClass jClass = SourceToObjectUtils.parseClass(file, config, microservice.getName());
-                    if (jClass != null) {
-                        microservice.addJClass(jClass);
+                } else if (FileUtils.isValidFile(file.getPath())) {
+
+                    if(FileUtils.isConfigurationFile(file.getPath())) {
+                        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(file);
+                        if(configFile != null) {
+                            microservice.getFiles().add(configFile);
+                        }
+
+                    } else {
+                        JClass jClass = SourceToObjectUtils.parseClass(file, config, microservice.getName());
+                        if (jClass != null) {
+                            microservice.addJClass(jClass);
+                        }
                     }
+
+
                 }
             }
         }
     }
+
 
 }

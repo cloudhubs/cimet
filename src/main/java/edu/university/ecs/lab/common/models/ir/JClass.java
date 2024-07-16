@@ -3,6 +3,7 @@ package edu.university.ecs.lab.common.models.ir;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
+import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,15 +19,8 @@ import java.util.stream.Collectors;
  */
 @Data
 @EqualsAndHashCode
-public class JClass implements JsonSerializable {
+public class JClass extends ProjectFile implements JsonSerializable {
     private String packageName;
-
-    private String name;
-
-    /**
-     * Path to the class
-     */
-    private String path;
 
     /**
      * Class implementations
@@ -68,6 +62,7 @@ public class JClass implements JsonSerializable {
         this.annotations = classAnnotations;
         this.methodCalls = methodCalls;
         this.implementedTypes = implementedTypes;
+        this.fileType = FileType.JCLASS;
     }
 
 
@@ -76,12 +71,10 @@ public class JClass implements JsonSerializable {
      */
     @Override
     public JsonObject toJsonObject() {
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = super.toJsonObject();
         Gson gson = new Gson();
 
         jsonObject.addProperty("packageName", getPackageName());
-        jsonObject.addProperty("name", getName());
-        jsonObject.addProperty("path", getPath());
         jsonObject.addProperty("classRole", getClassRole().name());
         jsonObject.add("annotations", JsonSerializable.toJsonArray(getAnnotations()));
         jsonObject.add("fields", JsonSerializable.toJsonArray(getFields()));
@@ -112,7 +105,7 @@ public class JClass implements JsonSerializable {
      * @return set of all restCalls
      */
     public Set<RestCall> getRestCalls() {
-        if(!getClassRole().equals(ClassRole.SERVICE) || getMethodCalls().isEmpty()) {
+        if((!getClassRole().equals(ClassRole.SERVICE) && !getClassRole().equals(ClassRole.FEIGN_CLIENT)) || getMethodCalls().isEmpty()) {
             return new HashSet<>();
         }
         return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableSet());

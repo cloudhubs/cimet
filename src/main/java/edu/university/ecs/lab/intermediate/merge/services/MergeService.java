@@ -5,10 +5,13 @@ import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
+import org.eclipse.jgit.diff.DiffEntry;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,24 +47,23 @@ public class MergeService {
     public void generateMergeIR() {
         System.out.println("Merging to new IR!");
 
-        // TODO optimize
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
             JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
             return;
         }
 
+
         // First we make necessary changes to microservices
         updateMicroservices(systemChange.getChanges());
 
         for (Delta d : systemChange.getChanges()) {
-
-            String path = d.getOldPath() == null ? d.getNewPath() : d.getOldPath();
+            String path = d.getChangeType().equals(ChangeType.ADD) ? d.getOldPath() : d.getNewPath();
 
             // Check for pom.xml
-            if (!path.endsWith(".java")) {
-                continue;
-            }
+//            if (!path.endsWith(".java")) {
+//                continue;
+//            }
 
             switch (d.getChangeType()) {
                 case ADD:
@@ -93,7 +95,7 @@ public class MergeService {
         // If we dont find a microservice
         if (Objects.isNull(ms)) {
             // Check the orphan pool
-            for (JClass orphan : microserviceSystem.getOrphans()) {
+            for (ProjectFile orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
                 if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
@@ -151,7 +153,12 @@ public class MergeService {
             return;
         }
 
-        ms.addJClass(delta.getClassChange());
+        if(FileUtils.isConfigurationFile(delta.getNewPath())) {
+            ms.getFiles().add(delta.getConfigChange());
+        } else {
+            ms.addJClass(delta.getClassChange());
+
+        }
 
 
     }
@@ -167,7 +174,7 @@ public class MergeService {
         // If we are removing a file and it's microservice doesn't exist
         if (Objects.isNull(ms)) {
             // Check the orphan pool
-            for (JClass orphan : microserviceSystem.getOrphans()) {
+            for (ProjectFile orphan : microserviceSystem.getOrphans()) {
                 // If found remove it and return
                 if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
@@ -177,7 +184,12 @@ public class MergeService {
             return;
         }
 
-        ms.removeJClass(delta.getOldPath());
+        if(FileUtils.isConfigurationFile(delta.getOldPath())) {
+            ms.getFiles().remove(delta.getConfigChange());
+        } else {
+            ms.removeJClass(delta.getOldPath());
+
+        }
 
 
     }
@@ -207,21 +219,6 @@ public class MergeService {
             if (tokens.length <= 2) {
                 continue;
             }
-
-    //                if (delta.getChangeType().equals(ChangeType.ADD)) {
-    //                    for (Microservice microservice1 : microserviceSystem.getMicroservices()) {
-    //                        if(delta.getNewPath().replace("/pom.xml", "").equals(microservice1.getPath())) {
-    //                            continue;
-    //                        }
-    //                        // If we find a new path that is nesting ( lower level)
-    //                        if (delta.getNewPath().replace("/pom.xml", "").startsWith(microservice1.getPath())) {
-    //                            orphanizeAndAdopt(microservice1);
-    //                            // Or an attempt to add at a higher level
-    //                        } else if (microservice1.getPath().startsWith(delta.getNewPath().replace("/pom.xml", ""))) {
-    //                            break outer;
-    //                        }
-    //                    }
-    //                }
 
             switch (delta.getChangeType()) {
                 case ADD:

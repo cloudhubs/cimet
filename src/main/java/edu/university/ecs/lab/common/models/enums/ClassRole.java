@@ -11,7 +11,7 @@ public enum ClassRole {
     SERVICE(JClass.class),
     REPOSITORY(JClass.class),
     ENTITY(JClass.class),
-    EMBEDDABLE(JClass.class),
+    REP_REST_RSC(JClass.class),
     FEIGN_CLIENT(JClass.class),
     UNKNOWN(null);
 
