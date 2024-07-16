@@ -1,8 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns;
 
 import com.google.gson.Gson;
-import edu.university.ecs.lab.common.config.Config;
-import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -16,11 +14,8 @@ import java.io.IOException;
 
 public class AntipatternDetection {
     public static void main(String[] args) {
-
-        Config config = ConfigUtil.readConfig("./test_config.json");
-
         // Create IR of first commit
-        createIRSystem(config, "IR.json");
+        createIRSystem("./test_config.json", "IR.json");
 
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
@@ -67,11 +62,11 @@ public class AntipatternDetection {
             JsonReadWriteUtils.writeToJSON("./output/cyclicdependencies.json", cycleDependencies.toJsonObject());
         }
         
-        NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
-        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck("./healthcheck.yaml");
-        if (noHealthCheck.getnoHealthcheck()){
-            detectedAntipatterns++;
-        }
+        // NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
+        // NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck("./healthcheck.yaml");
+        // if (noHealthCheck.getnoHealthcheck()){
+        //     detectedAntipatterns++;
+        // }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
         WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
@@ -80,22 +75,22 @@ public class AntipatternDetection {
             JsonReadWriteUtils.writeToJSON("./output/wobblyserviceinteratcions.json", wobblyService.toJsonObject());
         }
 
-        NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
-        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway("./apigateway.yaml");
-        if (noApiGateway.getnoApiGateway()){
-            detectedAntipatterns++;
-        }
+        // NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
+        // NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway("./apigateway.yaml");
+        // if (noApiGateway.getnoApiGateway()){
+        //     detectedAntipatterns++;
+        // }
 
         System.out.println("Number of Anti-Patterns Detected: " + detectedAntipatterns);
 
     }
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

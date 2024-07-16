@@ -78,7 +78,7 @@ public class ServiceChainService {
             }
         }
 
-        if (currentPath.size() > CHAIN_LENGTH) {
+        if (currentPath.size() >= CHAIN_LENGTH) {
             allChains.add(new ArrayList<>(currentPath));
         }
 
