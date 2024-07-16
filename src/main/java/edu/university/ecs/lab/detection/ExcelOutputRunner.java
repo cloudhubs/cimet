@@ -230,7 +230,7 @@ public class ExcelOutputRunner {
             metrics.put("SCCmodularity", mod.getModularity());
         }
 
-        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics("./output/OldIR.json");
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(currentSystem);
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
         metrics.put("stdSIDC", cohesionMetrics.getStdDev("ServiceInterfaceDataCohesion"));
