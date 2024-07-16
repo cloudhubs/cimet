@@ -21,6 +21,12 @@ public class UCDetectionService {
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
+    public UCDetectionService(SystemChange oldSystem, MicroserviceSystem microserviceSystemOld, MicroserviceSystem microserviceSystemNew) {
+        this.oldSystem = oldSystem;
+        this.microserviceSystemOld = microserviceSystemOld;
+        this.microserviceSystemNew = microserviceSystemNew;
+    }
+
     public List<AbstractAR> scanUseCases() {
 
         List<AbstractAR> useCases = new ArrayList<>();

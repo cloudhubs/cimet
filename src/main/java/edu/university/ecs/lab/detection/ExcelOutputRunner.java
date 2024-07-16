@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import edu.university.ecs.lab.delta.models.SystemChange;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.JsonArray;
@@ -108,11 +109,14 @@ public class ExcelOutputRunner {
             MergeService mergeService = new MergeService(OLD_IR_PATH, DELTA_PATH, config_path);
             mergeService.generateMergeIR();
 
+            MicroserviceSystem microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NEW_IR_PATH, MicroserviceSystem.class);
+            SystemChange oldSystem = JsonReadWriteUtils.readFromJSON(DELTA_PATH, SystemChange.class);
+
             if (!microserviceSystem.getMicroservices().isEmpty()) {
                 detectAntipatterns(microserviceSystem,allAntiPatterns, metrics);
             }
 
-            UCDetectionService ucDetectionService = new UCDetectionService(DELTA_PATH, OLD_IR_PATH, NEW_IR_PATH);
+            UCDetectionService ucDetectionService = new UCDetectionService(oldSystem, microserviceSystem, microserviceSystemNew);
             List<AbstractAR> currARs = ucDetectionService.scanUseCases();
             allARs.add(currARs);
 
