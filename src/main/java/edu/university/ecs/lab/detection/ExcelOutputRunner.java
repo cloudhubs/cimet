@@ -66,7 +66,7 @@ public class ExcelOutputRunner {
 
         XSSFSheet sheet = workbook.createSheet(config.getSystemName());
         String[] columnLabels = {"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
-                "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions", "maxAIS",
+                "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions", "No Healthchecks", "No API Gateway", "maxAIS",
                 "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
                 "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
                 "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
@@ -156,7 +156,6 @@ public class ExcelOutputRunner {
         irExtractionService.generateIR(fileName);
     }
 
-    //TODO: Need to implement NoAPI & Healthcheck -> need yaml in IR
     private static void detectAntipatterns(List<AntiPattern> allAntiPatterns, Map<String, Double> metrics) {
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
 
@@ -198,6 +197,18 @@ public class ExcelOutputRunner {
             allAntiPatterns.add(wobblyService);
         }
 
+        NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
+        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck(currentSystem);
+        if (!noHealthCheck.getnoHealthcheck().isEmpty()){
+            allAntiPatterns.add(noHealthCheck);
+        }
+
+        NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
+        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway(currentSystem);
+        if (noApiGateway.getnoApiGateway()){
+            allAntiPatterns.add(noApiGateway);
+        }
+
         if (!sdg.vertexSet().isEmpty()) {
             DegreeCoupling dc = new DegreeCoupling(sdg);
             metrics.put("maxAIS", (double) dc.getMaxAIS());
@@ -234,7 +245,7 @@ public class ExcelOutputRunner {
 
     private static void writeEmptyRow(XSSFSheet sheet, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
-        for(int i = 0; i < 35; i++) {
+        for(int i = 0; i < 37; i++) {
             row.createCell(i).setCellValue(0);
         }
 
@@ -261,7 +272,7 @@ public class ExcelOutputRunner {
             }
         }
 
-        int[] antipattern_counts = new int[6]; // array to store the counts of each anti-pattern
+        int[] antipattern_counts = new int[8]; // array to store the counts of each anti-pattern
         double[] metric_counts = new double[24];
 
 
@@ -286,7 +297,7 @@ public class ExcelOutputRunner {
         Cell commitIdCell = row.createCell(0);
         commitIdCell.setCellValue(commitID.substring(0, 7));
 
-        int[] antipattern_counts = new int[6]; // array to store the counts of each anti-pattern
+        int[] antipattern_counts = new int[8]; // array to store the counts of each anti-pattern
         Arrays.fill(antipattern_counts, 0);
 
         if (allAntiPatterns != null && !allAntiPatterns.isEmpty()) {
@@ -303,6 +314,10 @@ public class ExcelOutputRunner {
                     antipattern_counts[4] = ((CyclicDependency) antiPattern).numCyclicDep();
                 } else if (antiPattern instanceof WobblyServiceInteraction) {
                     antipattern_counts[5] = ((WobblyServiceInteraction) antiPattern).numWobbblyService();
+                } else if (antiPattern instanceof NoHealthcheck){
+                    antipattern_counts[6] = ((NoHealthcheck) antiPattern).numNoHealthChecks();
+                } else if (antiPattern instanceof NoApiGateway){
+                    antipattern_counts[7] = ((NoApiGateway) antiPattern).getBoolApiGateway();
                 }
             }
         }

@@ -20,7 +20,7 @@ public class NoApiGatewayService {
     * NoApiGateway object that contains false otherwise.
     */
    public NoApiGateway checkforApiGateway(MicroserviceSystem microserviceSystem) {
-       NoApiGateway noApiGateway = new NoApiGateway(false);
+       NoApiGateway noApiGateway = new NoApiGateway(true);
 
        for (Microservice microservice : microserviceSystem.getMicroservices()){
         for (ConfigFile configFile : microservice.getFiles()){
@@ -28,7 +28,7 @@ public class NoApiGatewayService {
                 JsonObject data = configFile.getData();
                     if (data != null) {
                         if (containsApiGatewayConfiguration(data)) {
-                            noApiGateway = new NoApiGateway(true);
+                            noApiGateway = new NoApiGateway(false);
                             return noApiGateway;
                         }
                     }

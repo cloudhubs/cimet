@@ -64,4 +64,14 @@ public class NoHealthcheck extends AntiPattern{
 
         return jsonObject;
     }
+
+    public int numNoHealthChecks(){
+        int count = 0;
+        for (Map.Entry<String, Boolean> entry : noHealthcheck.entrySet()){
+            if (entry.getValue() == false){
+                count++;
+            }
+        }
+        return count;
+    }
 }
