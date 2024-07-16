@@ -9,8 +9,6 @@ import java.util.Objects;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.university.ecs.lab.common.config.Config;
-import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -25,11 +23,9 @@ public class CyclicDependencyTest {
 
     @Before
     public void setUp(){
-        Config config = ConfigUtil.readConfig("./test_config.json");
-
         FileUtils.createPaths();
 
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService("./test_config.json");
 
         irExtractionService.generateIR("TestIR.json");
 

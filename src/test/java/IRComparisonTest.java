@@ -35,7 +35,7 @@ public class IRComparisonTest {
         Collections.reverse(list);
         config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem("./config.json", "OldIR.json");
 
 
         // Loop through commit history and create delta, merge, etc...
@@ -61,7 +61,7 @@ public class IRComparisonTest {
 
         // Create IR of last commit
         config.setBaseCommit(list.get(list.size() - 1).toString().split(" ")[1]);
-        createIRSystem(config, "IRCompare.json");
+        createIRSystem("./config.json", "IRCompare.json");
 
         // Compare two IR's for equivalence
         MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
@@ -76,12 +76,12 @@ public class IRComparisonTest {
     }
 
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService("./config.json");
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

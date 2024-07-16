@@ -22,11 +22,10 @@ public class WobblyServiceInteractionsTest {
 
     @Before
     public void setUp(){
-        Config config = ConfigUtil.readConfig("./test_config.json");
 
         FileUtils.createPaths();
 
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService("./test_config.json");
 
         irExtractionService.generateIR("TestIR.json");
 

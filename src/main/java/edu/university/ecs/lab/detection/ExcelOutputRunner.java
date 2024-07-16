@@ -59,7 +59,7 @@ public class ExcelOutputRunner {
         Collections.reverse(list);
         config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem(config_path, "OldIR.json");
 
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -145,12 +145,12 @@ public class ExcelOutputRunner {
         JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
     }
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(fileName);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

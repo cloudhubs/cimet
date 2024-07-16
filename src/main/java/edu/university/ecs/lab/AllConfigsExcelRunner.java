@@ -68,7 +68,7 @@ public class AllConfigsExcelRunner {
             Collections.reverse(list);
             config.setBaseCommit(list.get(0).toString().split(" ")[1]);
             // Create IR of first commit
-            createIRSystem(config, "OldIR.json");
+            createIRSystem(configPath, "OldIR.json");
 
             //Create excel file and desired header labels
             XSSFWorkbook workbook = new XSSFWorkbook();
@@ -155,12 +155,12 @@ public class AllConfigsExcelRunner {
         }
     }
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

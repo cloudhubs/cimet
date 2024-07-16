@@ -42,7 +42,7 @@ public class UCDetectionRunner {
         Collections.reverse(list);
         config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem("./config.json", "OldIR.json");
 
         List<JsonObject> allUseCases = new ArrayList<>();
 
@@ -89,12 +89,12 @@ public class UCDetectionRunner {
     }
 
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(fileName);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);
