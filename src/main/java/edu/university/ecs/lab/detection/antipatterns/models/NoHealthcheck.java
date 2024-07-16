@@ -1,5 +1,8 @@
 package edu.university.ecs.lab.detection.antipatterns.models;
 
+import java.util.Map;
+
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import lombok.Data;
@@ -22,14 +25,14 @@ public class NoHealthcheck extends AntiPattern{
     /**
      * Flag indicating whether the anti-pattern is present
      */
-    private boolean noHealthcheck;
+    private Map<String, Boolean> noHealthcheck;
 
     /**
      * Constructs a NoHealthcheck object with the specified flag indicating the presence of the anti-pattern.
      *
      * @param noHealthcheck boolean flag indicating whether the "No Health Check" anti-pattern is present
      */
-    public NoHealthcheck(boolean noHealthcheck){
+    public NoHealthcheck(Map<String, Boolean> noHealthcheck){
         this.noHealthcheck = noHealthcheck;
     }
 
@@ -38,7 +41,7 @@ public class NoHealthcheck extends AntiPattern{
      *
      * @return boolean flag indicating whether the "No Health Check" anti-pattern is present
      */
-    public boolean getnoHealthcheck(){
+    public Map<String, Boolean> getnoHealthcheck(){
         return this.noHealthcheck;
     }
 
@@ -55,8 +58,9 @@ public class NoHealthcheck extends AntiPattern{
     @Override
     protected JsonObject getMetaData() {
         JsonObject jsonObject = new JsonObject();
+        Gson gson = new Gson();
 
-        jsonObject.addProperty("Healthchecks Found", noHealthcheck);
+        jsonObject.add("Microservices and Healthchecks Found", gson.toJsonTree(noHealthcheck).getAsJsonObject());
 
         return jsonObject;
     }

@@ -62,11 +62,12 @@ public class AntipatternDetection {
             JsonReadWriteUtils.writeToJSON("./output/cyclicdependencies.json", cycleDependencies.toJsonObject());
         }
         
-        // NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
-        // NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck("./healthcheck.yaml");
-        // if (noHealthCheck.getnoHealthcheck()){
-        //     detectedAntipatterns++;
-        // }
+        NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
+        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck(currentSystem);
+        if (!noHealthCheck.getnoHealthcheck().isEmpty()){
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/nohealthcheck.json", noHealthCheck.toJsonObject());
+        }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
         WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
@@ -75,11 +76,12 @@ public class AntipatternDetection {
             JsonReadWriteUtils.writeToJSON("./output/wobblyserviceinteratcions.json", wobblyService.toJsonObject());
         }
 
-        // NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
-        // NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway("./apigateway.yaml");
-        // if (noApiGateway.getnoApiGateway()){
-        //     detectedAntipatterns++;
-        // }
+        NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
+        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway(currentSystem);
+        if (noApiGateway.getnoApiGateway()){
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/noapigateway.json", noApiGateway.toJsonObject());
+        }
 
         System.out.println("Number of Anti-Patterns Detected: " + detectedAntipatterns);
 
