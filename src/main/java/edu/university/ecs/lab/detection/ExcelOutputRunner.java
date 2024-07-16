@@ -105,9 +105,13 @@ public class ExcelOutputRunner {
             mergeService.generateMergeIR();
 
             if (!microserviceSystem.getMicroservices().isEmpty()) {
-                detectAntipatterns(microserviceSystem,allAntiPatterns, metrics, currARs);
+                detectAntipatterns(microserviceSystem,allAntiPatterns, metrics);
             }
 
+            UCDetectionService ucDetectionService = new UCDetectionService(DELTA_PATH, OLD_IR_PATH, NEW_IR_PATH);
+            currARs.addAll(ucDetectionService.scanDeltaUC());
+            currARs.addAll(ucDetectionService.scanSystemUC());
+            allARs.add(currARs);
             updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, currARs, i);
 
             try {
@@ -115,9 +119,6 @@ public class ExcelOutputRunner {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            allARs.add(currARs);
-
         }
 
         try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
@@ -145,7 +146,7 @@ public class ExcelOutputRunner {
         irExtractionService.generateIR(fileName);
     }
 
-    private static void detectAntipatterns(MicroserviceSystem currentSystem, Map<String, Integer> allAntiPatterns, Map<String, Double> metrics, List<AbstractAR> currARs) {
+    private static void detectAntipatterns(MicroserviceSystem currentSystem, Map<String, Integer> allAntiPatterns, Map<String, Double> metrics) {
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
         MethodDependencyGraph mdg = new MethodDependencyGraph(currentSystem);
@@ -192,9 +193,6 @@ public class ExcelOutputRunner {
         metrics.put("avgLOMLC", cohesionMetrics.getAverage("LackOfMessageLevelCohesion"));
         metrics.put("stdLOMLC", cohesionMetrics.getStdDev("LackOfMessageLevelCohesion"));
 
-        UCDetectionService ucDetectionService = new UCDetectionService(DELTA_PATH, OLD_IR_PATH, NEW_IR_PATH);
-        currARs.addAll(ucDetectionService.scanDeltaUC());
-        currARs.addAll(ucDetectionService.scanSystemUC());
 
     }
 
