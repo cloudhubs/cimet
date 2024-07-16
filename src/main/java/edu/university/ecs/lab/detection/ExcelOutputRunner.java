@@ -97,7 +97,6 @@ public class ExcelOutputRunner {
 
             Map<String, Integer> allAntiPatterns = new HashMap<>();
             HashMap<String, Double> metrics = new HashMap<>();
-            List<AbstractAR> currARs = new ArrayList<>();
 
             MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(OLD_IR_PATH, MicroserviceSystem.class);
 
@@ -114,8 +113,7 @@ public class ExcelOutputRunner {
             }
 
             UCDetectionService ucDetectionService = new UCDetectionService(DELTA_PATH, OLD_IR_PATH, NEW_IR_PATH);
-            currARs.addAll(ucDetectionService.scanDeltaUC());
-            currARs.addAll(ucDetectionService.scanSystemUC());
+            List<AbstractAR> currARs = ucDetectionService.scanUseCases();
             allARs.add(currARs);
 
             if (!allAntiPatterns.isEmpty()) {
