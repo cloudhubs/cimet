@@ -18,7 +18,6 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
-import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
 import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
 import edu.university.ecs.lab.detection.metrics.models.*;
@@ -152,86 +151,35 @@ public class ExcelOutputRunner {
         MethodDependencyGraph mdg = new MethodDependencyGraph(currentSystem);
 
         // KEYS must match columnLabels field
-        GreedyService greedy = new GreedyService();
-        GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
-        if (!greedyMicroservices.getGreedyMicroservices().isEmpty()) {
-            allAntiPatterns.put("Greedy Microservices", greedyMicroservices.numGreedyMicro());
-        }
+        allAntiPatterns.put("Greedy Microservices", new GreedyService().getGreedyMicroservices(sdg).numGreedyMicro());
+        allAntiPatterns.put("Hub-like Microservices", new HubLikeService().getHubLikeMicroservice(sdg).numHubLike());
+        allAntiPatterns.put("Service Chains (MS level)", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
+        allAntiPatterns.put("Service Chains (method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
+        allAntiPatterns.put("Wrong Cuts", new WrongCutsService().detectWrongCuts(currentSystem).numWrongCuts());
+        allAntiPatterns.put("Cyclic Dependencies (MS level)", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
+        allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
+        allAntiPatterns.put("Wobbly Service Interactions", new WobblyServiceInteractionService().findWobblyServiceInteractions(currentSystem).numWobbblyService());
+        allAntiPatterns.put("No Healthchecks", new NoHealthcheckService().checkHealthcheck(currentSystem).numNoHealthChecks());
+        allAntiPatterns.put("No API Gateway", new NoApiGatewayService().checkforApiGateway(currentSystem).getBoolApiGateway());
 
-        HubLikeService hublike = new HubLikeService();
-        HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
-        if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()) {
-            allAntiPatterns.put("Hub-like Microservices", hublikeMicroservices.numHubLike());
-        }
-
-        ServiceChainMSLevelService chainService = new ServiceChainMSLevelService();
-        ServiceChain allChains = chainService.getServiceChains(sdg);
-        if (!allChains.getChain().isEmpty()) {
-            allAntiPatterns.put("Service Chains (MS level)", allChains.numServiceChains());
-        }
-
-        ServiceChainMethodLevelService chainService2 = new ServiceChainMethodLevelService();
-        ServiceChain allChains2 = chainService2.getServiceChains(mdg);
-        if (!allChains2.getChain().isEmpty()) {
-            allAntiPatterns.put("Service Chains (method level)", allChains2.numServiceChains());
-        }
-
-        WrongCutsService wrongCutsService = new WrongCutsService();
-        WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(currentSystem);
-        if (!wrongCuts.getWrongCuts().isEmpty()) {
-            allAntiPatterns.put("Wrong Cuts", wrongCuts.numWrongCuts());
-        }
-
-        CyclicDependencyMSLevelService cycles = new CyclicDependencyMSLevelService();
-        CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
-        if (!cycleDependencies.getCycles().isEmpty()) {
-            allAntiPatterns.put("Cyclic Dependencies (MS level)", cycleDependencies.numCyclicDep());
-        }
-
-        CyclicDependencyMethodLevelService cycles2 = new CyclicDependencyMethodLevelService();
-        CyclicDependency cycleDependencies2 = cycles2.findCyclicDependencies(mdg);
-        if (!cycleDependencies2.getCycles().isEmpty()) {
-            allAntiPatterns.put("Cyclic Dependencies (Method level)", cycleDependencies2.numCyclicDep());
-        }
-
-        WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
-        WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
-        if (!wobblyService.getWobblyServiceInteractions().isEmpty()) {
-            allAntiPatterns.put("Wobbly Service Interactions", wobblyService.numWobbblyService());
-        }
-
-        NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
-        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck(currentSystem);
-        if (!noHealthCheck.getnoHealthcheck().isEmpty()){
-            allAntiPatterns.put("No Healthchecks", noHealthCheck.numNoHealthChecks());
-        }
-
-        NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
-        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway(currentSystem);
-        if (noApiGateway.getnoApiGateway()){
-            allAntiPatterns.put("No API Gateway", noApiGateway.getBoolApiGateway());
-        }
-
-        if (!sdg.vertexSet().isEmpty()) {
-            DegreeCoupling dc = new DegreeCoupling(sdg);
-            metrics.put("maxAIS", (double) dc.getMaxAIS());
-            metrics.put("avgAIS", dc.getAvgAIS());
-            metrics.put("stdAIS", dc.getStdAIS());
-            metrics.put("maxADS", (double) dc.getMaxADS());
-            metrics.put("ADCS", dc.getADCS());
-            metrics.put("stdADS", dc.getStdADS());
-            metrics.put("maxACS", (double) dc.getMaxACS());
-            metrics.put("avgACS", dc.getAvgACS());
-            metrics.put("stdACS", dc.getStdACS());
-            metrics.put("SCF", dc.getSCF());
-            metrics.put("SIY", (double) dc.getSIY());
-            StructuralCoupling sc = new StructuralCoupling(sdg);
-            metrics.put("maxSC", sc.getMaxSC());
-            metrics.put("avgSC", sc.getAvgSC());
-            metrics.put("stdSC", sc.getStdSC());
-            ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
-            metrics.put("SCCmodularity", mod.getModularity());
-        }
+        DegreeCoupling dc = new DegreeCoupling(sdg);
+        metrics.put("maxAIS", (double) dc.getMaxAIS());
+        metrics.put("avgAIS", dc.getAvgAIS());
+        metrics.put("stdAIS", dc.getStdAIS());
+        metrics.put("maxADS", (double) dc.getMaxADS());
+        metrics.put("ADCS", dc.getADCS());
+        metrics.put("stdADS", dc.getStdADS());
+        metrics.put("maxACS", (double) dc.getMaxACS());
+        metrics.put("avgACS", dc.getAvgACS());
+        metrics.put("stdACS", dc.getStdACS());
+        metrics.put("SCF", dc.getSCF());
+        metrics.put("SIY", (double) dc.getSIY());
+        StructuralCoupling sc = new StructuralCoupling(sdg);
+        metrics.put("maxSC", sc.getMaxSC());
+        metrics.put("avgSC", sc.getAvgSC());
+        metrics.put("stdSC", sc.getStdSC());
+        ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
+        metrics.put("SCCmodularity", mod.getModularity());
 
         MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(currentSystem);
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
