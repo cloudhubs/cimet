@@ -45,6 +45,9 @@ public class ExcelOutputRunner {
     private static final int ANTIPATTERNS = 10;
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
+    private static final String OLD_IR_PATH = "./output/OldIR.json";
+    private static final String DELTA_PATH = "./output/Delta.json";
+    private static final String NEW_IR_PATH = "./output/NewIR.json";
 
     public static void main(String[] args) throws IOException {
 
@@ -92,14 +95,14 @@ public class ExcelOutputRunner {
             HashMap<String, Double> metrics = new HashMap<>();
             List<AbstractAR> currARs = new ArrayList<>();
 
-            MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
+            MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(OLD_IR_PATH, MicroserviceSystem.class);
 
             // Extract changes from one commit to the other
-            deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
+            deltaExtractionService = new DeltaExtractionService(config_path, OLD_IR_PATH, commitIdOld, commitIdNew);
             deltaExtractionService.generateDelta();
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
-            MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", config_path);
+            MergeService mergeService = new MergeService(OLD_IR_PATH, DELTA_PATH, config_path);
             mergeService.generateMergeIR();
 
             if (!microserviceSystem.getMicroservices().isEmpty()) {
@@ -109,7 +112,7 @@ public class ExcelOutputRunner {
             updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, currARs, i);
 
             try {
-                Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(Paths.get(NEW_IR_PATH), Paths.get(OLD_IR_PATH), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -241,7 +244,7 @@ public class ExcelOutputRunner {
         metrics.put("avgLOMLC", cohesionMetrics.getAverage("LackOfMessageLevelCohesion"));
         metrics.put("stdLOMLC", cohesionMetrics.getStdDev("LackOfMessageLevelCohesion"));
 
-        UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+        UCDetectionService ucDetectionService = new UCDetectionService(DELTA_PATH, OLD_IR_PATH, NEW_IR_PATH);
         currARs.addAll(ucDetectionService.scanDeltaUC());
         currARs.addAll(ucDetectionService.scanSystemUC());
 
