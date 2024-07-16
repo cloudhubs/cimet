@@ -38,6 +38,7 @@ public class SourceToObjectUtils {
             "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource", "FeignClient");
     private static CompilationUnit cu;
     private static String microserviceName;
+    private static String path;
     private static String className;
     private static String packageName;
     private static String packageAndClassName;
@@ -57,6 +58,7 @@ public class SourceToObjectUtils {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
             packageAndClassName = packageName + "." + sourceFile.getName().replace(".java", "");
         }
+        path = FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName());
 
         TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
         TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(FileUtils.getClonePath(config.getRepoName()));
@@ -103,22 +105,11 @@ public class SourceToObjectUtils {
 
         JClass jClass = null;
         if(classRole == ClassRole.FEIGN_CLIENT) {
-            jClass = handleFeignClient(sourceFile, config, requestMapping, classAnnotations);
-        } else if(classRole == ClassRole.REP_REST_RSC) {
-            jClass = new JClass(
-                    className,
-                    FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
-                    packageName,
-                    classRole,
-                    parseMethods(cu.findAll(MethodDeclaration.class), requestMapping),
-                    parseFields(cu.findAll(FieldDeclaration.class)),
-                    parseAnnotations(classAnnotations),
-                    parseMethodCalls(cu.findAll(MethodDeclaration.class)),
-                    cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+            jClass = handleFeignClient(requestMapping, classAnnotations);
         } else {
             jClass = new JClass(
                     className,
-                    FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                    path,
                     packageName,
                     classRole,
                     parseMethods(cu.findAll(MethodDeclaration.class), requestMapping),
@@ -386,12 +377,10 @@ public class SourceToObjectUtils {
      * interfaces into a service class whose methods simply contain the exact
      * rest call outlined by the interface annotations.
      *
-     * @param sourceFile
-     * @param config
      * @param classAnnotations
      * @return
      */
-    private static JClass handleFeignClient(File sourceFile, Config config, AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
+    private static JClass handleFeignClient(AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
 
         // Parse the methods
         Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);
@@ -416,7 +405,7 @@ public class SourceToObjectUtils {
         // Build the JClass
         return new JClass(
                 className,
-                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                path,
                 packageName,
                 ClassRole.FEIGN_CLIENT,
                 newMethods,
