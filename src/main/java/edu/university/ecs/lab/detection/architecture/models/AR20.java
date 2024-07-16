@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import lombok.Data;
@@ -50,7 +51,8 @@ public class AR20 extends AbstractAR {
 
         ServiceDependencyGraph graph = new ServiceDependencyGraph(newSystem);
         Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
-                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) 4).collect(Collectors.toSet());
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) 4)
+                .map(Microservice::getName).collect(Collectors.toSet());
 
         getHubMicroservices.forEach(s -> {
             AR20 archRule20 = new AR20();

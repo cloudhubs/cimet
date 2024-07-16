@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 
@@ -39,11 +40,11 @@ public class ServiceChainService {
      */
     public ServiceChain getServiceChains(ServiceDependencyGraph graph) {
         List<List<String>> allChains = new ArrayList<>();
-        Map<String, Set<String>> adjacencyList = graph.getAdjacency();
+        Map<Microservice, Set<Microservice>> adjacencyList = graph.getAdjacency();
 
-        Set<String> globalVisited = new HashSet<>();
+        Set<Microservice> globalVisited = new HashSet<>();
 
-        for (String node : graph.vertexSet()) {
+        for (Microservice node : graph.vertexSet()) {
             if (!globalVisited.contains(node)) {
                 dfs(node, new ArrayList<>(), allChains, adjacencyList, globalVisited);
             }
@@ -61,17 +62,18 @@ public class ServiceChainService {
      * @param adjacencyList adjacency list representation of the network graph
      * @param globalVisited set of globally visited nodes
      */
-    private void dfs(String currentNode, List<String> currentPath, List<List<String>> allChains, Map<String, Set<String>> adjacencyList, Set<String> globalVisited) {
+    private void dfs(Microservice currentNode, List<String> currentPath, List<List<String>> allChains,
+                     Map<Microservice, Set<Microservice>> adjacencyList, Set<Microservice> globalVisited) {
         if (globalVisited.contains(currentNode)) {
             return;
         }
 
-        currentPath.add(currentNode);
+        currentPath.add(currentNode.getName());
         globalVisited.add(currentNode);
 
-        Set<String> neighbors = adjacencyList.get(currentNode);
+        Set<Microservice> neighbors = adjacencyList.get(currentNode);
         if (neighbors != null && !neighbors.isEmpty()) {
-            for (String neighbor : neighbors) {
+            for (Microservice neighbor : neighbors) {
                 if (!globalVisited.contains(neighbor)) {
                     dfs(neighbor, currentPath, allChains, adjacencyList, globalVisited);
                 }

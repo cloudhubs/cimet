@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 @Setter
 @Getter
-public class EndpointCallEdge extends DefaultWeightedEdge {
+public class RestCallEdge extends DefaultWeightedEdge {
     /**
      * The endpoint of the target node that is accessed.
      */
@@ -29,7 +29,7 @@ public class EndpointCallEdge extends DefaultWeightedEdge {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EndpointCallEdge edge = (EndpointCallEdge) o;
+        RestCallEdge edge = (RestCallEdge) o;
         return Objects.equals(this.getSource(), edge.getSource()) && Objects.equals(this.getTarget(), edge.getTarget()) && Objects.equals(endpoint, edge.endpoint);
     }
 

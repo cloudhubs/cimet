@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
 
@@ -18,12 +19,12 @@ public class CyclicDependencyService {
      */
     public CyclicDependency findCyclicDependencies(ServiceDependencyGraph graph) {
         List<List<String>> allCycles = new ArrayList<>();
-        Set<String> visited = new HashSet<>();
-        Set<String> recStack = new HashSet<>();
-        Map<String, String> parentMap = new HashMap<>();
-        Map<String, Set<String>> adjacency = graph.getAdjacency();
+        Set<Microservice> visited = new HashSet<>();
+        Set<Microservice> recStack = new HashSet<>();
+        Map<Microservice, Microservice> parentMap = new HashMap<>();
+        Map<Microservice, Set<Microservice>> adjacency = graph.getAdjacency();
 
-        for (String node : graph.vertexSet()) {
+        for (Microservice node : graph.vertexSet()) {
             if (!visited.contains(node)) {
                 findCycles(node, adjacency, visited, recStack, parentMap, allCycles);
             }
@@ -42,11 +43,13 @@ public class CyclicDependencyService {
      * @param parentMap          map of node to its parent in the traversal
      * @param allCycles          list to store detected cyclic dependencies
      */
-    private void findCycles(String currentNode, Map<String, Set<String>> adjacencyList, Set<String> visited, Set<String> recStack, Map<String, String> parentMap, List<List<String>> allCycles) {
+    private void findCycles(Microservice currentNode, Map<Microservice, Set<Microservice>> adjacencyList,
+                            Set<Microservice> visited, Set<Microservice> recStack,
+                            Map<Microservice,Microservice> parentMap, List<List<String>> allCycles) {
         visited.add(currentNode);
         recStack.add(currentNode);
 
-        for (String neighbor : adjacencyList.get(currentNode)) {
+        for (Microservice neighbor : adjacencyList.get(currentNode)) {
             if (!visited.contains(neighbor)) {
                 parentMap.put(neighbor, currentNode);
                 findCycles(neighbor, adjacencyList, visited, recStack, parentMap, allCycles);
@@ -66,16 +69,17 @@ public class CyclicDependencyService {
      * @param parentMap  map of node to its parent in the traversal
      * @return the list of nodes representing the cycle path
      */
-    private List<String> reconstructCyclePath(String startNode, String currentNode, Map<String, String> parentMap) {
+    private List<String> reconstructCyclePath(Microservice startNode, Microservice currentNode,
+                                              Map<Microservice, Microservice> parentMap) {
         List<String> fullCyclePath = new ArrayList<>();
-        String node = currentNode;
+        Microservice node = currentNode;
 
-        fullCyclePath.add(startNode);
+        fullCyclePath.add(startNode.getName());
         while (node != null && !node.equals(startNode)) {
-            fullCyclePath.add(node);
+            fullCyclePath.add(node.getName());
             node = parentMap.get(node);
         }
-        fullCyclePath.add(startNode);
+        fullCyclePath.add(startNode.getName());
 
         return fullCyclePath;
     }

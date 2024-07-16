@@ -1,12 +1,12 @@
 package edu.university.ecs.lab.common.models.sdg;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import lombok.Getter;
 import org.jgrapht.graph.DirectedWeightedMultigraph;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -14,23 +14,12 @@ import java.util.stream.Collectors;
 /**
  * Represents a service dependency graph for a microservice system.
  */
-public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, EndpointCallEdge> implements JsonSerializable {
-    /**
-     * Represents the name of the network graph
-     */
+@Getter
+public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microservice, RestCallEdge>
+        implements JsonSerializable, DependencyGraphI<Microservice, RestCallEdge> {
     private final String label;
-    /**
-     * Holds the timestamp of the current Network graph 
-     * (i.e. the commit ID that the Network graph represents)
-     */
     private final String timestamp;
-    /**
-     * Whether the edges are interpreted as directed (default true)
-     */
     private final boolean directed = true;
-    /**
-     * Whether several edges between source and target are allowed, distinguished by the endpoint
-     */
     private final boolean multigraph = true;
 
     /**
@@ -41,7 +30,8 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, E
         JsonObject jsonObject = new JsonObject();
 
         GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(EndpointCallEdge.class, new EdgeSerializer(this));
+        gsonBuilder.registerTypeAdapter(RestCallEdge.class, new RestCallEdgeSerializer());
+        gsonBuilder.registerTypeAdapter(Microservice.class, new MicroserviceSerializer());
         Gson gson = gsonBuilder.create();
 
         String nodesArray = gson.toJson(this.vertexSet());
@@ -63,25 +53,20 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, E
      * @param microserviceSystem the microservice system to build the graph from.
      */
     public ServiceDependencyGraph(MicroserviceSystem microserviceSystem) {
-        super(EndpointCallEdge.class);
+        super(RestCallEdge.class);
         this.label = microserviceSystem.getName();
         this.timestamp = microserviceSystem.getCommitID();
 
+        Map<String, Microservice> ms = new HashMap<>();
         List<RestCall> restCalls = new ArrayList<>();
-
-        for (Microservice microservice : microserviceSystem.getMicroservices()) {
-            for (JClass service : microservice.getServices()) {
-                restCalls.addAll(service.getRestCalls());
-            }
-        }
-
         List<Endpoint> endpoints = new ArrayList<>();
 
-        for (Microservice microservice : microserviceSystem.getMicroservices()) {
-            for (JClass controller : microservice.getControllers()) {
-                endpoints.addAll(controller.getEndpoints());
-            }
-        }
+        microserviceSystem.getMicroservices().forEach(microservice -> {
+            ms.put(microservice.getName(), microservice);
+            this.addVertex(microservice);
+            restCalls.addAll(microservice.getRestCalls());
+            endpoints.addAll(microservice.getEndpoints());
+        });
 
         List<List<String>> edgesList = new ArrayList<>();
 
@@ -89,27 +74,36 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<String, E
             for (Endpoint endpoint : endpoints) {
                 if (RestCall.matchEndpoint(restCall, endpoint)) {
                     edgesList.add(Arrays.asList(restCall.getMicroserviceName(), endpoint.getMicroserviceName(), endpoint.getUrl()));
-                    this.addVertex(endpoint.getMicroserviceName());
-                    this.addVertex(restCall.getMicroserviceName());
                 }
             }
         }
 
         edgesList.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).forEach((edgeData, value) -> {
-             EndpointCallEdge edge = this.addEdge(edgeData.get(0), edgeData.get(1));
+             RestCallEdge edge = this.addEdge(ms.get(edgeData.get(0)), ms.get(edgeData.get(1)));
              edge.setEndpoint(edgeData.get(2));
              this.setEdgeWeight(edge, value);
          });
     }
 
-    public Map<String, Set<String>> getAdjacency() {
-        return this.vertexSet().stream()
-                .collect(Collectors.toMap(
-                        vertex -> vertex,
-                        vertex -> this.outgoingEdgesOf(vertex).stream()
-                                .map(this::getEdgeTarget)
-                                .collect(Collectors.toSet())
-                ));
+    public static class MicroserviceSerializer implements JsonSerializer<Microservice> {
+        @Override
+        public JsonElement serialize(Microservice microservice, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("name", microservice.getName());
+            return jsonObject;
+        }
+    }
+
+    public class RestCallEdgeSerializer implements JsonSerializer<RestCallEdge> {
+        @Override
+        public JsonElement serialize(RestCallEdge edge, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("source", ServiceDependencyGraph.this.getEdgeSource(edge).getName());
+            jsonObject.addProperty("target", ServiceDependencyGraph.this.getEdgeTarget(edge).getName());
+            jsonObject.addProperty("endpoint", edge.getEndpoint());
+            jsonObject.addProperty("weight", ServiceDependencyGraph.this.getEdgeWeight(edge));
+            return jsonObject;
+        }
     }
 }

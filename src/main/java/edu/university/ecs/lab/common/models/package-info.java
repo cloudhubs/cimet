@@ -8,7 +8,7 @@
  *   - {@link edu.university.ecs.lab.common.models.serialization}: Serialization and deserialization utilities for converting Java objects to JSON and vice versa
  * - Other model classes representing key elements of the microservice system:
  *   - {@link edu.university.ecs.lab.common.models.ir.Annotation}: Represents annotations within classes.
- *   - {@link edu.university.ecs.lab.common.models.sdg.EndpointCallEdge}: Represents an edge in a network graph schema
+ *   - {@link edu.university.ecs.lab.common.models.sdg.RestCallEdge}: Represents an edge in a network graph schema
  *     modeling microservice connections.
  *   - {@link edu.university.ecs.lab.common.models.ir.Endpoint}: Represents an endpoint exposed by a microservice.
  *   - {@link edu.university.ecs.lab.common.models.ir.Field}: Represents fields within classes.

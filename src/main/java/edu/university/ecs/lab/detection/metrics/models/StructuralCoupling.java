@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.metrics.models;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import lombok.Getter;
 
@@ -72,9 +73,9 @@ public class StructuralCoupling {
         Map<List<String>, Double> in_degree = new HashMap<>();
         Map<List<String>, Double> out_degree = new HashMap<>();
         Map<List<String>, Double> degree = new HashMap<>();
-        for (String vertexA: graph.vertexSet()) {
-            for (String vertexB: graph.vertexSet()) {
-                List<String> pair = Arrays.asList(vertexA, vertexB);
+        for (Microservice vertexA: graph.vertexSet()) {
+            for (Microservice vertexB: graph.vertexSet()) {
+                List<String> pair = Arrays.asList(vertexA.getName(), vertexB.getName());
                 if (!vertexA.equals(vertexB) && graph.containsEdge(vertexA, vertexB)) {
                     out_degree.put(pair,
                             graph.getAllEdges(vertexA, vertexB).stream().mapToDouble(graph::getEdgeWeight).sum());

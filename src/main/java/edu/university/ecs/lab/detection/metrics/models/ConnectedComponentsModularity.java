@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.detection.metrics.models;
 
-import edu.university.ecs.lab.common.models.sdg.EndpointCallEdge;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.sdg.RestCallEdge;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import lombok.Getter;
 import org.jgrapht.alg.clustering.UndirectedModularityMeasurer;
@@ -21,7 +22,7 @@ public class ConnectedComponentsModularity {
     /**
      * Strongly connected components of the graph.
      */
-    private final List<Set<String>> SCC;
+    private final List<Set<Microservice>> SCC;
     /**
      * Modularity of clusters of SCC
      */
@@ -32,17 +33,17 @@ public class ConnectedComponentsModularity {
      * @param graph Service Dependency Graph to analyze
      */
     public ConnectedComponentsModularity(ServiceDependencyGraph graph) {
-        KosarajuStrongConnectivityInspector<String, EndpointCallEdge> inspector = new KosarajuStrongConnectivityInspector<>(graph);
+        KosarajuStrongConnectivityInspector<Microservice, RestCallEdge> inspector = new KosarajuStrongConnectivityInspector<>(graph);
         SCC = inspector.stronglyConnectedSets();
         // all nodes that are part of some SCC
-        Set<String> allSCC = SCC.stream().flatMap(Set::stream).collect(Collectors.toSet());
+        Set<Microservice> allSCC = SCC.stream().flatMap(Set::stream).collect(Collectors.toSet());
         // all nodes that are now part of any SCC
-        Set<String> notSCC = graph.vertexSet().stream().filter(vertex -> !allSCC.contains(vertex)).collect(Collectors.toSet());
+        Set<Microservice> notSCC = graph.vertexSet().stream().filter(vertex -> !allSCC.contains(vertex)).collect(Collectors.toSet());
         // Partition of all nodes (SCCs + extra nodes)
-        ArrayList<Set<String>> allNodes = new ArrayList<>(SCC);
+        ArrayList<Set<Microservice>> allNodes = new ArrayList<>(SCC);
         allNodes.add(notSCC);
-        AsUndirectedGraph<String, EndpointCallEdge> undirected = new AsUndirectedGraph<>(graph);
-        UndirectedModularityMeasurer<String, EndpointCallEdge> measurer = new UndirectedModularityMeasurer<>(undirected);
+        AsUndirectedGraph<Microservice, RestCallEdge> undirected = new AsUndirectedGraph<>(graph);
+        UndirectedModularityMeasurer<Microservice, RestCallEdge> measurer = new UndirectedModularityMeasurer<>(undirected);
         modularity = measurer.modularity(allNodes);
     }
 }

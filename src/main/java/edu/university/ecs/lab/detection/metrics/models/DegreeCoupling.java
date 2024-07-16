@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.metrics.models;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 
 import java.util.Comparator;
@@ -85,24 +86,25 @@ public class DegreeCoupling {
         AIS = new HashMap<>();
         ADS = new HashMap<>();
         ACS = new HashMap<>();
-        for (String vertex : graph.vertexSet()) {
-            AIS.put(vertex, graph.incomingEdgesOf(vertex).stream().map(graph::getEdgeSource)
+        for (Microservice vertex : graph.vertexSet()) {
+            String name = vertex.getName();
+            AIS.put(name, graph.incomingEdgesOf(vertex).stream().map(graph::getEdgeSource)
                     .collect(Collectors.toSet()).size());
-            ADS.put(vertex, graph.outgoingEdgesOf(vertex).stream().map(graph::getEdgeTarget)
+            ADS.put(name, graph.outgoingEdgesOf(vertex).stream().map(graph::getEdgeTarget)
                     .collect(Collectors.toSet()).size());
-            ACS.put(vertex, AIS.get(vertex)*ADS.get(vertex));
+            ACS.put(name, AIS.get(name)*ADS.get(name));
         }
 
         //  Service coupling factor (graph density)
-        Map<String, Set<String>> adjacency = graph.getAdjacency();
+        Map<Microservice, Set<Microservice>> adjacency = graph.getAdjacency();
         double E = adjacency.values().stream().map(Set::size).mapToDouble(Integer::doubleValue).sum();
         long N = AIS.size();
         SCF = E/(N*(N-1));
 
         // Service Interdependence in the System
         int siy = 0;
-        for (String vertex: adjacency.keySet()) {
-            for (String neighbour: adjacency.get(vertex)) {
+        for (Microservice vertex: adjacency.keySet()) {
+            for (Microservice neighbour: adjacency.get(vertex)) {
                 if (adjacency.get(neighbour).contains(vertex)) {
                     siy++;
                 }
