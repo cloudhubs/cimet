@@ -11,7 +11,7 @@ import java.util.Set;
  * Manages all file paths and file path conversion functions.
  */
 public class FileUtils {
-    public static final Set<String> VALID_FILES = Set.of("pom.xml", "DockerFile");
+    public static final Set<String> VALID_FILES = Set.of("pom.xml", ".java", ".yml");
     private static final String PROJECT_PATH = System.getProperty("user.dir");
     public static final String SEPARATOR = System.getProperty("file.separator");
     public static final String SEPARATOR_SPECIAL = SEPARATOR.replace("\\", "\\\\");
@@ -119,7 +119,17 @@ public class FileUtils {
      * @return boolean true if it belongs in the project
      */
     public static boolean isValidFile(String path) {
-        return (path.endsWith(".java") || path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path)) && !path.contains(".github");
+        if(path.contains(".github")) {
+            return false;
+        }
+
+        for(String f : VALID_FILES) {
+            if(path.endsWith(f)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -130,7 +140,7 @@ public class FileUtils {
      * @return boolean true if it is a configuration file
      */
     public static boolean isConfigurationFile(String path) {
-        return path.endsWith(".yml") || FileUtils.VALID_FILES.contains(path);
+        return isValidFile(path) && !path.endsWith(".java");
     }
 
 }

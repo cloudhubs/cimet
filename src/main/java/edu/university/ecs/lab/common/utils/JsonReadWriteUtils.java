@@ -5,8 +5,10 @@ import com.google.gson.GsonBuilder;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.ir.MethodCall;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
 import edu.university.ecs.lab.common.models.serialization.MethodCallDeserializer;
 import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
+import edu.university.ecs.lab.common.models.serialization.ProjectFileDeserializer;
 
 import java.io.*;
 
@@ -63,11 +65,12 @@ public class JsonReadWriteUtils {
      * Function for register custom deserializers when reading JSON from a file
      * @return
      */
-    private static Gson registerDeserializers() {
+    public static Gson registerDeserializers() {
 
         return new GsonBuilder()
                 .registerTypeAdapter(Method.class, new MethodDeserializer())
                 .registerTypeAdapter(MethodCall.class, new MethodCallDeserializer())
+                .registerTypeAdapter(ProjectFile.class, new ProjectFileDeserializer())
                 .create();
     }
 }

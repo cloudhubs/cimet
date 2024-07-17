@@ -42,6 +42,11 @@ public class IRExtractionService {
         config = ConfigUtil.readConfig(configPath);
     }
 
+    public IRExtractionService(Config config) {
+        this.config = config;
+        gitService = new GitService(config);
+    }
+
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
@@ -193,7 +198,7 @@ public class IRExtractionService {
                 } else if (FileUtils.isValidFile(file.getPath())) {
 
                     if(FileUtils.isConfigurationFile(file.getPath())) {
-                        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(file);
+                        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(file, config);
                         if(configFile != null) {
                             microservice.getFiles().add(configFile);
                         }

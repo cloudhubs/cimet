@@ -76,6 +76,7 @@ public class MicroserviceSystem implements JsonSerializable {
         orphans.addAll(microservice.getServices());
         orphans.addAll(microservice.getRepositories());
         orphans.addAll(microservice.getEntities());
+        orphans.addAll(microservice.getFiles());
     }
 
     /**
@@ -113,6 +114,16 @@ public class MicroserviceSystem implements JsonSerializable {
         }
 
         return returnClass;
+    }
+
+    public ProjectFile findFile(String path){
+        ProjectFile returnFile = null;
+        returnFile = getMicroservices().stream().flatMap(m -> m.getProjectFiles().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
+        if(returnFile == null){
+            returnFile = getOrphans().stream().filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
+        }
+
+        return returnFile;
     }
 
     public void orphanizeAndAdopt(Microservice microservice) {

@@ -179,10 +179,20 @@ public class Microservice implements JsonSerializable {
         classes.addAll(services);
         classes.addAll(repositories);
         classes.addAll(entities);
-//        classes.addAll(embeddables);
         classes.addAll(feignClients);
 
         return classes;
+    }
+
+    /**
+     * This method returns all classes of the microservice in a new set
+     *
+     * @return the set of all JClasses
+     */
+    public Set<ProjectFile> getProjectFiles() {
+        Set<ProjectFile> set = new HashSet<>(getClasses());
+        set.addAll(getFiles());
+        return set;
     }
 
 }

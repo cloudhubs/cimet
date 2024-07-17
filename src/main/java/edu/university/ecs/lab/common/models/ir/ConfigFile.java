@@ -4,16 +4,17 @@ import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class ConfigFile extends ProjectFile implements JsonSerializable {
-    JsonObject data;
+    private final JsonObject data;
 
     public ConfigFile(String path, String name, JsonObject data, FileType type) {
         this.path = path;
         this.name = name;
         this.data = data;
-        this.fileType = type;
+        this.fileType = FileType.CONFIG;
     }
 
     @Override

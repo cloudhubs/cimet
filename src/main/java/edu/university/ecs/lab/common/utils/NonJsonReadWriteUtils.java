@@ -10,16 +10,16 @@ import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import org.json.JSONObject;
 import org.json.XML;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for reading files that don't abide by JSON format
@@ -39,27 +39,33 @@ public class NonJsonReadWriteUtils {
      * @throws IOException If there is an error reading the YAML file.
      */
     public static ConfigFile readFromYaml(String path, Config config) {
-        JsonNode yamlNode = null;
-        try {
-            ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-            yamlNode = yamlMapper.readTree(new File(path));
-        } catch (IOException e) {
-            return null;
-        }
-        String jsonString = yamlNode.toString();
-        JsonObject jsonObject;
-        try {
-            jsonObject = JsonParser.parseString(jsonString).getAsJsonObject();
+        JsonObject data = null;
+        Yaml yaml = new Yaml(new SafeConstructor());
+        Gson gson = new Gson();
+
+        try (FileInputStream fis = new FileInputStream(path)) {
+            // Parse YAML file to Map
+            Map<String, Object> yamlMap = yaml.load(fis);
+
+            if (yamlMap == null || yamlMap.isEmpty()) {
+                // Handle empty file or empty YAML content
+                data = new JsonObject();
+            } else {
+                String jsonString = gson.toJson(yamlMap);
+                data =  JsonParser.parseString(jsonString).getAsJsonObject();
+            }
+
         } catch (Exception e) {
+            // Handle I/O errors (file not found, etc.)
             return null;
         }
 
-
-        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.CONFIG);
+        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), data, FileType.CONFIG);
     }
 
     public static ConfigFile readFromDocker(String path, Config config) {
         List<String> instructions = new ArrayList<>();
+        JsonObject jsonObject;
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -68,9 +74,7 @@ public class NonJsonReadWriteUtils {
         } catch (Exception e) {
             return null;
         }
-
-        // Create the JSON object
-        JsonObject jsonObject = new JsonObject();
+        jsonObject = new JsonObject();
         JsonArray jsonArray = new JsonArray();
         for (String instruction : instructions) {
             jsonArray.add(instruction);
@@ -82,20 +86,26 @@ public class NonJsonReadWriteUtils {
 
     public static ConfigFile readFromPom(String path, Config config) {
         String xmlContent = null;
+        JsonObject jsonObject;
         try {
             // Read the entire file content
             xmlContent = new String(Files.readAllBytes(Paths.get(path)));
+
+            if (xmlContent.trim().isEmpty()) {
+                jsonObject = new JsonObject();
+            } else {
+                // Convert XML to JSONObject using org.json
+                JSONObject jsonObjectOld = XML.toJSONObject(xmlContent);
+
+                // Convert JSONObject to Gson JsonObject
+                JsonElement jsonElement = JsonParser.parseString(jsonObjectOld.toString());
+                jsonObject = jsonElement.getAsJsonObject();
+            }
         } catch (Exception e) {
             return null;
         }
 
-        // Convert XML to JSONObject using org.json
-        JSONObject jsonObjectOld = XML.toJSONObject(xmlContent);
 
-        // Convert JSONObject to Gson JsonObject
-        JsonElement jsonElement = JsonParser.parseString(jsonObjectOld.toString());
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-
-        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.POM);
+        return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.CONFIG);
     }
 }

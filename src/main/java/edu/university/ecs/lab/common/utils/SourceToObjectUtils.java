@@ -49,7 +49,7 @@ public class SourceToObjectUtils {
         config = config1;
         try {
             cu = StaticJavaParser.parse(sourceFile);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
         if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
@@ -423,7 +423,7 @@ public class SourceToObjectUtils {
                 cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
     }
 
-    public static ConfigFile parseConfigurationFile(File file) {
+    public static ConfigFile parseConfigurationFile(File file, Config config) {
         if(file.getName().endsWith(".yml")) {
             return NonJsonReadWriteUtils.readFromYaml(file.getPath(), config);
         } else if(file.getName().equals("DockerFile")) {
@@ -446,5 +446,77 @@ public class SourceToObjectUtils {
             }
         }
         return classAnnotations;
+    }
+
+    /**
+     * FeignClient represents an interface for making rest calls to a service
+     * other than the current one. As such this method converts feignClient
+     * interfaces into a service class whose methods simply contain the exact
+     * rest call outlined by the interface annotations.
+     *
+     * @param sourceFile
+     * @param config
+     * @param classAnnotations
+     * @return
+     */
+    private static JClass handleRepositoryRestResource(File sourceFile, Config config, AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
+
+        // Parse the methods
+        Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);
+
+        // New methods for conversion
+        Set<Method> newEndpoints = new HashSet<>();
+        // New rest calls for conversion
+        Set<MethodCall> newRestCalls = new HashSet<>();
+
+        String preURL = "/";
+
+        for(AnnotationExpr annotation : classAnnotations) {
+            if(annotation.getNameAsString().equals("RepositoryRestResource")) {
+                if(annotation instanceof SingleMemberAnnotationExpr) {
+                    preURL += annotation.asSingleMemberAnnotationExpr().getMemberValue().toString();
+                    break;
+                } else {
+                    for(Node node : annotation.getChildNodes()) {
+                        System.out.println("t");
+                    }
+                }
+            }
+        }
+
+        // For each method that is detected as an endpoint convert into a Method + RestCall
+        for(Method method : methods) {
+
+            String url = "/search";
+            boolean restResourceFound = false;
+            for(Annotation ae : method.getAnnotations()) {
+                if(ae.getName().equals("RestResource")) {
+                    url = "";
+                    restResourceFound = true;
+                    break;
+                }
+            }
+
+
+            if(!restResourceFound) {
+                url += ("/" + method.getName());
+            }
+
+            Endpoint endpoint = new Endpoint(method, preURL + url, HttpMethod.GET, getMicroserviceName(sourceFile));
+            newEndpoints.add(endpoint);
+        }
+
+
+        // Build the JClass
+        return new JClass(
+                sourceFile.getName().replace(".java", ""),
+                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                packageName,
+                ClassRole.FEIGN_CLIENT,
+                newEndpoints,
+                parseFields(cu.findAll(FieldDeclaration.class)),
+                parseAnnotations(classAnnotations),
+                newRestCalls,
+                cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
     }
 }

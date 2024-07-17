@@ -81,7 +81,7 @@ public class IRComparisonTest {
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService("./config.json");
+        IRExtractionService irExtractionService = new IRExtractionService(config);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

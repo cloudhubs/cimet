@@ -20,7 +20,7 @@ public abstract class ProjectFile implements JsonSerializable {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("name", name);
         jsonObject.addProperty("path", path);
-        jsonObject.addProperty("fileType", fileType.toString());
+        jsonObject.addProperty("fileType", fileType.name());
         return jsonObject;
     }
 }

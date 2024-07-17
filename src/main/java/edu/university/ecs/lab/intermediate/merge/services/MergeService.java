@@ -2,10 +2,7 @@ package edu.university.ecs.lab.intermediate.merge.services;
 
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.ir.JClass;
-import edu.university.ecs.lab.common.models.ir.Microservice;
-import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.ir.ProjectFile;
+import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
@@ -58,7 +55,6 @@ public class MergeService {
         updateMicroservices(systemChange.getChanges());
 
         for (Delta d : systemChange.getChanges()) {
-            String path = d.getChangeType().equals(ChangeType.ADD) ? d.getOldPath() : d.getNewPath();
 
             // Check for pom.xml
 //            if (!path.endsWith(".java")) {
@@ -103,6 +99,8 @@ public class MergeService {
                     // Only add it back if we parsed a valid JClass (not null)
                     if (delta.getClassChange() != null) {
                         microserviceSystem.getOrphans().add(delta.getClassChange());
+                    } else if(delta.getConfigChange() != null) {
+                        microserviceSystem.getOrphans().add(delta.getConfigChange());
                     }
 
                     return;
@@ -142,14 +140,17 @@ public class MergeService {
      * @param delta the delta change for adding
      */
     public void addFile(Delta delta) {
-
-
         Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getNewPath()))).findFirst().orElse(null);
 
         // If we cant find his microservice after we called updateMicroservices then a file was pushed without a pom.xml
         // so it will be held as an orphan
         if (Objects.isNull(ms)) {
-            microserviceSystem.getOrphans().add(delta.getClassChange());
+            if(delta.getClassChange() != null) {
+                microserviceSystem.getOrphans().add(delta.getClassChange());
+            } else if(delta.getConfigChange() != null) {
+                microserviceSystem.getOrphans().add(delta.getConfigChange());
+            }
+
             return;
         }
 
@@ -185,7 +186,16 @@ public class MergeService {
         }
 
         if(FileUtils.isConfigurationFile(delta.getOldPath())) {
-            ms.getFiles().remove(delta.getConfigChange());
+            ConfigFile deleteFile = null;
+
+            for (ConfigFile configFile : ms.getFiles()) {
+                if (configFile.getPath().equals(delta.getOldPath())) {
+                    deleteFile = configFile;
+                    break;
+                }
+            }
+            ms.getFiles().remove(deleteFile);
+
         } else {
             ms.removeJClass(delta.getOldPath());
 
@@ -204,7 +214,7 @@ public class MergeService {
     private void updateMicroservices(List<Delta> deltaChanges) {
 
         // Only get pom deltas
-        List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null ? delta.getNewPath() : delta.getOldPath()).endsWith("pom.xml")).collect(Collectors.toUnmodifiableList());
+        List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null || delta.getOldPath().isEmpty() ? delta.getNewPath() : delta.getOldPath()).endsWith("pom.xml")).collect(Collectors.toUnmodifiableList());
 
         // Loop through changes to pom.xml files
         for (Delta delta : pomDeltas) {
