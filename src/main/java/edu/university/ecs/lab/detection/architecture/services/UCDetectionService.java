@@ -21,9 +21,9 @@ public class UCDetectionService {
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
-    public List<AbstractUseCase> scanUseCases() {
+    public List<AbstractAR> scanUseCases() {
 
-        List<AbstractUseCase> useCases = new ArrayList<>();
+        List<AbstractAR> useCases = new ArrayList<>();
         useCases.addAll(scanDeltaUC());
         useCases.addAll(scanSystemUC());
 
@@ -32,8 +32,8 @@ public class UCDetectionService {
 
 
 
-    public List<AbstractUseCase> scanDeltaUC() {
-        List<AbstractUseCase> useCases = new ArrayList<>();
+    public List<AbstractAR> scanDeltaUC() {
+        List<AbstractAR> useCases = new ArrayList<>();
         
         for (Delta d : oldSystem.getChanges()){
             
@@ -46,7 +46,7 @@ public class UCDetectionService {
             // }
 
 
-            List<UseCase6> useCase6List = UseCase6.scan(d, microserviceSystemOld, microserviceSystemNew);
+            List<AR6> useCase6List = AR6.scan(d, microserviceSystemOld, microserviceSystemNew);
             if(!useCase6List.isEmpty()){
                 useCases.addAll(useCase6List);
             }
@@ -61,20 +61,20 @@ public class UCDetectionService {
         return useCases;
     }
 
-    public List<AbstractUseCase> scanSystemUC() {
-        List<AbstractUseCase> useCases = new ArrayList<>();
+    public List<AbstractAR> scanSystemUC() {
+        List<AbstractAR> useCases = new ArrayList<>();
 
-        List<UseCase3> useCase3List = UseCase3.scan2(microserviceSystemOld, microserviceSystemNew);
+        List<AR3> useCase3List = AR3.scan2(microserviceSystemOld, microserviceSystemNew);
         if (!useCase3List.isEmpty()){
             useCases.addAll(useCase3List);
         }
 
-        List<UseCase4> useCase4List = UseCase4.scan2(microserviceSystemOld, microserviceSystemNew);
+        List<AR4> useCase4List = AR4.scan2(microserviceSystemOld, microserviceSystemNew);
         if(!useCase4List.isEmpty()){
             useCases.addAll(useCase4List);
         }
 
-        List<UseCase20> useCase20List = UseCase20.scan(microserviceSystemOld, microserviceSystemNew);
+        List<AR20> useCase20List = AR20.scan(microserviceSystemOld, microserviceSystemNew);
         if(!useCase20List.isEmpty()){
             useCases.addAll(useCase20List);
         }

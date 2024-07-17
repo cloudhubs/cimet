@@ -35,33 +35,4 @@ public class Annotation extends Node {
 
         return jsonObject;
     }
-
-    /**
-     * Method to get a specific value from the contents of the annotation.
-     * Assumes contents are in the format "[key = \"value\"]".
-     *
-     * @param key the key to look up in the contents
-     * @return the value corresponding to the key, or null if not found
-     */
-    public String getValue(String key) {
-        if (contents == null || contents.isEmpty()) {
-            return null;
-        }
-
-        // Remove surrounding brackets and split into key-value pairs
-        String cleanedContents = contents.substring(1, contents.length() - 1).trim();
-        String[] pairs = cleanedContents.split(",");
-
-        // Search for the key in each pair
-        for (String pair : pairs) {
-            pair = pair.trim();
-            String[] keyValue = pair.split("=");
-
-            if (keyValue.length == 2 && keyValue[0].trim().equals(key)) {
-                return keyValue[1].trim().replace("\"", "");
-            }
-        }
-
-        return null; // Key not found
-    }
 }

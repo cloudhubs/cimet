@@ -315,8 +315,8 @@ public class SourceToObjectUtils {
      * @param annotationExprs the annotation expressions to parse
      * @return the Set of Annotation models
      */
-    private static Set<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
-        Set<Annotation> annotations = new HashSet<>();
+    private static List<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
+        List<Annotation> annotations = new ArrayList<>();
 
         for (AnnotationExpr ae : annotationExprs) {
             Annotation annotation;

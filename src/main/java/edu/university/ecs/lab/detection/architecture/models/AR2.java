@@ -17,8 +17,8 @@
 //import lombok.Data;
 //
 //@Data
-//public class UseCase2 extends AbstractUseCase {
-//    protected static final String TYPE = "UseCase2";
+//public class AR2 extends AbstractAR {
+//    protected static final String TYPE = "Architectural Rules 2";
 //    protected static final String NAME = "Floating call due to endpoint removal (external)";
 //    protected static final Scope SCOPE = Scope.ENDPOINT;
 //    protected static final String DESC = "An endpoint was removed and calls now reference an endpoint no longer in existence.";
@@ -27,8 +27,8 @@
 //    protected JsonObject metaData;
 //
 //    @Override
-//    public List<? extends AbstractUseCase> checkUseCase() {
-//        ArrayList<UseCase3> useCases = new ArrayList<>();
+//    public List<? extends AbstractAR> checkUseCase() {
+//        ArrayList<AR2> useCases = new ArrayList<>();
 //
 //        return new ArrayList<>();
 //    }
@@ -63,8 +63,8 @@
 //        return TYPE;
 //    }
 //
-//    public static List<UseCase2> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-//        List<UseCase2> useCases = new ArrayList<>();
+//    public static List<AR2> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+//        List<AR2> useCases = new ArrayList<>();
 //
 //        // If we are not deleting/modifying a controller class
 //        JClass oldClass = oldSystem.findClass(delta.getOldPath());
@@ -76,21 +76,21 @@
 //        // For each endpoint in the old class, if it's no longer found
 //        for (Endpoint endpoint : oldClass.getEndpoints()) {
 //            if (!existsInSystem(endpoint, newSystem)) {
-//                UseCase2 useCase2 = new UseCase2();
+//                AR2 archRule2 = new AR2();
 //                JsonObject jsonObject = new JsonObject();
 //                jsonObject.add("Endpoint", endpoint.toJsonObject());
-//                useCase2.setMetaData(jsonObject);
-//                useCase2.setOldCommitID(oldSystem.getCommitID());
-//                useCase2.setNewCommitID(newSystem.getCommitID());
-//                useCases.add(useCase2);
+//                archRule2.setMetaData(jsonObject);
+//                archRule2.setOldCommitID(oldSystem.getCommitID());
+//                archRule2.setNewCommitID(newSystem.getCommitID());
+//                useCases.add(archRule2);
 //
 //            }
 //        }
 //        return useCases;
 //    }
 //
-////    public static List<UseCase2> scan2(MicroserviceSystem newSystem) {
-////        List<UseCase2> useCases = new ArrayList<>();
+////    public static List<AR2> scan2(MicroserviceSystem newSystem) {
+////        List<AR2> archRules = new ArrayList<>();
 ////
 ////        // For each endpoint in the old class, if it's no longer found
 ////        Set<JClass> controllers = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toSet());

@@ -2,7 +2,7 @@ package edu.university.ecs.lab.detection;
 
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-import edu.university.ecs.lab.detection.architecture.models.AbstractUseCase;
+import edu.university.ecs.lab.detection.architecture.models.AbstractAR;
 import edu.university.ecs.lab.detection.architecture.models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 
@@ -42,7 +42,7 @@ public class UCDetectionRunner {
         Collections.reverse(list);
         config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem("./config.json", "OldIR.json");
 
         List<JsonObject> allUseCases = new ArrayList<>();
 
@@ -61,21 +61,21 @@ public class UCDetectionRunner {
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
             UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            List<AbstractUseCase> useCases = ucDetectionService.scanUseCases();
+            List<AbstractAR> useCases = ucDetectionService.scanUseCases();
             JsonObject obj = new JsonObject();
             JsonArray jsonArray = new JsonArray();
             jsonArray.addAll(JsonSerializable.toJsonArray(useCases));
 
             obj.addProperty("commitID", commitIdNew);
 //            obj.addProperty("UseCase1", useCases.stream().filter(uc -> uc instanceof UseCase1).count());
-            obj.addProperty("UseCase3", useCases.stream().filter(uc -> uc instanceof UseCase3).count());
-            obj.addProperty("UseCase4", useCases.stream().filter(uc -> uc instanceof UseCase4).count());
-            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase6).count());
-            obj.addProperty("UseCase20", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
+            obj.addProperty("Architectural Rule 3", useCases.stream().filter(uc -> uc instanceof AR3).count());
+            obj.addProperty("Architectural Rule 4", useCases.stream().filter(uc -> uc instanceof AR4).count());
+            obj.addProperty("Architectural Rule 6", useCases.stream().filter(uc -> uc instanceof AR6).count());
+            obj.addProperty("Architectural Rule 20", useCases.stream().filter(uc -> uc instanceof AR20).count());
 //            obj.addProperty("UseCase6", useCases.stream().filter(uc -> uc instanceof UseCase20).count());
 //            obj.addProperty("UseCase7", useCases.stream().filter(uc -> uc instanceof UseCase21).count());
 
-            obj.add("useCases", jsonArray);
+            obj.add("Architectural Rules", jsonArray);
             allUseCases.add(obj);
 
             try {
@@ -85,28 +85,28 @@ public class UCDetectionRunner {
             }
         }
 
-        JsonReadWriteUtils.writeToJSON("./output/UseCase.json", allUseCases);
+        JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", allUseCases);
     }
 
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(fileName);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);
     }
 
-    public static JsonArray toJsonArray(List<List<AbstractUseCase>> useCaseLists) {
+    public static JsonArray toJsonArray(List<List<AbstractAR>> archRulesList) {
         JsonArray outerArray = new JsonArray();
         
-        for (List<AbstractUseCase> useCaseList : useCaseLists) {
+        for (List<AbstractAR> archRules : archRulesList) {
             JsonArray innerArray = new JsonArray();
-            for (AbstractUseCase useCase : useCaseList) {
-                innerArray.add(useCase.toJsonObject());
+            for (AbstractAR archRule : archRules) {
+                innerArray.add(archRule.toJsonObject());
             }
             outerArray.add(innerArray);
         }

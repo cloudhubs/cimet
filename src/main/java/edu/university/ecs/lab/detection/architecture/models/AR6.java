@@ -17,8 +17,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-public class UseCase6 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase6";
+public class AR6 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 6";
     protected static final String NAME = "Affected endpoint due to business logic update";
     protected static final String DESC = "A service method was modified and now causes inconsistent results for calling endpoints";
     private String oldCommitID;
@@ -50,7 +50,7 @@ public class UseCase6 extends AbstractUseCase {
         return metaData;
     }
 
-    public static List<UseCase6> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+    public static List<AR6> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
 
 
         JClass jClass = oldSystem.findClass(delta.getOldPath());
@@ -59,7 +59,7 @@ public class UseCase6 extends AbstractUseCase {
             return new ArrayList<>();
         }
 
-        List<UseCase6> useCases = new ArrayList<>();
+        List<AR6> archRules = new ArrayList<>();
         Set<Method> affectedMethods = delta.getClassChange().getMethods();
         Method removeMethod = null;
 
@@ -75,16 +75,16 @@ public class UseCase6 extends AbstractUseCase {
                             && method.getName().equals(methodCall.getCalledFrom())) {
                         removeMethod = method;
 
-                        UseCase6 useCase6 = new UseCase6();
+                        AR6 archRule6 = new AR6();
                         JsonObject jsonObject = new JsonObject();
 
                        jsonObject.add("AffectedMethod", method.toJsonObject());
                        jsonObject.add("MethodCall", methodCall.toJsonObject());
-                        useCase6.setOldCommitID(oldSystem.getCommitID());
-                        useCase6.setNewCommitID(newSystem.getCommitID());
+                       archRule6.setOldCommitID(oldSystem.getCommitID());
+                       archRule6.setNewCommitID(newSystem.getCommitID());
 
-                        useCase6.setMetaData(jsonObject);
-                        useCases.add(useCase6);
+                       archRule6.setMetaData(jsonObject);
+                        archRules.add(archRule6);
 
                         break outer;
                     }
@@ -97,7 +97,7 @@ public class UseCase6 extends AbstractUseCase {
             }
         }
 
-        return useCases;
+        return archRules;
     }
 
     /**

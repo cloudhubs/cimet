@@ -1,19 +1,19 @@
-package edu.university.ecs.lab.detection;
+package edu.university.ecs.lab;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
-import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
-import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
-import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
-import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.google.gson.JsonArray;
+import java.util.*;
 
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
@@ -25,124 +25,134 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
-import edu.university.ecs.lab.detection.architecture.models.AbstractAR;
-import edu.university.ecs.lab.detection.architecture.models.AR20;
-import edu.university.ecs.lab.detection.architecture.models.AR3;
-import edu.university.ecs.lab.detection.architecture.models.AR4;
-import edu.university.ecs.lab.detection.architecture.models.AR6;
+import edu.university.ecs.lab.detection.architecture.models.*;
 import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
+import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
+import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
+import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
+import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
+import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 
-import java.util.*;
-
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-public class ExcelOutputRunner {
+public class AllConfigsExcelRunner {
     public static void main(String[] args) throws IOException {
-        String config_path = args[0];
-        Config config = ConfigUtil.readConfig(config_path);
-        DeltaExtractionService deltaExtractionService;
-        FileUtils.createPaths();
-        GitService gitService = new GitService(config);
 
-        Iterable<RevCommit> commits = gitService.getLog();
-
-
-        Iterator<RevCommit> iterator = commits.iterator();
-        List<RevCommit> list = new LinkedList<>();
-        while (iterator.hasNext()) {
-            list.add(iterator.next());
+        File configDir = new File("./configs");
+        if (!configDir.exists() || !configDir.isDirectory()) {
+            System.out.println("Config directory './configs' does not exist or is not a directory.");
+            return;
         }
-        Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
-        // Create IR of first commit
-        createIRSystem(config_path, "OldIR.json");
 
-        //Create excel file and desired header labels
-        XSSFWorkbook workbook = new XSSFWorkbook();
+        File[] configFiles = configDir.listFiles((dir, name) -> name.endsWith(".json"));
+        if (configFiles == null || configFiles.length == 0) {
+            System.out.println("No configuration files found in './configs' directory.");
+            return;
+        }
 
-        XSSFSheet sheet = workbook.createSheet(config.getSystemName());
-        String[] columnLabels = {"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
+        for (File configFile : configFiles) {
+            String configPath = configFile.getAbsolutePath();
+            System.out.println("Processing config file: " + configPath);
+
+            Config config = ConfigUtil.readConfig(configPath);
+            DeltaExtractionService deltaExtractionService;
+            FileUtils.createPaths();
+            GitService gitService = new GitService(config);
+
+            Iterable<RevCommit> commits = gitService.getLog();
+            Iterator<RevCommit> iterator = commits.iterator();
+            List<RevCommit> list = new LinkedList<>();
+            while (iterator.hasNext()) {
+                list.add(iterator.next());
+            }
+            Collections.reverse(list);
+            config.setBaseCommit(list.get(0).toString().split(" ")[1]);
+            // Create IR of first commit
+            createIRSystem(configPath, "OldIR.json");
+
+            //Create excel file and desired header labels
+            XSSFWorkbook workbook = new XSSFWorkbook();
+
+            XSSFSheet sheet = workbook.createSheet(config.getSystemName());
+            String[] columnLabels = {"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
                 "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions", "No Healthchecks", "No API Gateway", "maxAIS",
                 "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
                 "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
                 "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
 
-        Row headerRow = sheet.createRow(0);
-        for (int i = 0; i < columnLabels.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(columnLabels[i]);
-        }
-
-        // Used for AR validation
-        List<List<AbstractAR>> allARs = new ArrayList<>();
-
-        for (int i = 1; i < list.size() - 1; i++) {
-            String commitIdOld = list.get(i).toString().split(" ")[1];
-            String commitIdNew = list.get(i + 1).toString().split(" ")[1];
-
-            List<AntiPattern> allAntiPatterns = new ArrayList<>();
-            HashMap<String, Double> metrics = new HashMap<>();
-            List<AbstractAR> currARs = new ArrayList<>();
-
-            MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
-
-            if (!microserviceSystem.getMicroservices().isEmpty()) {
-                detectAntipatterns(allAntiPatterns, metrics);
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < columnLabels.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columnLabels[i]);
             }
 
-            // Extract changes from one commit to the other
-            deltaExtractionService = new DeltaExtractionService(config_path, "./output/OldIR.json", commitIdOld, commitIdNew);
-            deltaExtractionService.generateDelta();
+            // Used for AR validation
+            List<List<AbstractAR>> allARs = new ArrayList<>();
 
-            // Merge Delta changes to old IR to create new IR representing new commit changes
-            MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", config_path);
-            mergeService.generateMergeIR();
+            for (int i = 1; i < list.size() - 1; i++) {
+                String commitIdOld = list.get(i).toString().split(" ")[1];
+                String commitIdNew = list.get(i + 1).toString().split(" ")[1];
 
-            UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
-            currARs.addAll(ucDetectionService.scanDeltaUC());
-            currARs.addAll(ucDetectionService.scanSystemUC());
+                List<AntiPattern> allAntiPatterns = new ArrayList<>();
+                HashMap<String, Double> metrics = new HashMap<>();
+                List<AbstractAR> currARs = new ArrayList<>();
+
+                MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
+
+                if (!microserviceSystem.getMicroservices().isEmpty()) {
+                    detectAntipatterns(allAntiPatterns, metrics);
+                }
+
+                // Extract changes from one commit to the other
+                deltaExtractionService = new DeltaExtractionService(configPath, "./output/OldIR.json", commitIdOld, commitIdNew);
+                deltaExtractionService.generateDelta();
+
+                // Merge Delta changes to old IR to create new IR representing new commit changes
+                MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", configPath);
+                mergeService.generateMergeIR();
+
+                UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+                currARs.addAll(ucDetectionService.scanDeltaUC());
+                currARs.addAll(ucDetectionService.scanSystemUC());
 
 
-            if((i + 1) == 2) {
-                // On the first run we will write initial row to be empty and write the next row
-                writeEmptyRow(sheet, i);
-                writeToExcel(sheet, currARs, i + 1);
-            } else if((i + 1) >= (list.size() - 1)) {
-                // If i+1 goes over we will write an empty row
-                writeEmptyRow(sheet, i);
-            } else {
-                // Otherwise we will write the next row
-                writeToExcel(sheet, currARs, i + 1);
+                if((i + 1) == 2) {
+                    // On the first run we will write initial row to be empty and write the next row
+                    writeEmptyRow(sheet, i);
+                    writeToExcel(sheet, currARs, i + 1);
+                } else if((i + 1) >= (list.size() - 1)) {
+                    // If i+1 goes over we will write an empty row
+                    writeEmptyRow(sheet, i);
+                } else {
+                    // Otherwise we will write the next row
+                    writeToExcel(sheet, currARs, i + 1);
+                }
+
+                updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, i);
+
+                try {
+                    Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                allARs.add(currARs);
+
             }
 
-            updateExcel(sheet, commitIdOld, allAntiPatterns, metrics, i);
-
-            try {
-                Files.move(Paths.get("./output/NewIR.json"), Paths.get("./output/OldIR.json"), StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
+            try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
+                workbook.write(fileOut);
+                System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
+            } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                workbook.close();
             }
 
-            allARs.add(currARs);
-
+            // Used to validate the ARs
+            JsonArray jsonArray = toJsonArray(allARs);
+            JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
         }
-
-        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
-            workbook.write(fileOut);
-            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            workbook.close();
-        }
-
-        // Used to validate the ARs
-        JsonArray jsonArray = toJsonArray(allARs);
-        JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
     }
 
     private static void createIRSystem(String configPath, String fileName) {
@@ -245,7 +255,7 @@ public class ExcelOutputRunner {
 
     private static void writeEmptyRow(XSSFSheet sheet, int rowIndex) {
         Row row = sheet.createRow(rowIndex);
-        for(int i = 0; i < 37; i++) {
+        for(int i = 0; i < 35; i++) {
             row.createCell(i).setCellValue(0);
         }
 
@@ -372,5 +382,4 @@ public class ExcelOutputRunner {
         
         return outerArray;
     }
-
 }

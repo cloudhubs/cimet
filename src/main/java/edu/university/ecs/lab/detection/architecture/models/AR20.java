@@ -11,8 +11,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-public class UseCase20 extends AbstractUseCase {
-    protected static final String TYPE = "UseCase20";
+public class AR20 extends AbstractAR {
+    protected static final String TYPE = "Architectural Rule 20";
     protected static final String NAME = "Hublike Service";
     protected static final String DESC = "";
     private String oldCommitID;
@@ -45,24 +45,24 @@ public class UseCase20 extends AbstractUseCase {
         return metaData;
     }
 
-    public static List<UseCase20> scan(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
-        List<UseCase20> useCases = new ArrayList<>();
+    public static List<AR20> scan(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
+        List<AR20> archRules = new ArrayList<>();
 
         ServiceDependencyGraph graph = new ServiceDependencyGraph(newSystem);
         Set<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
                 .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) 4).collect(Collectors.toSet());
 
         getHubMicroservices.forEach(s -> {
-            UseCase20 useCase = new UseCase20();
+            AR20 archRule20 = new AR20();
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("Microservice", s);
-            useCase.setMetaData(jsonObject);
-            useCase.setOldCommitID(oldSystem.getCommitID());
-            useCase.setNewCommitID(newSystem.getCommitID());
-            useCases.add(useCase);
+            archRule20.setMetaData(jsonObject);
+            archRule20.setOldCommitID(oldSystem.getCommitID());
+            archRule20.setNewCommitID(newSystem.getCommitID());
+            archRules.add(archRule20);
         });
 
-        return useCases;
+        return archRules;
 
     }
 }
