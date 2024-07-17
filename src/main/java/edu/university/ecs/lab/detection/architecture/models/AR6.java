@@ -54,6 +54,9 @@ public class AR6 extends AbstractAR {
 
 
         JClass jClass = oldSystem.findClass(delta.getOldPath());
+        if(jClass == null) {
+            return new ArrayList<>();
+        }
 
         if(!delta.getChangeType().equals(ChangeType.MODIFY) || !jClass.getClassRole().equals(ClassRole.SERVICE)) {
             return new ArrayList<>();

@@ -57,6 +57,9 @@ public class AR3 extends AbstractAR {
     public List<AR3> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR3> archRules = new ArrayList<>();
 
+        if(delta.getClassChange() == null) {
+            return new ArrayList<>();
+        }
         // If it isn't add or modify, or not a service
         if (delta.getChangeType().equals(ChangeType.DELETE) || !delta.getClassChange().getClassRole().equals(ClassRole.SERVICE)) {
             return archRules;
