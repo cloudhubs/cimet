@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.HubLikeMicroservice;
 
@@ -13,6 +14,7 @@ public class HubLikeService {
     /**
      * Threshold for the number of REST calls indicating a microservice is hub-like.
      */
+    protected static final int DEFAULT_RESTCALL_THRESHOLD = GreedyService.DEFAULT_RESTCALL_THRESHOLD;
     private final int RESTCALL_THRESHOLD;
 
     /**
@@ -23,13 +25,14 @@ public class HubLikeService {
      */
     public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
         List<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
-                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toList());
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD)
+                .map(Microservice::getName).collect(Collectors.toList());
 
         return new HubLikeMicroservice(getHubMicroservices);
     }
 
     public HubLikeService() {
-        RESTCALL_THRESHOLD = 6;
+        RESTCALL_THRESHOLD = DEFAULT_RESTCALL_THRESHOLD;
     }
 
     public HubLikeService(int RESTCALL_THRESHOLD) {

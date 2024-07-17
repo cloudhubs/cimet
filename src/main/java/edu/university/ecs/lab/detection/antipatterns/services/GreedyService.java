@@ -1,5 +1,6 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.GreedyMicroservice;
 
@@ -16,6 +17,7 @@ public class GreedyService {
      * Threshold for the number of REST calls indicating a microservice is greedy.
      */
     private final int RESTCALL_THRESHOLD;
+    protected static final int DEFAULT_RESTCALL_THRESHOLD = 6;
 
     /**
      * Retrieves microservices identified as greedy based on REST call threshold.
@@ -26,13 +28,14 @@ public class GreedyService {
     public GreedyMicroservice getGreedyMicroservices(ServiceDependencyGraph graph) {
 
         List<String> getGreedyMicroservices = graph.vertexSet().stream().filter(vertex -> graph.outgoingEdgesOf(vertex).stream()
-                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD).collect(Collectors.toList());
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD)
+                .map(Microservice::getName).collect(Collectors.toList());
 
         return new GreedyMicroservice(getGreedyMicroservices);
     }
 
     public GreedyService() {
-        RESTCALL_THRESHOLD = 6;
+        RESTCALL_THRESHOLD = DEFAULT_RESTCALL_THRESHOLD;
     }
 
     public GreedyService(int RESTCALL_THRESHOLD) {

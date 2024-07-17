@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import lombok.Data;
@@ -80,11 +81,11 @@ public class AR21 extends AbstractAR {
      * @return A list of sets, each containing services that are wrongly interconnected (forming a cluster).
      */
     public static List<Set<String>> detectWrongCuts(ServiceDependencyGraph graph) {
-        Map<String, Set<String>> adjacencyList = graph.getAdjacency();
-        Set<String> visited = new HashSet<>();
+        Map<Microservice, Set<Microservice>> adjacencyList = graph.getAdjacency();
+        Set<Microservice> visited = new HashSet<>();
         List<Set<String>> wrongCuts = new ArrayList<>();
 
-        for (String node : graph.vertexSet()) {
+        for (Microservice node : graph.vertexSet()) {
             if (!visited.contains(node)) {
                 Set<String> cluster = new HashSet<>();
                 dfs(node, adjacencyList, visited, cluster);
@@ -103,11 +104,12 @@ public class AR21 extends AbstractAR {
      * @param visited       Set of visited nodes to avoid revisiting.
      * @param cluster       Set to collect all nodes belonging to the current cluster of wrong cuts.
      */
-    private static void dfs(String currentNode, Map<String, Set<String>> adjacencyList, Set<String> visited, Set<String> cluster) {
+    private static void dfs(Microservice currentNode, Map<Microservice, Set<Microservice>> adjacencyList,
+                            Set<Microservice> visited, Set<String> cluster) {
         visited.add(currentNode);
-        cluster.add(currentNode);
+        cluster.add(currentNode.getName());
 
-        for (String neighbor : adjacencyList.get(currentNode)) {
+        for (Microservice neighbor : adjacencyList.get(currentNode)) {
             if (!visited.contains(neighbor)) {
                 dfs(neighbor, adjacencyList, visited, cluster);
             }

@@ -2,6 +2,7 @@ package edu.university.ecs.lab.detection.antipatterns;
 
 import com.google.gson.Gson;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.sdg.MethodDependencyGraph;
 import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
@@ -21,14 +22,17 @@ public class AntipatternDetection {
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
+        MethodDependencyGraph mdg = new MethodDependencyGraph(currentSystem);
 
         writeObjectToJsonFile(sdg.toJsonObject(), "sdg.json");
+        writeObjectToJsonFile(mdg.toJsonObject(), "mdg.json");
 
         int detectedAntipatterns = 0;
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
         if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
+            System.out.println("Greedy Services detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/greedy.json", greedyMicroservices.toJsonObject());
         }
@@ -36,35 +40,56 @@ public class AntipatternDetection {
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
         if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
+            System.out.println("Hublike Services detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/hublike.json", hublikeMicroservices.toJsonObject());
         }
         
 
-        ServiceChainService chainService = new ServiceChainService();
+        ServiceChainMSLevelService chainService = new ServiceChainMSLevelService();
         ServiceChain allChains = chainService.getServiceChains(sdg);
         if (!allChains.getChain().isEmpty()){
+            System.out.println("Service chains detected (Service level)");
             detectedAntipatterns++;
-            JsonReadWriteUtils.writeToJSON("./output/servicechain.json", allChains.toJsonObject());
+            JsonReadWriteUtils.writeToJSON("./output/servicechainMSlevel.json", allChains.toJsonObject());
         }
-        
+
+        ServiceChainMethodLevelService chainService2 = new ServiceChainMethodLevelService();
+        ServiceChain allChains2 = chainService2.getServiceChains(mdg);
+        if (!allChains2.getChain().isEmpty()){
+            System.out.println("Service chains detected (Method level)");
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/servicechainMethodlevel.json", allChains2.toJsonObject());
+        }
+
         WrongCutsService wrongCutsService = new WrongCutsService();
         WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(currentSystem);
         if (!wrongCuts.getWrongCuts().isEmpty()){
+            System.out.println("Wrongs cuts detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/wrongcuts.json", wrongCuts.toJsonObject());
         }
         
-        CyclicDependencyService cycles = new CyclicDependencyService();
+        CyclicDependencyMSLevelService cycles = new CyclicDependencyMSLevelService();
         CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
         if (!cycleDependencies.getCycles().isEmpty()){
+            System.out.println("Cyclic dependencies detected (Service level)");
             detectedAntipatterns++;
-            JsonReadWriteUtils.writeToJSON("./output/cyclicdependencies.json", cycleDependencies.toJsonObject());
+            JsonReadWriteUtils.writeToJSON("./output/cyclicdependenciesMSlevel.json", cycleDependencies.toJsonObject());
         }
-        
+
+        CyclicDependencyMethodLevelService cycles2 = new CyclicDependencyMethodLevelService();
+        CyclicDependency cycleDependencies2 = cycles2.findCyclicDependencies(mdg);
+        if (!cycleDependencies2.getCycles().isEmpty()){
+            System.out.println("Cyclic dependencies detected (Method level)");
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/cyclicdependenciesMethodlevel.json", cycleDependencies2.toJsonObject());
+        }
+
         NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
         NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck(currentSystem);
         if (!noHealthCheck.getnoHealthcheck().isEmpty()){
+            System.out.println("No heath check detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/nohealthcheck.json", noHealthCheck.toJsonObject());
         }
@@ -72,6 +97,7 @@ public class AntipatternDetection {
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
         WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
         if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
+            System.out.println("Wobbly service interactions detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/wobblyserviceinteratcions.json", wobblyService.toJsonObject());
         }
@@ -79,6 +105,7 @@ public class AntipatternDetection {
         NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
         NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway(currentSystem);
         if (noApiGateway.getnoApiGateway()){
+            System.out.println("No API Gateway detected");
             detectedAntipatterns++;
             JsonReadWriteUtils.writeToJSON("./output/noapigateway.json", noApiGateway.toJsonObject());
         }
