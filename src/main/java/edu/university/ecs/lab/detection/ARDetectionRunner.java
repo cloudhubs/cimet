@@ -14,7 +14,7 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
-import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
+import edu.university.ecs.lab.detection.architecture.services.ARDetectionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 
@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class UCDetectionRunner {
+public class ARDetectionRunner {
     public static void main(String[] args) {
 
         Config config = ConfigUtil.readConfig("./config.json");
@@ -60,7 +60,7 @@ public class UCDetectionRunner {
             mergeService.generateMergeIR();
             //computeGraph("./output/rest-extraction-output-[main-" + commitIdNew.substring(0,7) + "].json", commitIdNew.substring(0,7));
         
-            UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+            ARDetectionService ucDetectionService = new ARDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
             List<AbstractAR> useCases = ucDetectionService.scanUseCases();
             JsonObject obj = new JsonObject();
             JsonArray jsonArray = new JsonArray();

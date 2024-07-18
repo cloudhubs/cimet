@@ -30,7 +30,7 @@ import edu.university.ecs.lab.detection.architecture.models.AR20;
 import edu.university.ecs.lab.detection.architecture.models.AR3;
 import edu.university.ecs.lab.detection.architecture.models.AR4;
 import edu.university.ecs.lab.detection.architecture.models.AR6;
-import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
+import edu.university.ecs.lab.detection.architecture.services.ARDetectionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 
@@ -102,7 +102,7 @@ public class ExcelOutputRunner {
             MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", config_path);
             mergeService.generateMergeIR();
 
-            UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+            ARDetectionService ucDetectionService = new ARDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
             currARs.addAll(ucDetectionService.scanDeltaUC());
             currARs.addAll(ucDetectionService.scanSystemUC());
 

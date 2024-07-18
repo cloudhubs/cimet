@@ -26,7 +26,7 @@ import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
 import edu.university.ecs.lab.detection.architecture.models.*;
-import edu.university.ecs.lab.detection.architecture.services.UCDetectionService;
+import edu.university.ecs.lab.detection.architecture.services.ARDetectionService;
 import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
 import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
 import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
@@ -111,7 +111,7 @@ public class AllConfigsExcelRunner {
                 MergeService mergeService = new MergeService("./output/OldIR.json", "./output/Delta.json", configPath);
                 mergeService.generateMergeIR();
 
-                UCDetectionService ucDetectionService = new UCDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
+                ARDetectionService ucDetectionService = new ARDetectionService("./output/Delta.json", "./output/OldIR.json", "./output/NewIR.json");
                 currARs.addAll(ucDetectionService.scanDeltaUC());
                 currARs.addAll(ucDetectionService.scanSystemUC());
 

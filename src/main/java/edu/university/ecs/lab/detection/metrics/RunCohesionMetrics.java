@@ -9,12 +9,6 @@ import edu.university.ecs.lab.detection.metrics.models.ServiceDescriptor;
 import edu.university.ecs.lab.detection.metrics.services.MetricCalculator;
 import edu.university.ecs.lab.detection.metrics.services.MetricResult;
 import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
