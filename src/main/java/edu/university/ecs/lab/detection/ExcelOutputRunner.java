@@ -116,7 +116,7 @@ public class ExcelOutputRunner {
                 detectAntipatterns(microserviceSystem,allAntiPatterns, metrics);
             }
 
-            UCDetectionService ucDetectionService = new UCDetectionService(oldSystem, microserviceSystem, microserviceSystemNew);
+            ARDetectionService ucDetectionService = new ARDetectionService(oldSystem, microserviceSystem, microserviceSystemNew);
             List<AbstractAR> currARs = ucDetectionService.scanUseCases();
             allARs.add(currARs);
 
@@ -198,7 +198,7 @@ public class ExcelOutputRunner {
         ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
         metrics.put("SCCmodularity", mod.getModularity());
 
-        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(currentSystem);
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(OLD_IR_PATH);
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
         metrics.put("stdSIDC", cohesionMetrics.getStdDev("ServiceInterfaceDataCohesion"));

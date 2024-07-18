@@ -20,7 +20,7 @@ public class ARDetectionService {
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
-    public UCDetectionService(SystemChange oldSystem, MicroserviceSystem microserviceSystemOld, MicroserviceSystem microserviceSystemNew) {
+    public ARDetectionService(SystemChange oldSystem, MicroserviceSystem microserviceSystemOld, MicroserviceSystem microserviceSystemNew) {
         this.oldSystem = oldSystem;
         this.microserviceSystemOld = microserviceSystemOld;
         this.microserviceSystemNew = microserviceSystemNew;
