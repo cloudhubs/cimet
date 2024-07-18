@@ -67,11 +67,20 @@ public class IRComparisonTest {
         MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
         microserviceSystem1.setCommitID(config.getBaseCommit());
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
-        boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);
+
+
+        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
+            for(Microservice microservice2 : microserviceSystem2.getMicroservices()) {
+                if(microservice1.getName().equals(microservice2.getName())) {
+                    System.out.println(microservice1.getName() + " " + Objects.deepEquals(microservice1.getClasses(), microservice2.getClasses()));
+                }
+            }
+        }
+//        boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);
 
 
         // Output results
-        System.out.println(b);
+//        System.out.println(b);
 
     }
 

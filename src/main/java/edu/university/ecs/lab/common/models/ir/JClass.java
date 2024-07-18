@@ -92,7 +92,7 @@ public class JClass extends ProjectFile implements JsonSerializable {
      * @return set of all endpoints
      */
     public Set<Endpoint> getEndpoints() {
-        if(!getClassRole().equals(ClassRole.CONTROLLER) || getMethods().isEmpty()) {
+        if((!getClassRole().equals(ClassRole.CONTROLLER) && !getClassRole().equals(ClassRole.REP_REST_RSC)) || getMethods().isEmpty()) {
             return new HashSet<>();
         }
         return methods.stream().filter(method -> method instanceof Endpoint).map(method -> (Endpoint) method).collect(Collectors.toUnmodifiableSet());
@@ -109,5 +109,15 @@ public class JClass extends ProjectFile implements JsonSerializable {
             return new HashSet<>();
         }
         return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * If we are adding a class or a class is being adopted/orphanized lets update ms name
+     *
+     * @param name
+     */
+    public void updateMicroserviceName(String name) {
+        methodCalls.forEach(methodCall -> methodCall.setMicroserviceName(name));
+        methods.forEach(methodCall -> methodCall.setMicroserviceName(name));
     }
 }

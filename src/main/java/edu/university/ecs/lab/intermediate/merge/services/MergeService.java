@@ -117,7 +117,10 @@ public class MergeService {
 
                 // Only add it back if we parsed a valid JClass (not null)
                 if (delta.getClassChange() != null) {
-                    ms.addJClass(delta.getClassChange());
+                    JClass jClass1 = delta.getClassChange();
+                    jClass1.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
+                    ms.addJClass(jClass1);
+                    ms.addJClass(jClass1);
                 }
 
                 return;
@@ -129,7 +132,10 @@ public class MergeService {
         // we should still add it because it might have been invalid
         // when we first tried to add it and was dropped
         if (delta.getClassChange() != null) {
-            ms.addJClass(delta.getClassChange());
+            JClass jClass = delta.getClassChange();
+            jClass.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
+            ms.addJClass(jClass);
+            ms.addJClass(jClass);
         }
 
     }
@@ -157,7 +163,10 @@ public class MergeService {
         if(FileUtils.isConfigurationFile(delta.getNewPath())) {
             ms.getFiles().add(delta.getConfigChange());
         } else {
-            ms.addJClass(delta.getClassChange());
+            // Update microservice name if we are a new class, after pom manipulations
+            JClass jClass = delta.getClassChange();
+            jClass.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
+            ms.addJClass(jClass);
 
         }
 
@@ -214,7 +223,7 @@ public class MergeService {
     private void updateMicroservices(List<Delta> deltaChanges) {
 
         // Only get pom deltas
-        List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null || delta.getOldPath().isEmpty() ? delta.getNewPath() : delta.getOldPath()).endsWith("pom.xml")).collect(Collectors.toUnmodifiableList());
+        List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null || delta.getOldPath().isEmpty() ? delta.getNewPath() : delta.getOldPath()).endsWith("/pom.xml")).collect(Collectors.toUnmodifiableList());
 
         // Loop through changes to pom.xml files
         for (Delta delta : pomDeltas) {
@@ -241,10 +250,10 @@ public class MergeService {
                     microservice = microserviceSystem.findMicroserviceByPath(delta.getOldPath().replace("/pom.xml", ""));
                     // Here we must orphan all the classes of this microservice
                     if(microservice == null) {
-                        System.out.println(microservice.getPath() + " not found");
+                        System.out.println(delta.getOldPath() + " not found");
                     }
                     microserviceSystem.orphanize(microservice);
-                    microserviceSystem.getMicroservices().remove(microservice);
+                    microserviceSystem.getMicroservices().removeIf(ms -> ms.getPath().equals(microservice.getPath()));
                     break;
 
             }

@@ -34,10 +34,8 @@ import java.util.stream.Collectors;
  * Static utility class for parsing a file and returning associated models from code structure.
  */
 public class SourceToObjectUtils {
-    private static final List<String> call_annotations = Arrays.asList("RequestMapping", "GetMapping", "PutMapping",
-            "PostMapping", "DeleteMapping", "PatchMapping", "RepositoryRestResource", "FeignClient");
     private static CompilationUnit cu;
-    private static String microserviceName;
+    private static String microserviceName = "";
     private static String path;
     private static String className;
     private static String packageName;
@@ -88,8 +86,6 @@ public class SourceToObjectUtils {
         generateStaticValues(sourceFile, config);
         if (!microserviceName.isEmpty()) {
             SourceToObjectUtils.microserviceName = microserviceName;
-        } else {
-            SourceToObjectUtils.microserviceName = getMicroserviceName(sourceFile);
         }
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
@@ -106,6 +102,8 @@ public class SourceToObjectUtils {
         JClass jClass = null;
         if(classRole == ClassRole.FEIGN_CLIENT) {
             jClass = handleFeignClient(requestMapping, classAnnotations);
+        } else if(classRole == ClassRole.REP_REST_RSC) {
+            jClass = handleRepositoryRestResource(requestMapping, classAnnotations);
         } else {
             jClass = new JClass(
                     className,
@@ -349,9 +347,11 @@ public class SourceToObjectUtils {
                 case "Service":
                     return ClassRole.SERVICE;
                 case "Repository":
-                case "RepositoryRestResource":
                     return ClassRole.REPOSITORY;
+                case "RepositoryRestResource":
+                    return ClassRole.REP_REST_RSC;
                 case "Entity":
+                case "Embeddable":
                     return ClassRole.ENTITY;
                 case "FeignClient":
                     return ClassRole.FEIGN_CLIENT;
@@ -451,7 +451,7 @@ public class SourceToObjectUtils {
      * @param classAnnotations
      * @return
      */
-    private static JClass handleRepositoryRestResource(File sourceFile, Config config, AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
+    private static JClass handleRepositoryRestResource(AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
 
         // Parse the methods
         Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);
@@ -461,17 +461,22 @@ public class SourceToObjectUtils {
         // New rest calls for conversion
         Set<MethodCall> newRestCalls = new HashSet<>();
 
-        String preURL = "/";
+        // Arbitrary preURL naming scheme if not defined in the annotation
+        String preURL = "/" + className.toLowerCase().replace("repository", "") + "s";
 
         for(AnnotationExpr annotation : classAnnotations) {
             if(annotation.getNameAsString().equals("RepositoryRestResource")) {
-                if(annotation instanceof SingleMemberAnnotationExpr) {
+                if (requestMapping instanceof NormalAnnotationExpr) {
+                    NormalAnnotationExpr nae = (NormalAnnotationExpr) requestMapping;
+                    for (MemberValuePair pair : nae.getPairs()) {
+                        if (pair.getNameAsString().equals("path")) {
+                            preURL += pair.getValue().toString();
+                            break;
+                        }
+                    }
+                } else if (requestMapping instanceof SingleMemberAnnotationExpr) {
                     preURL += annotation.asSingleMemberAnnotationExpr().getMemberValue().toString();
                     break;
-                } else {
-                    for(Node node : annotation.getChildNodes()) {
-                        System.out.println("t");
-                    }
                 }
             }
         }
@@ -481,30 +486,44 @@ public class SourceToObjectUtils {
 
             String url = "/search";
             boolean restResourceFound = false;
+            boolean isExported = true;
             for(Annotation ae : method.getAnnotations()) {
-                if(ae.getName().equals("RestResource")) {
-                    url = "";
-                    restResourceFound = true;
-                    break;
+                if (requestMapping instanceof NormalAnnotationExpr) {
+                    NormalAnnotationExpr nae = (NormalAnnotationExpr) requestMapping;
+                    for (MemberValuePair pair : nae.getPairs()) {
+                        if (pair.getNameAsString().equals("path")) {
+                            preURL = pair.getValue().toString();
+                            restResourceFound = true;
+                        } else if(pair.getNameAsString().equals("exported")) {
+                            if(pair.getValue().toString().equals("false")) {
+                                isExported = false;
+                            }
+                        }
+                    }
                 }
             }
 
+            // This method not exported (exposed) as an Endpoint
+            if(!isExported) {
+                continue;
+            }
 
+            // If no restResource annotation found we use default /search url start
             if(!restResourceFound) {
                 url += ("/" + method.getName());
             }
 
-            Endpoint endpoint = new Endpoint(method, preURL + url, HttpMethod.GET, getMicroserviceName(sourceFile));
+            Endpoint endpoint = new Endpoint(method, preURL + url, HttpMethod.GET);
             newEndpoints.add(endpoint);
         }
 
 
         // Build the JClass
         return new JClass(
-                sourceFile.getName().replace(".java", ""),
-                FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName()),
+                className,
+                path,
                 packageName,
-                ClassRole.FEIGN_CLIENT,
+                ClassRole.REP_REST_RSC,
                 newEndpoints,
                 parseFields(cu.findAll(FieldDeclaration.class)),
                 parseAnnotations(classAnnotations),

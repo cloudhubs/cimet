@@ -72,11 +72,9 @@ public class MicroserviceSystem implements JsonSerializable {
      * @param microservice the microservice to orphanize
      */
     public void orphanize(Microservice microservice) {
-        orphans.addAll(microservice.getControllers());
-        orphans.addAll(microservice.getServices());
-        orphans.addAll(microservice.getRepositories());
-        orphans.addAll(microservice.getEntities());
-        orphans.addAll(microservice.getFiles());
+        Set<JClass> classes = microservice.getClasses();
+        classes.forEach(c -> c.updateMicroserviceName(""));
+        orphans.addAll(classes);
     }
 
     /**
@@ -93,7 +91,9 @@ public class MicroserviceSystem implements JsonSerializable {
             // If the microservice is in the same folder as the path to the microservice
             if (file.getPath().contains(microservice.getPath())) {
                 if(file.getFileType().equals(FileType.JCLASS)) {
-                    microservice.addJClass((JClass) file);
+                    JClass jClass = (JClass) file;
+                    jClass.updateMicroserviceName(microservice.getName());
+                    microservice.addJClass(jClass);
                     updatedOrphans.remove(file);
                 } else {
                     microservice.getFiles().add((ConfigFile) file);
@@ -124,6 +124,26 @@ public class MicroserviceSystem implements JsonSerializable {
         }
 
         return returnFile;
+    }
+
+    /**
+     * This method returns the name of the microservice associated with
+     * a file that exists in the system. Note this method will not work
+     * if the file is not present somewhere in the system
+     *
+     * @param path the ProjectFile path
+     * @return string name of microservice or "" if it does not exist
+     */
+    public String getMicroserviceFromFile(String path){
+        for(Microservice microservice : getMicroservices()) {
+            for(ProjectFile file : microservice.getFiles()) {
+                if(file.getPath().equals(path)) {
+                    return microservice.getName();
+                }
+            }
+        }
+
+        return "";
     }
 
     public void orphanizeAndAdopt(Microservice microservice) {

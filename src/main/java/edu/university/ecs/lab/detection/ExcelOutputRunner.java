@@ -71,7 +71,7 @@ public class ExcelOutputRunner {
         Collections.reverse(list);
         config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config_path, "OldIR.json");
+        createIRSystem(config, "OldIR.json");
 
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -87,11 +87,11 @@ public class ExcelOutputRunner {
         // Used for AR validation
         List<List<AbstractAR>> allARs = new ArrayList<>();
 
-        for (int i = 1; i < list.size() - 1; i++) {
+        for (int i = 0; i < list.size() - 1; i++) {
             String commitIdOld = list.get(i).toString().split(" ")[1];
             String commitIdNew = list.get(i + 1).toString().split(" ")[1];
-            writeEmptyRow(sheet, i);
-            Row row = sheet.getRow(i);
+            writeEmptyRow(sheet, i + 1);
+            Row row = sheet.getRow(i + 1);
 
             Cell commitIdCell = row.createCell(0);
             commitIdCell.setCellValue(commitIdOld.substring(0, 7));
@@ -151,12 +151,12 @@ public class ExcelOutputRunner {
         JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
     }
 
-    private static void createIRSystem(String configPath, String fileName) {
+    private static void createIRSystem(Config config, String fileName) {
         // Create both directories needed
         FileUtils.createPaths();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(configPath);
+        IRExtractionService irExtractionService = new IRExtractionService(config);
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

@@ -114,6 +114,7 @@ public class Microservice implements JsonSerializable {
                 services.add(jClass);
                 break;
             case REPOSITORY:
+            case REP_REST_RSC:
                 repositories.add(jClass);
                 break;
             case ENTITY:
@@ -158,6 +159,7 @@ public class Microservice implements JsonSerializable {
                 services.remove(removeClass);
                 break;
             case REPOSITORY:
+            case REP_REST_RSC:
                 repositories.remove(removeClass);
                 break;
             case ENTITY:

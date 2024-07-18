@@ -157,11 +157,11 @@ public class DeltaExtractionService {
             changeType = ChangeType.fromDiffEntry(entry);
 
             // Special check for pom file manipulations only
-            if(path.endsWith("pom.xml")) {
+            if(path.endsWith("/pom.xml")) {
                 // Get some configuration change
-                data = configurationChange(entry, newPath);
+                data = configurationChange(entry, oldPath, newPath, path);
 
-                if(data == null && !entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
+                if(data == null) {
                     continue;
                 }
             } else {
@@ -232,6 +232,10 @@ public class DeltaExtractionService {
         JClass jClass = null;
 
         if(FileUtils.isConfigurationFile(oldPath)) {
+            // Special check for modifying a pom that was previously filtered out for being too general
+            if(oldPath.endsWith("pom.xml") && oldSystem.findFile(oldPath) == null) {
+                return null;
+            }
             jsonObject = add(oldPath);
         } else {
             jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(oldPath, config.getRepoName())), config, "");
@@ -279,9 +283,9 @@ public class DeltaExtractionService {
      * @param entry the diffentry representing the pom change
      * @return
      */
-    private JsonObject configurationChange(DiffEntry entry, String newPath) {
+    private JsonObject configurationChange(DiffEntry entry,String oldPath, String newPath, String path) {
         if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
-            return null;
+            return delete(oldPath);
         }
 
         // Special manipulation for poms, they control creation/deletion of microservices
@@ -295,11 +299,11 @@ public class DeltaExtractionService {
                 for (DiffEntry pomEntry : pomDiffs) {
 
                     // If we have an existing entry that is more specific than the current entry
-                    if (pomEntry.getNewPath().replace("/pom.xml", "").startsWith(newPath.replace("/pom.xml", ""))) {
+                    if (pomEntry.getNewPath().replace("/pom.xml", "").startsWith(path.replace("/pom.xml", ""))) {
                         return null;
 
                         // If the current entry is more specific than an existing entry
-                    } else if (newPath.replace("/pom.xml", "").startsWith(pomEntry.getNewPath().replace("/pom.xml", ""))) {
+                    } else if (path.replace("/pom.xml", "").startsWith(pomEntry.getNewPath().replace("/pom.xml", ""))) {
                         // Remove the old entry
                         remove = pomEntry;
                     }
