@@ -1,23 +1,23 @@
-//package edu.university.ecs.lab.detection.architecture.models;
-//
-//import java.util.ArrayList;
-//import java.util.HashSet;
-//import java.util.List;
-//import java.util.Set;
-//import java.util.stream.Collectors;
-//
-//import com.google.gson.JsonObject;
-//
-//import edu.university.ecs.lab.common.models.enums.ClassRole;
-//import edu.university.ecs.lab.common.models.ir.*;
-//import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
-//import edu.university.ecs.lab.delta.models.Delta;
-//import edu.university.ecs.lab.delta.models.enums.ChangeType;
-//import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
-//import lombok.Data;
-//
-//@Data
-//public class AR2 extends AbstractAR {
+// package edu.university.ecs.lab.detection.architecture.models;
+
+// import java.util.ArrayList;
+// import java.util.HashSet;
+// import java.util.List;
+// import java.util.Set;
+// import java.util.stream.Collectors;
+
+// import com.google.gson.JsonObject;
+
+// import edu.university.ecs.lab.common.models.enums.ClassRole;
+// import edu.university.ecs.lab.common.models.ir.*;
+// import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+// import edu.university.ecs.lab.delta.models.Delta;
+// import edu.university.ecs.lab.delta.models.enums.ChangeType;
+// import edu.university.ecs.lab.detection.architecture.models.enums.Scope;
+// import lombok.Data;
+
+// @Data
+// public class AR2 extends AbstractAR {
 //    protected static final String TYPE = "Architectural Rules 2";
 //    protected static final String NAME = "Floating call due to endpoint removal (external)";
 //    protected static final Scope SCOPE = Scope.ENDPOINT;
@@ -25,54 +25,54 @@
 //    private String oldCommitID;
 //    private String newCommitID;
 //    protected JsonObject metaData;
-//
+
 //    @Override
 //    public List<? extends AbstractAR> checkUseCase() {
 //        ArrayList<AR2> useCases = new ArrayList<>();
-//
+
 //        return new ArrayList<>();
 //    }
-//
+
 //    @Override
 //    public String getName() {
 //        return NAME;
 //    }
-//
+
 //    @Override
 //    public String getDescription() {
 //        return DESC;
 //    }
-//
+
 //    @Override
 //    public Scope getScope() {
 //        return SCOPE;
 //    }
-//
+
 //    @Override
 //    public double getWeight() {
 //        return 0;
 //    }
-//
+
 //    @Override
 //    public JsonObject getMetaData() {
 //        return metaData;
 //    }
-//
+
 //    @Override
 //    public String getType() {
 //        return TYPE;
 //    }
-//
+
 //    public static List<AR2> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
 //        List<AR2> useCases = new ArrayList<>();
-//
+
 //        // If we are not deleting/modifying a controller class
 //        JClass oldClass = oldSystem.findClass(delta.getOldPath());
-//
+
 //        if (delta.getChangeType().equals(ChangeType.ADD) || !oldClass.getClassRole().equals(ClassRole.CONTROLLER)) {
 //            return useCases;
 //        }
-//
+
 //        // For each endpoint in the old class, if it's no longer found
 //        for (Endpoint endpoint : oldClass.getEndpoints()) {
 //            if (!existsInSystem(endpoint, newSystem)) {
@@ -83,51 +83,51 @@
 //                archRule2.setOldCommitID(oldSystem.getCommitID());
 //                archRule2.setNewCommitID(newSystem.getCommitID());
 //                useCases.add(archRule2);
-//
+
 //            }
 //        }
 //        return useCases;
 //    }
-//
-////    public static List<AR2> scan2(MicroserviceSystem newSystem) {
-////        List<AR2> archRules = new ArrayList<>();
-////
-////        // For each endpoint in the old class, if it's no longer found
-////        Set<JClass> controllers = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toSet());
-////        controllers.addAll(newSystem.getOrphans().stream().filter(jClass -> jClass.getClassRole().equals(ClassRole.CONTROLLER)).collect(Collectors.toSet()));
-////
-////        Set<JClass> services = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).collect(Collectors.toSet());
-////        services.addAll(newSystem.getOrphans().stream().filter(jClass -> jClass.getClassRole().equals(ClassRole.CONTROLLER)).collect(Collectors.toSet()));
-////        Set<RestCall> floatingCalls = new HashSet<>();
-////
-////
-////        for(JClass service : services) {
-////            for(RestCall restCall : service.getRestCalls()) {
-////                outer:
-////                {
-////                    for (JClass controller : controllers) {
-////                        for (Endpoint endpoint : controller.getEndpoints()) {
-////                            if (!restCall.getMicroserviceName().equals(endpoint.getMicroserviceName()) &&
-////                                    RestCall.matchEndpoint(restCall, endpoint)) {
-////                                break outer;
-////                            }
-////                        }
-////                    }
-////                    UseCase2 useCase2 = new UseCase2();
-////                    JsonObject jsonObject = new JsonObject();
-////                    jsonObject.add("RestCall", restCall.toJsonObject());
-////                    useCase2.setMetaData(jsonObject);
-////
-////                    useCases.add(useCase2);
-////
-////                }
-////            }
-////        }
-////
-////
-////        return useCases;
-////    }
-//
+
+// //    public static List<AR2> scan2(MicroserviceSystem newSystem) {
+// //        List<AR2> archRules = new ArrayList<>();
+// //
+// //        // For each endpoint in the old class, if it's no longer found
+// //        Set<JClass> controllers = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).collect(Collectors.toSet());
+// //        controllers.addAll(newSystem.getOrphans().stream().filter(jClass -> jClass.getClassRole().equals(ClassRole.CONTROLLER)).collect(Collectors.toSet()));
+// //
+// //        Set<JClass> services = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).collect(Collectors.toSet());
+// //        services.addAll(newSystem.getOrphans().stream().filter(jClass -> jClass.getClassRole().equals(ClassRole.CONTROLLER)).collect(Collectors.toSet()));
+// //        Set<RestCall> floatingCalls = new HashSet<>();
+// //
+// //
+// //        for(JClass service : services) {
+// //            for(RestCall restCall : service.getRestCalls()) {
+// //                outer:
+// //                {
+// //                    for (JClass controller : controllers) {
+// //                        for (Endpoint endpoint : controller.getEndpoints()) {
+// //                            if (!restCall.getMicroserviceName().equals(endpoint.getMicroserviceName()) &&
+// //                                    RestCall.matchEndpoint(restCall, endpoint)) {
+// //                                break outer;
+// //                            }
+// //                        }
+// //                    }
+// //                    UseCase2 useCase2 = new UseCase2();
+// //                    JsonObject jsonObject = new JsonObject();
+// //                    jsonObject.add("RestCall", restCall.toJsonObject());
+// //                    useCase2.setMetaData(jsonObject);
+// //
+// //                    useCases.add(useCase2);
+// //
+// //                }
+// //            }
+// //        }
+// //
+// //
+// //        return useCases;
+// //    }
+
 //    // Check for modified/deleted endpoint in new system
 //    private static boolean existsInSystem(Endpoint endpoint, MicroserviceSystem newSystem) {
 //        for (Microservice microservice : newSystem.getMicroservices()) {
@@ -141,7 +141,7 @@
 //        }
 //        return false;
 //    }
-//
+
 //    // Check for modified/deleted endpoint in new system
 //    private static List<RestCall> getAffectedRestCalls(Endpoint endpoint, MicroserviceSystem oldSystem) {
 //        List<RestCall> restCalls = new ArrayList<>();
@@ -154,7 +154,7 @@
 //                }
 //            }
 //        }
-//
+
 //        return restCalls;
 //    }
-//}
+// }

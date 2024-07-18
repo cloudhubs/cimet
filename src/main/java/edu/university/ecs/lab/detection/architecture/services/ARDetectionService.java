@@ -5,17 +5,16 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.*;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class UCDetectionService {
+public class ARDetectionService {
     SystemChange oldSystem;
     MicroserviceSystem microserviceSystemOld;
     MicroserviceSystem microserviceSystemNew;
 
-    public UCDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) {
+    public ARDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) {
         oldSystem = JsonReadWriteUtils.readFromJSON(DeltaPath, SystemChange.class);
         microserviceSystemOld = JsonReadWriteUtils.readFromJSON(OldIRPath, MicroserviceSystem.class);
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);

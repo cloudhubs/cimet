@@ -9,18 +9,17 @@ import edu.university.ecs.lab.detection.metrics.models.ServiceDescriptor;
 import edu.university.ecs.lab.detection.metrics.services.MetricCalculator;
 import edu.university.ecs.lab.detection.metrics.services.MetricResult;
 import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class RunCohesionMetrics {
 
     public static void main(String[] args) {
-        MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
-        calculateCohesionMetrics(microserviceSystem);
+        calculateCohesionMetrics("./output/OldIR.json");
     }
 
-    public static MetricResultCalculation calculateCohesionMetrics(MicroserviceSystem microserviceSystem) {
+    public static MetricResultCalculation calculateCohesionMetrics(String IRPath) {
+        MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
 
 
         MetricResultCalculation metricResultCalculation = new MetricResultCalculation();
@@ -81,6 +80,8 @@ public class RunCohesionMetrics {
             }
 
         }
+
+        System.out.println(metricResultCalculation);
 
         return metricResultCalculation;
 

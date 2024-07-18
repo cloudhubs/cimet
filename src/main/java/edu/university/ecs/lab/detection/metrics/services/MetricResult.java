@@ -1,6 +1,5 @@
 package edu.university.ecs.lab.detection.metrics.services;
 
-import org.json.JSONObject;
 
 public class MetricResult {
     private String serviceName;
