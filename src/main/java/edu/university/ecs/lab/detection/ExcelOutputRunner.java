@@ -120,9 +120,8 @@ public class ExcelOutputRunner {
             List<AbstractAR> currARs = ucDetectionService.scanUseCases();
             allARs.add(currARs);
 
-            if (!allAntiPatterns.isEmpty()) {
-                updateAntiPatterns(row, allAntiPatterns);
-            }
+            updateAntiPatterns(row, allAntiPatterns);
+            
             if (!metrics.isEmpty()) {
                 updateMetrics(row, metrics);
             }
@@ -247,7 +246,11 @@ public class ExcelOutputRunner {
         for (int i = 0; i < ANTIPATTERNS; i++) {
             int offset = i + 1; // i + 1 because the first column is for commit ID
             Cell cell = row.getCell(offset);
-            cell.setCellValue(allAntiPatterns.getOrDefault(columnLabels[offset], 0));
+            cell.setCellValue(
+                allAntiPatterns.getOrDefault(
+                    columnLabels[offset], 
+                    "No API Gateway".equals(columnLabels[offset]) ? 1 : 0
+                ));
         }
     }
 
