@@ -7,15 +7,14 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
+import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
@@ -23,10 +22,8 @@ import edu.university.ecs.lab.common.models.enums.EndpointTemplate;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
-import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
