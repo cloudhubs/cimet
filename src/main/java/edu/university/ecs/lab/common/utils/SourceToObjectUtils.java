@@ -7,11 +7,11 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
-import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
-import com.github.javaparser.resolution.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.model.typesystem.ReferenceTypeImpl;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
@@ -47,6 +47,7 @@ public class SourceToObjectUtils {
         try {
             cu = StaticJavaParser.parse(sourceFile);
         } catch (Exception e) {
+            e.printStackTrace();
             Error.reportAndExit(Error.JPARSE_FAILED);
         }
         if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
@@ -219,7 +220,7 @@ public class SourceToObjectUtils {
      * @return returns methodCall if it is invalid, otherwise a new RestCall
      */
     public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
-        if (!methodCall.getObjectType().equals("RestTemplate") || !RestCallTemplate.REST_METHODS.contains(methodCallExpr.getNameAsString())) {
+        if ((!methodCall.getObjectType().equals("RestTemplate") && !methodCall.getObjectType().equals("OAuth2RestOperations")) || !RestCallTemplate.REST_METHODS.contains(methodCallExpr.getNameAsString())) {
             return methodCall;
         }
 

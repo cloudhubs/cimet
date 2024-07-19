@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * Utility class for reading files that don't abide by JSON format
@@ -106,56 +107,49 @@ public class NonJsonReadWriteUtils {
 
     public static ConfigFile readFromGradle(String path, Config config) {
         JsonObject jsonObject = new JsonObject();
-        JsonObject currentSection = jsonObject;
-        JsonArray instructions = new JsonArray();
-        String currentKey = null;
+        Stack<JsonObject> jsonStack = new Stack<>();
+        jsonStack.push(jsonObject);
 
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
+            String currentKey = null;
+
             while ((line = br.readLine()) != null) {
                 line = line.trim();
+
                 if (line.isEmpty()) {
                     continue;
                 }
 
                 if (line.endsWith("{")) {
-                    // Handle opening brace of a section
-                    String sectionName = line.replace("{", "").trim();
-                    JsonObject newSection = new JsonObject();
-                    if (currentKey != null) {
-                        currentSection.add(currentKey, newSection);
-                    }
-                    currentSection = newSection;
-                    currentKey = sectionName;
-                } else if (line.endsWith("}")) {
-                    // Handle closing brace of a section
-                    if (currentSection.getAsJsonObject().has(currentKey)) {
-                        currentSection = (JsonObject) currentSection.getAsJsonObject().get(currentKey);
-                    }
+                    String key = line.substring(0, line.length() - 1).trim();
+                    JsonObject newObject = new JsonObject();
+                    jsonStack.peek().add(key, newObject);
+                    jsonStack.push(newObject);
+                    currentKey = key;
+                } else if (line.equals("}")) {
+                    jsonStack.pop();
                     currentKey = null;
                 } else if (line.contains("=")) {
-                    // Handle key-value pairs
                     String[] parts = line.split("=", 2);
                     if (parts.length == 2) {
                         String key = parts[0].trim();
-                        String value = parts[1].trim().replace("'", "\""); // Replace single quotes with double quotes for JSON compatibility
-                        currentSection.addProperty(key, value);
+                        String value = parts[1].trim().replace("'", "\"");
+                        jsonStack.peek().addProperty(key, value);
                     }
                 } else {
-                    // Handle plain text or unknown lines
-                    instructions.add(line);
+                    if (currentKey != null) {
+                        JsonArray array = jsonStack.peek().has(currentKey) ?
+                                jsonStack.peek().getAsJsonArray(currentKey) : new JsonArray();
+                        array.add(line);
+                        jsonStack.peek().add(currentKey, array);
+                    }
                 }
             }
         } catch (IOException e) {
             return null;
         }
 
-        // Add remaining instructions if any
-        if (instructions.size() > 0) {
-            jsonObject.add("instructions", instructions);
-        }
-
-        // Create and return ConfigFile object
         return new ConfigFile(
             FileUtils.localPathToGitPath(path, config.getRepoName()), 
             new File(path).getName(), 

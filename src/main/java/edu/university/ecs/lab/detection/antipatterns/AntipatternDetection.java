@@ -16,7 +16,7 @@ import java.io.IOException;
 public class AntipatternDetection {
     public static void main(String[] args) {
         // Create IR of first commit
-        createIRSystem("./test_config.json", "IR.json");
+        createIRSystem("./configs/config_spring-boot-microservices.json", "IR.json");
 
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);

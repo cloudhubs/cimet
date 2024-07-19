@@ -109,7 +109,7 @@ public class RestCallTemplate {
             returnString.append(parseUrlFromBinaryExp((BinaryExpr) left));
         } else if (left instanceof StringLiteralExpr) {
             returnString.append(formatURL(left.toString()));
-        } else if (left instanceof NameExpr
+        } else if ((left instanceof NameExpr || left instanceof MethodCallExpr)
                 && !left.asNameExpr().getNameAsString().contains("url")
                 && !left.asNameExpr().getNameAsString().contains("uri")) {
             returnString.append("/{?}");
@@ -120,7 +120,7 @@ public class RestCallTemplate {
             returnString.append(parseUrlFromBinaryExp((BinaryExpr) right));
         } else if (right instanceof StringLiteralExpr) {
             returnString.append(formatURL(right.toString()));
-        } else if (right instanceof NameExpr) {
+        } else if ((right instanceof NameExpr || right instanceof MethodCallExpr)) {
             returnString.append("/{?}");
         }
 

@@ -200,7 +200,14 @@ public class Microservice implements JsonSerializable {
     }
 
     public Set<RestCall> getRestCalls () {
-        return this.services.stream().flatMap(service -> service.getRestCalls().stream()).collect(Collectors.toSet());
+        Set<RestCall> restCalls = new HashSet<>();
+        restCalls.addAll(this.services.stream()
+                                    .flatMap(service -> service.getRestCalls().stream())
+                                    .collect(Collectors.toSet()));
+        restCalls.addAll(this.feignClients.stream()
+                                        .flatMap(client -> client.getRestCalls().stream())
+                                        .collect(Collectors.toSet()));
+        return restCalls;
     }
 
     public Set<Endpoint> getEndpoints () {
