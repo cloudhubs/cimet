@@ -12,6 +12,9 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -102,6 +105,7 @@ public class IRExtractionService {
             // Check if the current directory contains a Dockerfile
             File[] files = root.listFiles();
             boolean containsPom = false;
+            boolean containsGradle = false;
             if (files != null) {
                 for (File file : files) {
                     if (file.isFile() && file.getName().equals("pom.xml")) {
@@ -127,9 +131,26 @@ public class IRExtractionService {
                             throw new RuntimeException("Error parsing pom.xml");
                         }
                     }
+                    else if(file.isFile() && file.getName().equals("build.gradle")) {
+                        try {
+                        // Read the build.gradle file content
+                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+
+                        // Check if the file does not contain the 'subprojects' keyword
+                        if (!content.contains("subprojects")) {
+                            containsGradle = true;
+                            break;
+                        }
+                        } catch (IOException e) {
+                            throw new RuntimeException("Error reading build.gradle", e);
+                        }
+                    }
                 }
             }
             if (containsPom) {
+                rootDirectories.add(root.getPath());
+                return rootDirectories;
+            } else if (containsGradle){
                 rootDirectories.add(root.getPath());
                 return rootDirectories;
             } else {

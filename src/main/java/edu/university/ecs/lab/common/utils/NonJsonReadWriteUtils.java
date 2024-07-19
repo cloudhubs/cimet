@@ -1,11 +1,7 @@
 package edu.university.ecs.lab.common.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.*;
 import edu.university.ecs.lab.common.config.Config;
-import edu.university.ecs.lab.common.error.Error;
 import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import org.json.JSONObject;
@@ -15,7 +11,6 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,4 +103,65 @@ public class NonJsonReadWriteUtils {
 
         return new ConfigFile(FileUtils.localPathToGitPath(path, config.getRepoName()), new File(path).getName(), jsonObject, FileType.CONFIG);
     }
+
+    public static ConfigFile readFromGradle(String path, Config config) {
+        JsonObject jsonObject = new JsonObject();
+        JsonObject currentSection = jsonObject;
+        JsonArray instructions = new JsonArray();
+        String currentKey = null;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                if (line.endsWith("{")) {
+                    // Handle opening brace of a section
+                    String sectionName = line.replace("{", "").trim();
+                    JsonObject newSection = new JsonObject();
+                    if (currentKey != null) {
+                        currentSection.add(currentKey, newSection);
+                    }
+                    currentSection = newSection;
+                    currentKey = sectionName;
+                } else if (line.endsWith("}")) {
+                    // Handle closing brace of a section
+                    if (currentSection.getAsJsonObject().has(currentKey)) {
+                        currentSection = (JsonObject) currentSection.getAsJsonObject().get(currentKey);
+                    }
+                    currentKey = null;
+                } else if (line.contains("=")) {
+                    // Handle key-value pairs
+                    String[] parts = line.split("=", 2);
+                    if (parts.length == 2) {
+                        String key = parts[0].trim();
+                        String value = parts[1].trim().replace("'", "\""); // Replace single quotes with double quotes for JSON compatibility
+                        currentSection.addProperty(key, value);
+                    }
+                } else {
+                    // Handle plain text or unknown lines
+                    instructions.add(line);
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+
+        // Add remaining instructions if any
+        if (instructions.size() > 0) {
+            jsonObject.add("instructions", instructions);
+        }
+
+        // Create and return ConfigFile object
+        return new ConfigFile(
+            FileUtils.localPathToGitPath(path, config.getRepoName()), 
+            new File(path).getName(), 
+            jsonObject, 
+            FileType.CONFIG
+        );
+    }
+    
 }

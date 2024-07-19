@@ -2,8 +2,6 @@ package edu.university.ecs.lab.common.utils;
 
 import edu.university.ecs.lab.common.error.Error;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 
 
@@ -11,7 +9,7 @@ import java.util.Set;
  * Manages all file paths and file path conversion functions.
  */
 public class FileUtils {
-    public static final Set<String> VALID_FILES = Set.of("pom.xml", ".java", ".yml");
+    public static final Set<String> VALID_FILES = Set.of("pom.xml", ".java", ".yml", "build.gradle");
     private static final String PROJECT_PATH = System.getProperty("user.dir");
     public static final String SEPARATOR = System.getProperty("file.separator");
     public static final String SEPARATOR_SPECIAL = SEPARATOR.replace("\\", "\\\\");

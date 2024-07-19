@@ -422,6 +422,8 @@ public class SourceToObjectUtils {
             return NonJsonReadWriteUtils.readFromDocker(file.getPath(), config);
         } else if(file.getName().equals("pom.xml")) {
             return NonJsonReadWriteUtils.readFromPom(file.getPath(), config);
+        } else if (file.getName().equals("build.gradle")){
+            return NonJsonReadWriteUtils.readFromGradle(file.getPath(), config);
         } else {
             return null;
         }
