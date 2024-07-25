@@ -36,7 +36,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelOutputRunner {
 
-    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (method level)",
+    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (Method level)",
             "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
             "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
@@ -170,7 +170,7 @@ public class ExcelOutputRunner {
         allAntiPatterns.put("Greedy Microservices", new GreedyService().getGreedyMicroservices(sdg).numGreedyMicro());
         allAntiPatterns.put("Hub-like Microservices", new HubLikeService().getHubLikeMicroservice(sdg).numHubLike());
         allAntiPatterns.put("Service Chains (MS level)", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
-        allAntiPatterns.put("Service Chains (method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
+        allAntiPatterns.put("Service Chains (Method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
         allAntiPatterns.put("Wrong Cuts", new WrongCutsService().detectWrongCuts(currentSystem).numWrongCuts());
         allAntiPatterns.put("Cyclic Dependencies (MS level)", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
         allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
@@ -246,6 +246,8 @@ public class ExcelOutputRunner {
         for (int i = 0; i < ANTIPATTERNS; i++) {
             int offset = i + 1; // i + 1 because the first column is for commit ID
             Cell cell = row.getCell(offset);
+
+            // Default value for No API Gateway is 1, meaning true
             cell.setCellValue(
                 allAntiPatterns.getOrDefault(
                     columnLabels[offset], 
