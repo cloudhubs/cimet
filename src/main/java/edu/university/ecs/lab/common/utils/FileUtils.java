@@ -2,6 +2,7 @@ package edu.university.ecs.lab.common.utils;
 
 import edu.university.ecs.lab.common.error.Error;
 import java.io.File;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -10,9 +11,8 @@ import java.util.Set;
  */
 public class FileUtils {
     public static final Set<String> VALID_FILES = Set.of("pom.xml", ".java", ".yml", "build.gradle");
-    private static final String PROJECT_PATH = System.getProperty("user.dir");
-    public static final String SEPARATOR = System.getProperty("file.separator");
-    public static final String SEPARATOR_SPECIAL = SEPARATOR.replace("\\", "\\\\");
+    public static final String SYS_SEPARATOR = System.getProperty("file.separator");
+    public static final String SPECIAL_SEPARATOR = SYS_SEPARATOR.replace("\\", "\\\\");
     private static final String DEFAULT_OUTPUT_PATH = "output";
     private static final String DEFAULT_CLONE_PATH = "clone";
     private static final String DOT = ".";
@@ -30,8 +30,8 @@ public class FileUtils {
      * @param repoName the name of the repo
      * @return the relative path string where that repository is cloned to
      */
-    public static String getClonePath(String repoName) {
-        return getBaseClonePath() + SEPARATOR + repoName;
+    public static String getRepositoryPath(String repoName) {
+        return getClonePath() + SYS_SEPARATOR + repoName;
     }
 
     /**
@@ -40,18 +40,8 @@ public class FileUtils {
      *
      * @return the relative path string where the output will exist
      */
-    public static String getBaseOutputPath() {
-        return DOT + SEPARATOR + DEFAULT_OUTPUT_PATH;
-    }
-
-    /**
-     * This method returns the local path of the output directory as ./DEFAULT_OUTPUT_PATH.
-     * This will be a working relative path to the output directory on the local file system.
-     *
-     * @return the relative path string where the output will exist
-     */
-    public static String getOutputPath(String repoName) {
-        return getBaseOutputPath() + SEPARATOR + repoName;
+    public static String getOutputPath() {
+        return DOT + SYS_SEPARATOR + DEFAULT_OUTPUT_PATH;
     }
 
     /**
@@ -60,8 +50,8 @@ public class FileUtils {
      *
      * @return the relative path string where the output will exist
      */
-    public static String getBaseClonePath() {
-        return DOT + SEPARATOR + DEFAULT_CLONE_PATH;
+    public static String getClonePath() {
+        return DOT + SYS_SEPARATOR + DEFAULT_CLONE_PATH;
     }
 
     /**
@@ -73,7 +63,7 @@ public class FileUtils {
      * @return the relative repo path
      */
     public static String localPathToGitPath(String localPath, String repoName) {
-        return localPath.replace(FileUtils.getClonePath(repoName), "").replaceAll(SEPARATOR_SPECIAL, GIT_SEPARATOR);
+        return localPath.replace(FileUtils.getRepositoryPath(repoName), "").replaceAll(SPECIAL_SEPARATOR, GIT_SEPARATOR);
     }
     /**
      * This method converts a path of the form .\clone\repoName\pathToFile to the form
@@ -84,29 +74,29 @@ public class FileUtils {
      * @return the relative repo path
      */
     public static String gitPathToLocalPath(String localPath, String repoName) {
-        return getClonePath(repoName) + localPath.replace(GIT_SEPARATOR, SEPARATOR);
+        return getRepositoryPath(repoName) + localPath.replace(GIT_SEPARATOR, SYS_SEPARATOR);
     }
 
 
 
     public static String getMicroserviceNameFromPath(String path) {
-        if (!path.startsWith("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR)) {
-            Error.reportAndExit(Error.INVALID_REPO_PATHS);
+        if (!path.startsWith(DOT + SYS_SEPARATOR + DEFAULT_CLONE_PATH + SYS_SEPARATOR)) {
+            Error.reportAndExit(Error.INVALID_REPO_PATHS, Optional.empty());
         }
 
-        String[] split = path.replace("." + SEPARATOR + DEFAULT_CLONE_PATH + SEPARATOR, "").split(SEPARATOR_SPECIAL);
+        String[] split = path.replace(DOT + SYS_SEPARATOR + DEFAULT_CLONE_PATH + SYS_SEPARATOR, "").split(SPECIAL_SEPARATOR);
         return split[split.length-1];
     }
 
     /**
-     * This method creates the default output and clone paths
+     * This method creates the default output and clone directories
      */
-    public static void createPaths() {
+    public static void makeDirs() {
         try {
-            new File(getBaseOutputPath()).mkdirs();
-            new File(getBaseClonePath()).mkdirs();
+            new File(getOutputPath()).mkdirs();
+            new File(getClonePath()).mkdirs();
         } catch (Exception e) {
-            Error.reportAndExit(Error.INVALID_REPO_PATHS);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS, Optional.of(e));
         }
     }
 
@@ -117,6 +107,7 @@ public class FileUtils {
      * @return boolean true if it belongs in the project
      */
     public static boolean isValidFile(String path) {
+        // Special check for github metadata files
         if(path.contains(".github")) {
             return false;
         }
