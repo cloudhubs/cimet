@@ -8,6 +8,7 @@ import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
+import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
@@ -15,10 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -37,17 +35,22 @@ public class IRExtractionService {
 
     private final Config config;
 
+    private final String commitID;
+
     /**
      * @param configPath path to configuration file
      */
-    public IRExtractionService(String configPath) {
+    public IRExtractionService(String configPath, Optional<String> commitID) {
         gitService = new GitService(configPath);
-        config = ConfigUtil.readConfig(configPath);
-    }
 
-    public IRExtractionService(Config config) {
-        this.config = config;
-        gitService = new GitService(config);
+        if(commitID.isPresent()) {
+            this.commitID = commitID.get();
+            gitService.resetLocal(this.commitID);
+        } else {
+            this.commitID = gitService.getHeadCommit();
+        }
+
+        config = ConfigUtil.readConfig(configPath);
     }
 
     /**
@@ -79,7 +82,7 @@ public class IRExtractionService {
         gitService.cloneRemote();
 
         // Start scanning from the root directory
-        List<String> rootDirectories = findRootDirectories(FileUtils.getClonePath(config.getRepoName()));
+        List<String> rootDirectories = findRootDirectories(FileUtils.getRepositoryPath(config.getRepoName()));
 
         // Scan each root directory for microservices
         for (String rootDirectory : rootDirectories) {
@@ -173,11 +176,11 @@ public class IRExtractionService {
      */
     private void writeToFile(Set<Microservice> microservices, String fileName) {
 
-        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), config.getBaseCommit(), microservices, new HashSet<>());
+        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), commitID, microservices, new HashSet<>());
 
         JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
-        System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
+        LoggerManager.info(() -> "Successfully extracted IR at " + commitID);
     }
 
     /**
@@ -190,7 +193,7 @@ public class IRExtractionService {
         // Validate path exists and is a directory
         File localDir = new File(rootMicroservicePath);
         if (!localDir.exists() || !localDir.isDirectory()) {
-            Error.reportAndExit(Error.INVALID_REPO_PATHS);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS, Optional.empty());
         }
 
 
@@ -198,7 +201,7 @@ public class IRExtractionService {
                 FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()));
         scanDirectory(localDir, model);
 
-        System.out.println("Done!");
+        LoggerManager.info(() -> "Done scanning directory  " + rootMicroservicePath);
         return model;
     }
 

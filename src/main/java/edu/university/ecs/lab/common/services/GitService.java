@@ -7,7 +7,9 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -27,7 +29,6 @@ public class GitService {
     private static final int EXIT_SUCCESS = 0;
     private static final String HEAD_COMMIT = "HEAD";
 
-
     /**
      * Configuration file path
      */
@@ -38,8 +39,23 @@ public class GitService {
      */
     private final Repository repository;
 
+
+    /**
+     * Instantiation of this service will result in the following
+     * 1.) output and clone directories will be created or validated
+     * 2.) Configuration file will be read and validated by it's constructor
+     * 3.) The repository in config will be cloned or validated
+     *
+     * @param configPath
+     */
     public GitService(String configPath) {
+        // 1.) Read config
         this.config = ConfigUtil.readConfig(configPath);
+
+        // 2.) Make the output and clone directory
+        FileUtils.makeDirs();
+
+        // 3.) Clone the repository
         cloneRemote();
 
         // If clone was successful we can now set repo and reset local repo to config base commit
@@ -57,8 +73,8 @@ public class GitService {
         // Quietly return assuming cloning already took place
         String repositoryPath = FileUtils.getRepositoryPath(config.getRepoName());
 
-        File file = new File(repositoryPath);
-        if (file.exists()) {
+        // Quietly return assuming cloning already took place
+        if (new File(repositoryPath).exists()) {
             return;
         }
 
@@ -92,8 +108,9 @@ public class GitService {
     public void resetLocal(String commitID) {
         validateLocalExists();
 
+        // If an invalid commit is passed simply make no change
         if (Objects.isNull(commitID) || commitID.isEmpty()) {
-            commitID = HEAD_COMMIT;
+            return;
         }
 
         try (Git git = new Git(repository)) {
@@ -102,8 +119,7 @@ public class GitService {
             Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
 
-        String finalCommitID = commitID;
-        LoggerManager.info(() -> "Set repository " + config.getRepoName() + " to " + finalCommitID);
+        LoggerManager.info(() -> "Set repository " + config.getRepoName() + " to " + commitID);
 
 
     }
@@ -191,6 +207,27 @@ public class GitService {
 
 
         return returnList;
+    }
+
+    public String getHeadCommit() {
+        String commitID = "";
+
+        try {
+            // Get the reference to HEAD
+            Ref head = repository.findRef(HEAD_COMMIT);
+            RevWalk walk = new RevWalk(repository);
+
+            // Use RevWalk to parse the commit
+            ObjectId commitId = head.getObjectId();
+            RevCommit commit = walk.parseCommit(commitId);
+
+            commitID = commit.getName();
+
+        } catch (Exception e) {
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
+        }
+
+        return commitID;
     }
 
 

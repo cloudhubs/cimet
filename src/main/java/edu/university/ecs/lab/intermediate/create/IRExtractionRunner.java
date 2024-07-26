@@ -1,8 +1,12 @@
 package edu.university.ecs.lab.intermediate.create;
 
 import edu.university.ecs.lab.common.error.Error;
+import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 
 /**
@@ -19,12 +23,12 @@ public class IRExtractionRunner {
      */
     public static void main(String[] args) throws Exception {
         args = new String[]{"./config.json"};
+        String[] finalArgs = args;
+        LoggerManager.info(() -> "IRExtractionRunner starting... args: " + Arrays.toString(finalArgs));
         if (args.length != 1) {
-            Error.reportAndExit(Error.INVALID_ARGS);
+            Error.reportAndExit(Error.INVALID_ARGS, Optional.empty());
         }
 
-        // Create both directories needed
-        FileUtils.createPaths();
 
         // Initialize the irExtractionService
         IRExtractionService irExtractionService = new IRExtractionService(args[0]);
