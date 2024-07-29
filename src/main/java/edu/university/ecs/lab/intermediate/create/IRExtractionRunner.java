@@ -31,7 +31,7 @@ public class IRExtractionRunner {
 
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(args[0]);
+        IRExtractionService irExtractionService = new IRExtractionService(args[0], Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR("IR.json");

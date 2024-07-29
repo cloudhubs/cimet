@@ -165,12 +165,17 @@ public class GitService {
      * @return the list of differences as DiffEntrys
      * @throws Exception
      */
-    public List<DiffEntry> getDifferences(String commitOld, String commitNew) throws Exception {
+    public List<DiffEntry> getDifferences(String commitOld, String commitNew) {
         List<DiffEntry> returnList = null;
-
+        RevCommit oldCommit = null, newCommit = null;
         RevWalk revWalk = new RevWalk(repository);
-        RevCommit oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
-        RevCommit newCommit = revWalk.parseCommit(repository.resolve(commitNew));
+
+        try {
+            oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
+            newCommit = revWalk.parseCommit(repository.resolve(commitNew));
+        } catch (Exception e) {
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
+        }
 
         // Prepare tree parsers for both commits
         try (ObjectReader reader = repository.newObjectReader()) {

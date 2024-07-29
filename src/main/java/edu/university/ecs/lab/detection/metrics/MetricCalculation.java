@@ -56,7 +56,7 @@ public class MetricCalculation {
     }
     private static void createIRSystem(Config config, String fileName) {
         // Create both directories needed
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         // Initialize the irExtractionService
         IRExtractionService irExtractionService = new IRExtractionService(fileName);

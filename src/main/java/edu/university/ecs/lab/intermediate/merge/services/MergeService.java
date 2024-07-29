@@ -3,6 +3,7 @@ package edu.university.ecs.lab.intermediate.merge.services;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.*;
+import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
@@ -11,10 +12,8 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import org.eclipse.jgit.diff.DiffEntry;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
@@ -42,31 +41,27 @@ public class MergeService {
      * This method generates the new IR from the old IR + Delta file
      */
     public void generateMergeIR() {
-        System.out.println("Merging to new IR!");
 
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
+            LoggerManager.debug(() -> "No changes found at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
             JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
             return;
         }
 
 
         // First we make necessary changes to microservices
-        updateMicroservices(systemChange.getChanges());
+        updateMicroservices();
 
         for (Delta d : systemChange.getChanges()) {
-
-            // Check for pom.xml
-//            if (!path.endsWith(".java")) {
-//                continue;
-//            }
 
             switch (d.getChangeType()) {
                 case ADD:
                     addFile(d);
                     break;
                 case MODIFY:
-                    modifyFiles(d);
+                    removeFile(d);
+                    addFile(d);
                     break;
                 case DELETE:
                     removeFile(d);
@@ -75,70 +70,11 @@ public class MergeService {
         }
 
         microserviceSystem.setCommitID(systemChange.getNewCommit());
+
+        LoggerManager.info(() -> "Merged to new IR at " + systemChange.getNewCommit());
         JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
     }
 
-
-    /**
-     * This method modifies a JClass based on a Delta change
-     *
-     * @param delta the delta change for modifying
-     */
-    public void modifyFiles(Delta delta) {
-        // Here the path is irrelevant since it does not change
-        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getOldPath()))).findFirst().orElse(null);
-
-        // If we dont find a microservice
-        if (Objects.isNull(ms)) {
-            // Check the orphan pool
-            for (ProjectFile orphan : microserviceSystem.getOrphans()) {
-                // If found remove it and return
-                if (orphan.getPath().equals(delta.getOldPath())) {
-                    microserviceSystem.getOrphans().remove(orphan);
-
-                    // Only add it back if we parsed a valid JClass (not null)
-                    if (delta.getClassChange() != null) {
-                        microserviceSystem.getOrphans().add(delta.getClassChange());
-                    } else if(delta.getConfigChange() != null) {
-                        microserviceSystem.getOrphans().add(delta.getConfigChange());
-                    }
-
-                    return;
-                }
-            }
-            return;
-        }
-
-        Set<JClass> classes = ms.getClasses();
-
-        for (JClass jClass : classes) {
-            if (jClass.getPath().equals(delta.getOldPath())) {
-                ms.removeJClass(delta.getOldPath());
-
-                // Only add it back if we parsed a valid JClass (not null)
-                if (delta.getClassChange() != null) {
-                    JClass jClass1 = delta.getClassChange();
-                    jClass1.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
-                    ms.addJClass(jClass1);
-                    ms.addJClass(jClass1);
-                }
-
-                return;
-            }
-        }
-
-        // If we modify a class that was previously invalid
-        // and we dont find it in previous classes or orphans
-        // we should still add it because it might have been invalid
-        // when we first tried to add it and was dropped
-        if (delta.getClassChange() != null) {
-            JClass jClass = delta.getClassChange();
-            jClass.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
-            ms.addJClass(jClass);
-            ms.addJClass(jClass);
-        }
-
-    }
 
     /**
      * This method adds a JClass based on a Delta change
@@ -146,27 +82,34 @@ public class MergeService {
      * @param delta the delta change for adding
      */
     public void addFile(Delta delta) {
-        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getNewPath()))).findFirst().orElse(null);
+        Microservice ms = microserviceSystem.findMicroserviceByPath(FileUtils.getGitPathNoFileName(delta.getNewPath()));
 
-        // If we cant find his microservice after we called updateMicroservices then a file was pushed without a pom.xml
-        // so it will be held as an orphan
+        // TODO REMOVE
+        if(delta.getClassChange() != null && delta.getConfigChange() != null) {
+            LoggerManager.error(() -> "A file was not parsed correctly " + delta.getNewPath(), Optional.empty());
+        }
+
+        // If no ms is found, it will be held in orphans
         if (Objects.isNull(ms)) {
             if(delta.getClassChange() != null) {
                 microserviceSystem.getOrphans().add(delta.getClassChange());
+                LoggerManager.debug(() -> "Class File " + delta.getNewPath() + " added to orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
             } else if(delta.getConfigChange() != null) {
                 microserviceSystem.getOrphans().add(delta.getConfigChange());
+                LoggerManager.debug(() -> "Config File " + delta.getNewPath() + " added to orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
             }
 
             return;
         }
 
-        if(FileUtils.isConfigurationFile(delta.getNewPath())) {
+        // If we found it's ms
+        if(delta.getConfigChange() != null) {
             ms.getFiles().add(delta.getConfigChange());
+            LoggerManager.debug(() -> "Config File " + delta.getNewPath() + " added to orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
         } else {
-            // Update microservice name if we are a new class, after pom manipulations
-            JClass jClass = delta.getClassChange();
-            jClass.updateMicroserviceName(getMicroserviceNameFromPath(delta.getNewPath()));
-            ms.addJClass(jClass);
+            // Add the JClass, the microservice name is updated see addJClass()
+            ms.addJClass(delta.getClassChange());
+            LoggerManager.debug(() -> "Class File " + delta.getNewPath() + " added to orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
 
         }
 
@@ -175,11 +118,12 @@ public class MergeService {
 
     /**
      * This method removes a JClass based on a Delta change
+     * Note it might not be found, so it will handle this gracefully
      *
      * @param delta the delta change for removal
      */
     public void removeFile(Delta delta) {
-        Microservice ms = microserviceSystem.getMicroservices().stream().filter(microservice -> microservice.getName().equals(getMicroserviceNameFromPath(delta.getOldPath()))).findFirst().orElse(null);
+        Microservice ms = microserviceSystem.findMicroserviceByPath(FileUtils.getGitPathNoFileName(delta.getOldPath()));
 
         // If we are removing a file and it's microservice doesn't exist
         if (Objects.isNull(ms)) {
@@ -188,27 +132,18 @@ public class MergeService {
                 // If found remove it and return
                 if (orphan.getPath().equals(delta.getOldPath())) {
                     microserviceSystem.getOrphans().remove(orphan);
+                    LoggerManager.debug(() -> "File " + delta.getOldPath() + " removed from orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
                     return;
                 }
             }
+            LoggerManager.debug(() -> "File (remove)" + delta.getOldPath() + " not found in orphans at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
+
             return;
         }
 
-        if(FileUtils.isConfigurationFile(delta.getOldPath())) {
-            ConfigFile deleteFile = null;
-
-            for (ConfigFile configFile : ms.getFiles()) {
-                if (configFile.getPath().equals(delta.getOldPath())) {
-                    deleteFile = configFile;
-                    break;
-                }
-            }
-            ms.getFiles().remove(deleteFile);
-
-        } else {
-            ms.removeJClass(delta.getOldPath());
-
-        }
+        // Remove the file depending on which is null, skips gracefully if not found in microservice
+        // see removeProjectFile()
+        ms.removeProjectFile(delta.getClassChange() != null ? delta.getClassChange() : delta.getConfigChange());
 
 
     }
@@ -218,15 +153,19 @@ public class MergeService {
      * Method for updating MicroserviceSystem structure (microservices) based on
      * pom.xml changes in Delta file
      *
-     * @param deltaChanges the delta changes to search
      */
-    private void updateMicroservices(List<Delta> deltaChanges) {
+    private void updateMicroservices() {
 
-        // Only get pom deltas
-        List<Delta> pomDeltas = deltaChanges.stream().filter(delta -> (delta.getOldPath() == null || delta.getOldPath().isEmpty() ? delta.getNewPath() : delta.getOldPath()).endsWith("/pom.xml")).collect(Collectors.toUnmodifiableList());
+        // See filterBuildDeltas()
+        List<Delta> buildDeltas = filterBuildDeltas();
+
+        if(buildDeltas.isEmpty()) {
+            return;
+        }
 
         // Loop through changes to pom.xml files
-        for (Delta delta : pomDeltas) {
+        for (Delta delta : buildDeltas) {
+
 
             Microservice microservice;
             String[] tokens;
@@ -236,31 +175,101 @@ public class MergeService {
 
             // Skip a pom that is in the root
             if (tokens.length <= 2) {
-                continue;
+                LoggerManager.debug(() -> "Tokens check still needed?");
             }
 
-            switch (delta.getChangeType()) {
-                case ADD:
-                    microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("/pom.xml", ""));
-                    // Here we must check if any orphans are waiting on this creation
-                    microserviceSystem.adopt(microservice);
-                    microserviceSystem.getMicroservices().add(microservice);
-                    break;
-                case DELETE:
-                    microservice = microserviceSystem.findMicroserviceByPath(delta.getOldPath().replace("/pom.xml", ""));
-                    // Here we must orphan all the classes of this microservice
-                    if(microservice == null) {
-                        System.out.println(delta.getOldPath() + " not found");
-                    }
-                    microserviceSystem.orphanize(microservice);
-                    microserviceSystem.getMicroservices().removeIf(ms -> ms.getPath().equals(microservice.getPath()));
-                    break;
+            match: {
+                switch (delta.getChangeType()) {
+                    case ADD:
 
+                        // If a delta is more/less specific than an active microservice
+                        Microservice removeMicroservice = null;
+                        for (Microservice compareMicroservice : microserviceSystem.getMicroservices()) {
+                            // If delta is more specific than compareMicroservice, we remove this one
+                            if (delta.getNewPath().replace("/pom.xml", "").startsWith(compareMicroservice.getPath())) {
+                                removeMicroservice = compareMicroservice;
+
+                            // If a microservice already exists that is more specific, skip the addition
+                            } else if (compareMicroservice.getPath().startsWith(delta.getNewPath().replace("/pom.xml", ""))) {
+                                break match;
+                            }
+                        }
+
+                        // If a match was found, orphanize and remove. They will be adopted below
+                        if (Objects.nonNull(removeMicroservice)) {
+                            microserviceSystem.getMicroservices().remove(removeMicroservice);
+                            microserviceSystem.orphanize(removeMicroservice);
+                        }
+
+                        microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("/pom.xml", ""));
+                        // Here we must check if any orphans are waiting on this creation
+                        microserviceSystem.adopt(microservice);
+                        microserviceSystem.getMicroservices().add(microservice);
+                        LoggerManager.debug(() -> "Microservice  " + microservice.getName() + " " + microservice.getPath() + " added at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
+                        break;
+
+
+                    case DELETE:
+                        microservice = microserviceSystem.findMicroserviceByPath(delta.getOldPath().replace("/pom.xml", ""));
+                        if (microservice == null) {
+                            LoggerManager.error(() -> "Microservice  " + microservice.getName() + " " + microservice.getPath() + " not found", Optional.of(new RuntimeException("Fail")));
+                        }
+
+                        // Here we must orphan all the classes of this microservice
+                        microserviceSystem.getMicroservices().remove(microservice);
+                        microserviceSystem.orphanize(microservice);
+                        LoggerManager.debug(() -> "Microservice  " + microservice.getName() + " " + microservice.getPath() + " removed at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
+                        break;
+
+                }
             }
 
         }
 
 
+    }
+
+    /**
+     * Filter's the delta files that deal with building project
+     * so either pom.xml or build.gradle
+     *
+     * @return a list of system changes that deal with build files that aren't modifications
+     */
+    private List<Delta> filterBuildDeltas() {
+        // deltaChanges.stream().filter(delta -> (delta.getOldPath() == null || delta.getOldPath().isEmpty() ? delta.getNewPath() : delta.getOldPath()).endsWith("/pom.xml")).collect(Collectors.toUnmodifiableList());
+        List<Delta> filteredDeltas = new ArrayList<>(systemChange.getChanges());
+
+        // Remove non build related files
+        filteredDeltas.removeIf(delta -> !(delta.getOldPath().endsWith("/pom.xml") || delta.getNewPath().endsWith("/pom.xml")) || !(delta.getOldPath().endsWith("/build.gradle") || delta.getNewPath().endsWith("/build.gradle")));
+
+        // Remove modified files, doesn't change microservice structure
+        filteredDeltas.removeIf(delta -> delta.getChangeType().equals(ChangeType.MODIFY));
+
+        // Remove more specific build deltas in the same system change
+        List<Delta> filteredDeltasCopy = new ArrayList<>(List.copyOf(filteredDeltas));
+
+
+        // If a delta is more specific than another in same SystemChange,
+        // we need to remove the more general option in case of add
+        for(Delta delta1 : filteredDeltas) {
+            for(Delta delta2 : filteredDeltas) {
+                // If they are equal or they aren't both additions
+                if(delta1.equals(delta2) || !delta1.getChangeType().equals(ChangeType.ADD) || !delta2.getChangeType().equals(ChangeType.ADD)) {
+                    continue;
+                }
+
+                // startsWith is usable since the implication is the path is longer than just the match
+                // seeing as it isn't possible to have two deltas with the same newPath
+                if(delta1.getNewPath().replace("/pom.xml", "").startsWith(delta2.getNewPath().replace("/pom.xml", ""))) {
+                    filteredDeltasCopy.remove(delta1);
+                } else if(delta2.getNewPath().replace("/pom.xml", "").startsWith(delta1.getNewPath().replace("/pom.xml", ""))) {
+                    filteredDeltasCopy.remove(delta2);
+                }
+            }
+        }
+
+
+        return filteredDeltasCopy;
     }
 
     private String getMicroserviceNameFromPath(String path) {
@@ -273,12 +282,5 @@ public class MergeService {
         return null;
     }
 
-//    private void orphanizeAndAdopt(Microservice microservice) {
-//        microserviceSystem.orphanize(microservice);
-//        microserviceSystem.getMicroservices().remove(microservice);
-//
-//        for(Microservice microservice1 : microserviceSystem.getMicroservices()) {
-//            microserviceSystem.adopt(microservice1);
-//        }
-//    }
+
 }

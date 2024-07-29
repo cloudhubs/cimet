@@ -29,7 +29,7 @@ public class ARDetectionRunner {
 
         Config config = ConfigUtil.readConfig("./config.json");
         DeltaExtractionService deltaExtractionService;
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
         GitService gitService = new GitService(config);
 
         Iterable<RevCommit> commits = gitService.getLog();
@@ -91,7 +91,7 @@ public class ARDetectionRunner {
 
     private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         // Initialize the irExtractionService
         IRExtractionService irExtractionService = new IRExtractionService(configPath);

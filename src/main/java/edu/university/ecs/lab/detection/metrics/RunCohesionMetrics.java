@@ -81,7 +81,6 @@ public class RunCohesionMetrics {
 
         }
 
-        System.out.println(metricResultCalculation);
 
         return metricResultCalculation;
 

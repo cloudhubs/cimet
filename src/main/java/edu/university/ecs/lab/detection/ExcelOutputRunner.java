@@ -57,7 +57,7 @@ public class ExcelOutputRunner {
         String config_path = args[0];
         Config config = ConfigUtil.readConfig(config_path);
         DeltaExtractionService deltaExtractionService;
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
         GitService gitService = new GitService(config);
 
         Iterable<RevCommit> commits = gitService.getLog();
@@ -152,7 +152,7 @@ public class ExcelOutputRunner {
 
     private static void createIRSystem(Config config, String fileName) {
         // Create both directories needed
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         // Initialize the irExtractionService
         IRExtractionService irExtractionService = new IRExtractionService(config);

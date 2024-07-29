@@ -9,6 +9,7 @@ import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
+import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for extracting the differences between two commits of a repository.
@@ -30,7 +32,7 @@ import java.util.List;
  * the Delta output file.
  */
 public class DeltaExtractionService {
-
+    private static final String DEV_NULL = "/dev/null";
     /**
      * Config object representing the contents of the config file
      */
@@ -54,7 +56,7 @@ public class DeltaExtractionService {
     /**
      * The old IR for validating delta file changes
      */
-    private final MicroserviceSystem oldSystem;
+//    private final MicroserviceSystem oldSystem;
 
     /**
      * System change object that will be returned
@@ -64,7 +66,7 @@ public class DeltaExtractionService {
     /**
      * Represents a list of diff entries that are related to pom.xml add or delete
      */
-    private final List<DiffEntry> pomDiffs;
+//    private final List<DiffEntry> pomDiffs;
 
     /**
      * The type of change that is made
@@ -76,6 +78,7 @@ public class DeltaExtractionService {
      * Constructor for the DeltaExtractionService
      *
      * @param configPath path to the config file
+     * @param oldIRPath path to the oldIR
      * @param commitOld old commit for comparison
      * @param commitNew new commit for comparison
      */
@@ -84,8 +87,8 @@ public class DeltaExtractionService {
         this.gitService = new GitService(configPath);
         this.commitOld = commitOld;
         this.commitNew = commitNew;
-        this.oldSystem = JsonReadWriteUtils.readFromJSON(oldIRPath, MicroserviceSystem.class);
-        pomDiffs = new ArrayList<>();
+//        this.oldSystem = JsonReadWriteUtils.readFromJSON(oldIRPath, MicroserviceSystem.class);
+//        pomDiffs = new ArrayList<>();
     }
 
     /**
@@ -97,12 +100,8 @@ public class DeltaExtractionService {
         // Ensure we start at commitOld
         gitService.resetLocal(commitOld);
 
-        try {
-            differences = gitService.getDifferences(commitOld, commitNew);
-
-        } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
-        }
+        // Get the differences between commits
+        differences = gitService.getDifferences(commitOld, commitNew);
 
         // Advance the local commit for parsing
         gitService.resetLocal(commitNew);
@@ -141,10 +140,10 @@ public class DeltaExtractionService {
 
             if (DiffEntry.ChangeType.DELETE.equals(entry.getChangeType())) {
                 oldPath = FileUtils.GIT_SEPARATOR + entry.getOldPath();
-                newPath = null;
+                newPath = DEV_NULL;
 
             } else if (DiffEntry.ChangeType.ADD.equals(entry.getChangeType())) {
-                oldPath = null;
+                oldPath = DEV_NULL;
                 newPath = FileUtils.GIT_SEPARATOR + entry.getNewPath();
 
             } else {
@@ -157,30 +156,30 @@ public class DeltaExtractionService {
             changeType = ChangeType.fromDiffEntry(entry);
 
             // Special check for pom file manipulations only
-            if(path.endsWith("/pom.xml")) {
-                // Get some configuration change
-                data = configurationChange(entry, oldPath, newPath, path);
+//            if(path.endsWith("/pom.xml")) {
+//                // Get some configuration change
+//                data = configurationChange(entry, oldPath, newPath, path);
+//
+//                if(data == null) {
+//                    continue;
+//                }
+//            } else {
 
-                if(data == null) {
-                    continue;
-                }
-            } else {
-
-                switch(changeType) {
-                    case ADD:
-                        data = add(newPath);
-                        break;
-                    case MODIFY:
-                        data = modify(oldPath);
-                        break;
-                    case DELETE:
-                        data = delete(oldPath);
-                }
-
-                if(data == null) {
-                    continue;
-                }
+            switch(changeType) {
+                case ADD:
+                    data = add(newPath);
+                    break;
+                case MODIFY:
+                    data = add(oldPath);
+                    break;
+                case DELETE:
+                    data = delete();
             }
+
+//                if(data == null) {
+//                    continue;
+//                }
+//            }
 
 
             systemChange.getChanges().add(new Delta(oldPath, newPath, changeType, data));
@@ -190,33 +189,38 @@ public class DeltaExtractionService {
         JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);
 
         // Report
-        System.out.println("Delta extracted: from " + commitOld + " to " + commitNew + " at ./output/Delta.json");
+        LoggerManager.info(() -> "Delta changes extracted between " + commitOld + " -> " + commitNew);
 
     }
 
     /**
-     * This method parses a newly added file
+     * This method parses a newly added file into a JsonObject containing
+     * the data of the change (updated file). Returns a blank JsonObject if
+     * parsing fails (returns null).
      *
-     * @param path the file path that will be parsed
-     * @return null if the JClass is unparsable or a data object representing a parsed JClass or config file
+     * @param newPath git path of new file
+     * @return JsonObject of data of the new file
      */
     private JsonObject add(String newPath) {
-        JsonObject jsonObject;
+        // Check if it is a configuration file
         if(FileUtils.isConfigurationFile(newPath)) {
             ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
             if(configFile == null || configFile.getData() == null) {
-                return null;
+                return new JsonObject();
+            } else {
+                return configFile.toJsonObject();
             }
-            jsonObject = configFile.toJsonObject();
+
+        // Else it is a Java file
         } else {
             JClass jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config, "");
             if(jClass == null) {
-                return null;
+                return new JsonObject();
+            } else {
+                return jClass.toJsonObject();
             }
-            jsonObject = jClass.toJsonObject();
         }
 
-        return jsonObject;
     }
 
     /**
@@ -227,144 +231,55 @@ public class DeltaExtractionService {
      * @param path the file path that will be parsed
      * @return
      */
-    private JsonObject modify(String oldPath) {
-        JsonObject jsonObject = null;
-        JClass jClass = null;
-
-        if(FileUtils.isConfigurationFile(oldPath)) {
-            // Special check for modifying a pom that was previously filtered out for being too general
-            if(oldPath.endsWith("pom.xml") && oldSystem.findFile(oldPath) == null) {
-                return null;
-            }
-            jsonObject = add(oldPath);
-        } else {
-            jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(oldPath, config.getRepoName())), config, "");
-        }
-
-        if(jClass != null) {
-            jsonObject = jClass.toJsonObject();
-        }
-
-        // Similar to add check, but if we couldn't parse and the class exists in old system we must allow it
-        if (jsonObject == null && oldSystem.findFile(oldPath) == null) {
-            return null;
-            // If the class is unparsable and the class exists in the old system we must delete it now
-        } else if (jsonObject == null && oldSystem.findFile(oldPath) != null) {
-            changeType = ChangeType.DELETE;
-            return delete(oldPath);
-            // If the class is parsable and the class doesn't exist in the old system we must add it now
-        } else if (jsonObject != null && oldSystem.findFile(oldPath) == null) {
-            changeType = ChangeType.ADD;
-            return jsonObject;
-        } else if(jsonObject == null) {
-            System.err.println("No file found for " + oldPath);
-            System.exit(1);
-        }
-
-
-
-        return jsonObject;
-    }
-
-    /**
-     * This method does no parsing but validates that the class to be deleted does exist
-     *
-     * @param oldPath the path before the change (new path is /dev/null)
-     * @return null if it does not exist or empty data object if it does
-     */
-    private JsonObject delete(String oldPath) {
-        return oldSystem.findFile(oldPath) == null ? null : new JsonObject();
-    }
+//    private JsonObject modify(String oldPath) {
+//        JsonObject jsonObject = null;
+//        JClass jClass = null;
+//
+//        if(FileUtils.isConfigurationFile(oldPath)) {
+//            // Special check for modifying a pom that was previously filtered out for being too general
+//            if(oldPath.endsWith("pom.xml") && oldSystem.findFile(oldPath) == null) {
+//                return null;
+//            }
+//            jsonObject = add(oldPath);
+//        } else {
+//            jClass = SourceToObjectUtils.parseClass(new File(FileUtils.gitPathToLocalPath(oldPath, config.getRepoName())), config, "");
+//        }
+//
+//        if(jClass != null) {
+//            jsonObject = jClass.toJsonObject();
+//        }
+//
+//        // Similar to add check, but if we couldn't parse and the class exists in old system we must allow it
+//        if (jsonObject == null && oldSystem.findFile(oldPath) == null) {
+//            return null;
+//            // If the class is unparsable and the class exists in the old system we must delete it now
+//        } else if (jsonObject == null && oldSystem.findFile(oldPath) != null) {
+//            changeType = ChangeType.DELETE;
+//            return delete();
+//            // If the class is parsable and the class doesn't exist in the old system we must add it now
+//        } else if (jsonObject != null && oldSystem.findFile(oldPath) == null) {
+//            changeType = ChangeType.ADD;
+//            return jsonObject;
+//        } else if(jsonObject == null) {
+//            System.err.println("No file found for " + oldPath);
+//            System.exit(1);
+//        }
+//
+//
+//
+//        return jsonObject;
+//    }
 
     /**
-     * This method handles manipulations pom only and does additional logic regarding
-     * additions/removals of microservices which is based around pom manipulation
+     * This method returns a blank JsonObject() as there is no data to parse
      *
-     * @param entry the diffentry representing the pom change
-     * @return
+     * @return JsonObject that is empty
      */
-    private JsonObject configurationChange(DiffEntry entry,String oldPath, String newPath, String path) {
-        if(entry.getChangeType().equals(DiffEntry.ChangeType.DELETE)) {
-            return delete(oldPath);
-        }
-
-        // Special manipulation for poms, they control creation/deletion of microservices
-        // If we are modifying the pom, the microservice remains, let's just update the files for it
-        if(!entry.getChangeType().equals(DiffEntry.ChangeType.MODIFY)) {
-            // If we add a pom
-            if(entry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
-                DiffEntry remove = null;
-
-                // For all existing pomEntry's in this delta
-                for (DiffEntry pomEntry : pomDiffs) {
-
-                    // If we have an existing entry that is more specific than the current entry
-                    if (pomEntry.getNewPath().replace("/pom.xml", "").startsWith(path.replace("/pom.xml", ""))) {
-                        return null;
-
-                        // If the current entry is more specific than an existing entry
-                    } else if (path.replace("/pom.xml", "").startsWith(pomEntry.getNewPath().replace("/pom.xml", ""))) {
-                        // Remove the old entry
-                        remove = pomEntry;
-                    }
-
-                }
-
-
-                // Check existing microservices if our entry is more specific as well
-                for (Microservice microservice : oldSystem.getMicroservices()) {
-
-                    // If we find a match, orphanize and redistribute those classes naturally
-                    if (("/" + newPath.replace("/pom.xml", "")).startsWith(microservice.getPath())) {
-                        oldSystem.orphanize(microservice);
-                        oldSystem.getMicroservices().remove(microservice);
-                        break;
-                    }
-
-                }
-
-
-                // If we remove a pom diff, delete the delta entry that already passed
-                if(remove != null) {
-                    // Remove from current poms
-                    pomDiffs.remove(remove);
-                    // Remove delta entry
-                    Iterator<Delta> deltaIter = systemChange.getChanges().iterator();
-                    while (deltaIter.hasNext()) {
-                        Delta d = deltaIter.next();
-                        if((d.getOldPath() == null && remove.getOldPath().equals("/dev/null")
-                                || d.getOldPath() != null && d.getOldPath().equals("/" + remove.getOldPath())) &&
-                                (d.getNewPath() == null && remove.getNewPath().equals("/dev/null")
-                                        || d.getNewPath() != null && d.getNewPath().equals("/" + remove.getNewPath()))) {
-                            deltaIter.remove();
-                            break;
-                        }
-                    }
-                }
-
-                // Add the current entry
-                pomDiffs.add(entry);
-
-
-                // If we are modifying or deleting an existing pom
-            }
-
-            // Update the oldSystem based on changes
-            JsonReadWriteUtils.writeToJSON("./output/OldIR.json", oldSystem);
-        }
-
-        // Regardless some configuration file will be built for this pom
-        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(new File(FileUtils.gitPathToLocalPath(newPath, config.getRepoName())), config);
-
-        // If we get
-        if(configFile == null || configFile.getData() == null) {
-            throw new RuntimeException("No configuration file found for " + newPath);
-        }
-
-
-        return configFile.toJsonObject();
-
+    private JsonObject delete() {
+        return new JsonObject();
     }
+
+
 
 
 }

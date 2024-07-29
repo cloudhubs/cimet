@@ -2,8 +2,10 @@ package edu.university.ecs.lab.common.utils;
 
 import edu.university.ecs.lab.common.error.Error;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -79,6 +81,7 @@ public class FileUtils {
 
 
 
+    @Deprecated
     public static String getMicroserviceNameFromPath(String path) {
         if (!path.startsWith(DOT + SYS_SEPARATOR + DEFAULT_CLONE_PATH + SYS_SEPARATOR)) {
             Error.reportAndExit(Error.INVALID_REPO_PATHS, Optional.empty());
@@ -86,6 +89,22 @@ public class FileUtils {
 
         String[] split = path.replace(DOT + SYS_SEPARATOR + DEFAULT_CLONE_PATH + SYS_SEPARATOR, "").split(SPECIAL_SEPARATOR);
         return split[split.length-1];
+    }
+
+    /**
+     * This method returns a Git path without the filename at the end.
+     *
+     * @param path the path to remove filename from
+     * @return the path without the file name or if too short just GIT_SEPARATOR
+     */
+    public static String getGitPathNoFileName(String path) {
+        String[] split = path.split(GIT_SEPARATOR);
+
+        if(split.length > 1) {
+            return String.join(GIT_SEPARATOR, Arrays.copyOfRange(split, 0, split.length - 1));
+        } else {
+            return GIT_SEPARATOR;
+        }
     }
 
     /**

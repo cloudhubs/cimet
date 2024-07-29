@@ -116,7 +116,7 @@ public class AntipatternDetection {
 
     private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         // Initialize the irExtractionService
         IRExtractionService irExtractionService = new IRExtractionService(configPath);

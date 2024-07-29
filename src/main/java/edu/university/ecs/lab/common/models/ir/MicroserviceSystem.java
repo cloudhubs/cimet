@@ -54,13 +54,13 @@ public class MicroserviceSystem implements JsonSerializable {
     }
 
     /**
-     * Returns the microservice that matches the passed name
+     * Returns the microservice that matches the passed path
      *
-     * @param name the name to search for
-     * @return microservice whose name matches or null if not found
+     * @param path the path to search for
+     * @return microservice instance of matching path or null
      */
-    public Microservice findMicroserviceByPath(String name) {
-        return getMicroservices().stream().filter(microservice -> microservice.getPath().equals(name)).findFirst().orElse(null);
+    public Microservice findMicroserviceByPath(String path) {
+        return getMicroservices().stream().filter(microservice -> microservice.getPath().equals(path)).findFirst().orElse(null);
     }
 
 

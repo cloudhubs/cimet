@@ -19,6 +19,8 @@ import java.nio.file.Files;
 import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
+import lombok.extern.java.Log;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -33,12 +35,23 @@ public class IRExtractionService {
      */
     private final GitService gitService;
 
+    /**
+     * Configuration object
+     */
     private final Config config;
 
+    /**
+     * CommitID of IR Extraction
+     */
     private final String commitID;
 
     /**
+     * This constructor initializes a new IRExtractionService and instantiates a
+     * GitService object for repository manipulation
+     *
      * @param configPath path to configuration file
+     * @param commitID optional commitID for extraction, if empty resolves to HEAD
+     * @see GitService
      */
     public IRExtractionService(String configPath, Optional<String> commitID) {
         gitService = new GitService(configPath);
@@ -56,13 +69,14 @@ public class IRExtractionService {
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
+     * @param fileName name of output file for IR extraction
      */
     public void generateIR(String fileName) {
         // Clone remote repositories and scan through each cloned repo to extract endpoints
         Set<Microservice> microservices = cloneAndScanServices();
 
         if (microservices.isEmpty()) {
-            System.out.println("No microservices found");
+            LoggerManager.info(() -> "No microservices were found during IR Extraction!");
         }
 
         //  Write each service and endpoints to IR
@@ -173,6 +187,7 @@ public class IRExtractionService {
      * Write each service and endpoints to intermediate representation
      *
      * @param microservices a list of microservices extracted from repository
+     * @param fileName the name of the output file for IR
      */
     private void writeToFile(Set<Microservice> microservices, String fileName) {
 

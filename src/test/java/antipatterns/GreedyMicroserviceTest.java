@@ -21,7 +21,7 @@ public class GreedyMicroserviceTest {
 
     @Before
     public void setUp(){
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         IRExtractionService irExtractionService = new IRExtractionService("./test_config.json");
 

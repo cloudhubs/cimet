@@ -2,6 +2,7 @@ package edu.university.ecs.lab.common.models.ir;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -105,7 +106,15 @@ public class Microservice implements JsonSerializable {
         return jsonArray;
     }
 
+    /**
+     * Update's the microservice name of the JClass and add's
+     * it to the appropriate Set
+     *
+     * @param jClass the JClass to add
+     */
     public void addJClass(JClass jClass) {
+        jClass.updateMicroserviceName(getName());
+
         switch (jClass.getClassRole()) {
             case CONTROLLER:
                 controllers.add(jClass);
@@ -134,7 +143,6 @@ public class Microservice implements JsonSerializable {
      *
      * @param path the path to search for removal
      */
-
     public void removeJClass(String path) {
         Set<JClass> classes = getClasses();
         JClass removeClass = null;
@@ -168,6 +176,67 @@ public class Microservice implements JsonSerializable {
             case FEIGN_CLIENT:
                 feignClients.remove(removeClass);
                 break;
+        }
+    }
+
+    /**
+     * This method removes a ProjectFile from the microservice
+     * by looking up it's path
+     *
+     * @param projectFile the projectFile to search for removal
+     */
+    public void removeProjectFile(ProjectFile projectFile) {
+        if(projectFile.getFileType().equals(FileType.JCLASS)) {
+            Set<JClass> classes = getClasses();
+            JClass removeClass = null;
+
+            for (JClass jClass : classes) {
+                if (jClass.getPath().equals(projectFile.getPath())) {
+                    removeClass = jClass;
+                    break;
+                }
+            }
+
+            // If we cannot find the class no problem, we will skip it quietly
+            if (removeClass == null) {
+                return;
+            }
+
+            switch (removeClass.getClassRole()) {
+                case CONTROLLER:
+                    controllers.remove(removeClass);
+                    break;
+                case SERVICE:
+                    services.remove(removeClass);
+                    break;
+                case REPOSITORY:
+                case REP_REST_RSC:
+                    repositories.remove(removeClass);
+                    break;
+                case ENTITY:
+                    entities.remove(removeClass);
+                    break;
+                case FEIGN_CLIENT:
+                    feignClients.remove(removeClass);
+                    break;
+            }
+
+        } else if(projectFile.getFileType().equals(FileType.CONFIG)) {
+            ConfigFile removeFile = null;
+
+            for (ConfigFile configFile : getFiles()) {
+                if (configFile.getPath().equals(projectFile.getPath())) {
+                    removeFile = configFile;
+                    break;
+                }
+            }
+
+            // If we cannot find the class no problem, we will skip it quietly
+            if(removeFile == null) {
+                return;
+            }
+
+            getFiles().remove(removeFile);
         }
     }
 
@@ -222,5 +291,6 @@ public class Microservice implements JsonSerializable {
     public Set<Method> getMethods () {
         return this.getClasses().stream().flatMap(jClass -> jClass.getMethods().stream()).collect(Collectors.toSet());
     }
+
 
 }

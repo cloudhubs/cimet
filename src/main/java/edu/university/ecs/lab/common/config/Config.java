@@ -70,7 +70,7 @@ public class Config {
 
     private void validateRepositoryURL(String repositoryURL) {
         if (!(repositoryURL.isBlank() || repositoryURL.startsWith(GIT_SCHEME_DOMAIN) || repositoryURL.endsWith(GIT_PATH_EXTENSION))) {
-            Error.reportAndExit(Error.INVALID_REPOSITORY_URL, Optional.of(null));
+            Error.reportAndExit(Error.INVALID_REPOSITORY_URL, Optional.empty());
         }
     }
 

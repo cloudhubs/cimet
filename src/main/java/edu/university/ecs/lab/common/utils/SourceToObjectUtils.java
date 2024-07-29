@@ -22,6 +22,7 @@ import edu.university.ecs.lab.common.models.enums.EndpointTemplate;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
+import edu.university.ecs.lab.common.services.LoggerManager;
 
 import java.io.File;
 import java.util.*;
@@ -78,6 +79,7 @@ public class SourceToObjectUtils {
     public static JClass parseClass(File sourceFile, Config config, String microserviceName) {
         // Guard condition
         if(Objects.isNull(sourceFile) || FileUtils.isConfigurationFile(sourceFile.getPath())) {
+            LoggerManager.warn(() -> "JClass filtered  " + sourceFile.getPath() + " is config or null");
             return null;
         }
 
@@ -94,6 +96,7 @@ public class SourceToObjectUtils {
 
         // Return unknown classRoles where annotation not found
         if (classRole.equals(ClassRole.UNKNOWN)) {
+            LoggerManager.warn(() -> "JClass filtered  " + sourceFile.getPath() + " class role unknown");
             return null;
         }
 
@@ -365,7 +368,7 @@ public class SourceToObjectUtils {
      * @return
      */
     private static String getMicroserviceName(File sourceFile) {
-        List<String> split = Arrays.asList(sourceFile.getPath().split(FileUtils.SEPARATOR_SPECIAL));
+        List<String> split = Arrays.asList(sourceFile.getPath().split(FileUtils.SPECIAL_SEPARATOR));
         return split.get(3);
     }
 
