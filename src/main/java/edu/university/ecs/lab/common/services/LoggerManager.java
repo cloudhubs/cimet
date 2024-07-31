@@ -1,6 +1,7 @@
 package edu.university.ecs.lab.common.services;
 
 
+import edu.university.ecs.lab.common.error.Error;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

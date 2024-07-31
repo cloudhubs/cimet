@@ -7,6 +7,7 @@ import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 import java.util.HashSet;
 import java.util.Set;

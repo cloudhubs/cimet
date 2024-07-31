@@ -53,8 +53,15 @@ public class Delta implements JsonSerializable {
      * @return JClass instance if parsable otherwise null
      */
     public JClass getClassChange() {
+        if(data.size() == 0) {
+            return null;
+        }
         try {
-            return gson.fromJson(data, JClass.class);
+            if(data.get("fileType").getAsString().equals("JCLASS")) {
+                return gson.fromJson(data, JClass.class);
+            } else {
+                return null;
+            }
         } catch (JsonSyntaxException e) {
             if(data.get("fileType").getAsString().equals("JCLASS")) {
                 LoggerManager.debug(e::getMessage);
@@ -70,8 +77,15 @@ public class Delta implements JsonSerializable {
      * @return ConfigFile instance if parsable otherwise null
      */
     public ConfigFile getConfigChange() {
+        if(data.size() == 0) {
+            return null;
+        }
         try {
-            return gson.fromJson(data, ConfigFile.class);
+            if(data.get("fileType").getAsString().equals("CONFIG")) {
+                return gson.fromJson(data, ConfigFile.class);
+            } else {
+                return null;
+            }
         } catch (JsonSyntaxException e) {
             if(data.get("fileType").getAsString().equals("CONFIG")) {
                 LoggerManager.debug(e::getMessage);

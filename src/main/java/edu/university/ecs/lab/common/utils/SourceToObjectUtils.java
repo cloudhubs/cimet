@@ -48,8 +48,7 @@ public class SourceToObjectUtils {
         try {
             cu = StaticJavaParser.parse(sourceFile);
         } catch (Exception e) {
-            e.printStackTrace();
-            Error.reportAndExit(Error.JPARSE_FAILED);
+            Error.reportAndExit(Error.JPARSE_FAILED, Optional.of(e));
         }
         if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
@@ -58,7 +57,7 @@ public class SourceToObjectUtils {
         path = FileUtils.localPathToGitPath(sourceFile.getPath(), config.getRepoName());
 
         TypeSolver reflectionTypeSolver = new ReflectionTypeSolver();
-        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(FileUtils.getClonePath(config.getRepoName()));
+        TypeSolver javaParserTypeSolver = new JavaParserTypeSolver(FileUtils.getRepositoryPath(config.getRepoName()));
 
         combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(reflectionTypeSolver);
@@ -449,8 +448,6 @@ public class SourceToObjectUtils {
      * interfaces into a service class whose methods simply contain the exact
      * rest call outlined by the interface annotations.
      *
-     * @param sourceFile
-     * @param config
      * @param classAnnotations
      * @return
      */

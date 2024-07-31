@@ -30,7 +30,7 @@ public class ARDetectionRunner {
         Config config = ConfigUtil.readConfig("./config.json");
         DeltaExtractionService deltaExtractionService;
         FileUtils.makeDirs();
-        GitService gitService = new GitService(config);
+        GitService gitService = new GitService("./config.json");
 
         Iterable<RevCommit> commits = gitService.getLog();
 
@@ -40,7 +40,6 @@ public class ARDetectionRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
         createIRSystem("./config.json", "OldIR.json");
 
@@ -94,7 +93,7 @@ public class ARDetectionRunner {
         FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(configPath);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

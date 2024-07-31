@@ -11,6 +11,7 @@ import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
 import edu.university.ecs.lab.common.models.serialization.ProjectFileDeserializer;
 
 import java.io.*;
+import java.util.Optional;
 
 /**
  * Utility class for reading and writing JSON to a file.
@@ -36,7 +37,7 @@ public class JsonReadWriteUtils {
         try (Writer writer = new BufferedWriter(new FileWriter(filePath))) {
             gson.toJson(object, writer);
         } catch (IOException e) {
-            Error.reportAndExit(Error.INVALID_JSON_WRITE);
+            Error.reportAndExit(Error.INVALID_JSON_READ, Optional.of(e));
         }
     }
 
@@ -55,7 +56,7 @@ public class JsonReadWriteUtils {
         try (Reader reader = new BufferedReader(new FileReader(filePath))) {
             return gson.fromJson(reader, type);
         } catch (Exception e) {
-            Error.reportAndExit(Error.INVALID_JSON_READ);
+            Error.reportAndExit(Error.INVALID_JSON_READ, Optional.of(e));
         }
 
         return null;

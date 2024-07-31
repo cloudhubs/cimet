@@ -11,6 +11,8 @@ import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
 import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 
+import java.util.Optional;
+
 public class MetricCalculation {
 
     public static void main(String[] args) {
@@ -59,7 +61,7 @@ public class MetricCalculation {
         FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(fileName);
+        IRExtractionService irExtractionService = new IRExtractionService(fileName, Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

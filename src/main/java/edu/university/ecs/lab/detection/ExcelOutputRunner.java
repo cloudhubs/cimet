@@ -49,6 +49,7 @@ public class ExcelOutputRunner {
     private static final String DELTA_PATH = "./output/Delta.json";
     private static final String NEW_IR_PATH = "./output/NewIR.json";
 
+
     public static void main(String[] args) throws IOException {
 
         if (columnLabels.length != ANTIPATTERNS+ METRICS+ARCHRULES+1) { // Sanity check
@@ -58,7 +59,7 @@ public class ExcelOutputRunner {
         Config config = ConfigUtil.readConfig(config_path);
         DeltaExtractionService deltaExtractionService;
         FileUtils.makeDirs();
-        GitService gitService = new GitService(config);
+        GitService gitService = new GitService(config_path);
 
         Iterable<RevCommit> commits = gitService.getLog();
 
@@ -69,9 +70,8 @@ public class ExcelOutputRunner {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem(config_path, "OldIR.json");
 
         //Create excel file and desired header labels
         XSSFWorkbook workbook = new XSSFWorkbook();
@@ -150,12 +150,12 @@ public class ExcelOutputRunner {
         JsonReadWriteUtils.writeToJSON("./output/ArchRules.json", jsonArray);
     }
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
         FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

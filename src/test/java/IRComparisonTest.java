@@ -19,11 +19,11 @@ import java.util.*;
 public class IRComparisonTest {
 
     public static void main(String[] args) {
-
-        Config config = ConfigUtil.readConfig("./config.json");
+        final String CONFIG_PATH = "./config.json";
+        Config config = ConfigUtil.readConfig(CONFIG_PATH);
         DeltaExtractionService deltaExtractionService;
         FileUtils.makeDirs();
-        GitService gitService = new GitService(config);
+        GitService gitService = new GitService(CONFIG_PATH);
 
         Iterable<RevCommit> commits = gitService.getLog();
 
@@ -33,9 +33,8 @@ public class IRComparisonTest {
             list.add(iterator.next());
         }
         Collections.reverse(list);
-        config.setBaseCommit(list.get(0).toString().split(" ")[1]);
         // Create IR of first commit
-        createIRSystem(config, "OldIR.json");
+        createIRSystem(CONFIG_PATH, "OldIR.json", list.get(0).toString().split(" ")[1]);
 
 
         // Loop through commit history and create delta, merge, etc...
@@ -60,23 +59,26 @@ public class IRComparisonTest {
         }
 
         // Create IR of last commit
-        config.setBaseCommit(list.get(list.size() - 1).toString().split(" ")[1]);
-        createIRSystem(config, "IRCompare.json");
+        createIRSystem(CONFIG_PATH, "IRCompare.json", list.get(list.size() - 1).toString().split(" ")[1]);
 
         // Compare two IR's for equivalence
         MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON("./output/OldIR.json", MicroserviceSystem.class);
-        microserviceSystem1.setCommitID(config.getBaseCommit());
+        microserviceSystem1.setCommitID(list.get(list.size() - 1).toString().split(" ")[1]);
+        // Clear orphans
+        microserviceSystem1.setOrphans(new HashSet<>());
+
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
 
 
-        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
-            for(Microservice microservice2 : microserviceSystem2.getMicroservices()) {
-                if(microservice1.getName().equals(microservice2.getName())) {
-                    System.out.println(microservice1.getName() + " " + Objects.deepEquals(microservice1.getClasses(), microservice2.getClasses()));
-                }
-            }
-        }
-//        boolean b = Objects.deepEquals(microserviceSystem1, microserviceSystem2);
+//        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
+//            for(Microservice microservice2 : microserviceSystem2.getMicroservices()) {
+//                if(microservice1.getName().equals(microservice2.getName())) {
+//                    System.out.println(microservice1.getName() + " " + Objects.deepEquals(microservice1.getClasses(), microservice2.getClasses()));
+//                }
+//            }
+//        }
+
+        deepCompareSystems(microserviceSystem1, microserviceSystem2);
 
 
         // Output results
@@ -85,12 +87,12 @@ public class IRComparisonTest {
     }
 
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName, String commitID) {
         // Create both directories needed
         FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.of(commitID));
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);
@@ -101,6 +103,37 @@ public class IRComparisonTest {
         MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(filePath, MicroserviceSystem.class);
         ServiceDependencyGraph serviceDependencyGraph = new ServiceDependencyGraph(microserviceSystem);
         JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", serviceDependencyGraph);
+    }
+
+    private static void deepCompareSystems(MicroserviceSystem microserviceSystem1, MicroserviceSystem microserviceSystem2) {
+
+        System.out.println("System equivalence is: " + Objects.deepEquals(microserviceSystem1, microserviceSystem2));
+
+        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
+            outer2:
+            {
+                for (Microservice microservice2 : microserviceSystem2.getMicroservices()) {
+                    if (microservice1.getName().equals(microservice2.getName())) {
+                        System.out.println("Microservice equivalence of " + microservice1.getName() + " is: " + Objects.deepEquals(microservice1, microservice2));
+                        outer1:
+                        {
+                            for (ProjectFile projectFile1 : microservice1.getProjectFiles()) {
+                                for (ProjectFile projectFile2 : microservice2.getProjectFiles()) {
+                                    if (projectFile1.getPath().equals(projectFile2.getPath())) {
+                                        System.out.println("Class equivalence of " + projectFile1.getName() + " is: " + Objects.deepEquals(projectFile1, projectFile2));
+                                        break outer1;
+                                    }
+                                }
+                            }
+                            System.out.println("No JClass match found for " + microservice1.getName());
+                        }
+                        break outer2;
+                    }
+                }
+                System.out.println("No Microservice match found for " + microservice1.getName());
+            }
+        }
+
     }
 
 

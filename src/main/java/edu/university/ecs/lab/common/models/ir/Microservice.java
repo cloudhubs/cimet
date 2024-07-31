@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import edu.university.ecs.lab.common.utils.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -183,15 +184,34 @@ public class Microservice implements JsonSerializable {
      * This method removes a ProjectFile from the microservice
      * by looking up it's path
      *
-     * @param projectFile the projectFile to search for removal
+     * @param filePath the path to search for
      */
-    public void removeProjectFile(ProjectFile projectFile) {
-        if(projectFile.getFileType().equals(FileType.JCLASS)) {
+    public void removeProjectFile(String filePath) {
+
+        if(FileUtils.isConfigurationFile(filePath)) {
+            // First search configFile because there are less
+            ConfigFile removeFile = null;
+
+            for (ConfigFile configFile : getFiles()) {
+                if (configFile.getPath().equals(filePath)) {
+                    removeFile = configFile;
+                    break;
+                }
+            }
+
+            // If we cannot find the class no problem, we will skip it quietly
+            if (removeFile == null) {
+                return;
+            }
+
+            getFiles().remove(removeFile);
+
+        } else {
             Set<JClass> classes = getClasses();
             JClass removeClass = null;
 
             for (JClass jClass : classes) {
-                if (jClass.getPath().equals(projectFile.getPath())) {
+                if (jClass.getPath().equals(filePath)) {
                     removeClass = jClass;
                     break;
                 }
@@ -221,22 +241,6 @@ public class Microservice implements JsonSerializable {
                     break;
             }
 
-        } else if(projectFile.getFileType().equals(FileType.CONFIG)) {
-            ConfigFile removeFile = null;
-
-            for (ConfigFile configFile : getFiles()) {
-                if (configFile.getPath().equals(projectFile.getPath())) {
-                    removeFile = configFile;
-                    break;
-                }
-            }
-
-            // If we cannot find the class no problem, we will skip it quietly
-            if(removeFile == null) {
-                return;
-            }
-
-            getFiles().remove(removeFile);
         }
     }
 
@@ -265,6 +269,7 @@ public class Microservice implements JsonSerializable {
     public Set<ProjectFile> getProjectFiles() {
         Set<ProjectFile> set = new HashSet<>(getClasses());
         set.addAll(getFiles());
+        set.addAll(getClasses());
         return set;
     }
 

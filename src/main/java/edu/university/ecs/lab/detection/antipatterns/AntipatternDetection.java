@@ -12,6 +12,7 @@ import edu.university.ecs.lab.detection.antipatterns.services.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Optional;
 
 public class AntipatternDetection {
     public static void main(String[] args) {
@@ -119,7 +120,7 @@ public class AntipatternDetection {
         FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(configPath);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);
