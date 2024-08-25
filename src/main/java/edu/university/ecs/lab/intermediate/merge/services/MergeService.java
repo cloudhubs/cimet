@@ -11,6 +11,7 @@ import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -80,7 +81,7 @@ public class MergeService {
     public void addFile(Delta delta) {
         // Check for unparsable files
         if(delta.getClassChange() == null && delta.getConfigChange() == null) {
-            LoggerManager.warn(() -> "An added file has no change information " + delta.getNewPath());
+            LoggerManager.warn(() -> "[Filtered] An added file has no change information " + delta.getNewPath());
             return;
         }
 
@@ -141,7 +142,7 @@ public class MergeService {
         // see removeProjectFile()
         ms.removeProjectFile(delta.getOldPath());
 
-        LoggerManager.debug(() -> "[File removed] " + delta.getNewPath() + " from microservice " + ms.getPath() + " at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
+        LoggerManager.debug(() -> "[File removed] " + delta.getOldPath() + " from microservice " + ms.getPath() + " at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
 
 
     }
@@ -184,11 +185,11 @@ public class MergeService {
                         Microservice removeMicroservice = null;
                         for (Microservice compareMicroservice : microserviceSystem.getMicroservices()) {
                             // If delta is more specific than compareMicroservice, we remove this one
-                            if (delta.getNewPath().replace("/pom.xml", "").startsWith(compareMicroservice.getPath())) {
+                            if (delta.getNewPath().replace("/pom.xml", "").replace("/build.gradle", "").matches(compareMicroservice.getPath() + "/.*")) {
                                 removeMicroservice = compareMicroservice;
 
                             // If a microservice already exists that is more specific, skip the addition
-                            } else if (compareMicroservice.getPath().startsWith(delta.getNewPath().replace("/pom.xml", ""))) {
+                            } else if (compareMicroservice.getPath().matches(delta.getNewPath().replace("/pom.xml", "").replace("/build.gradle", "") + "/.*")) {
                                 break match;
                             }
                         }
@@ -199,7 +200,7 @@ public class MergeService {
                             microserviceSystem.orphanize(removeMicroservice);
                         }
 
-                        microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("/pom.xml", ""));
+                        microservice = new Microservice(tokens[tokens.length - 2], delta.getNewPath().replace("/pom.xml", "").replace("/build.gradle", ""));
                         // Here we must check if any orphans are waiting on this creation
                         microserviceSystem.adopt(microservice);
                         microserviceSystem.getMicroservices().add(microservice);
@@ -208,9 +209,9 @@ public class MergeService {
 
 
                     case DELETE:
-                        microservice = microserviceSystem.findMicroserviceByPath(delta.getOldPath().replace("/pom.xml", ""));
+                        microservice = microserviceSystem.findMicroserviceByPath(delta.getOldPath().replace("/pom.xml", "").replace("/build.gradle", ""));
 
-                        // TODO REMOVE
+                        // If a less
                         if (microservice == null) {
                             LoggerManager.error(() -> "[Microservice not found]  " + delta.getOldPath() + " at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit(), Optional.of(new RuntimeException("Fail")));
                         }
@@ -245,25 +246,57 @@ public class MergeService {
         // Remove modified files, doesn't change microservice structure
         filteredDeltas.removeIf(delta -> delta.getChangeType().equals(ChangeType.MODIFY));
 
+        // Remove deleted files, if their microservice doesn't exist (they were less specific and were filtered out)
+        filteredDeltas.removeIf(delta -> (delta.getChangeType().equals(ChangeType.DELETE) && microserviceSystem.findMicroserviceByPath(delta.getOldPath()) == null));
+
         // Remove more specific build deltas in the same system change
         List<Delta> filteredDeltasCopy = new ArrayList<>(List.copyOf(filteredDeltas));
 
 
         // If a delta is more specific than another in same SystemChange,
         // we need to remove the more general option in case of add
-        for(Delta delta1 : filteredDeltas) {
-            for(Delta delta2 : filteredDeltas) {
+        List<Delta> addDeltas = filteredDeltas.stream().filter(d -> d.getChangeType().equals(ChangeType.ADD)).collect(Collectors.toList());
+        boolean deletedFirst = false;
+        for(Delta delta1 : addDeltas) {
+            for(Delta delta2 : addDeltas) {
                 // If they are equal or they aren't both additions
                 if(delta1.equals(delta2) || !delta1.getChangeType().equals(ChangeType.ADD) || !delta2.getChangeType().equals(ChangeType.ADD)) {
                     continue;
                 }
+                String delta1Path = delta1.getNewPath().replace("/pom.xml", "").replace("/build.gradle", "");
+                String delta2Path = delta2.getNewPath().replace("/pom.xml", "").replace("/build.gradle", "");
+                if(delta1Path.equals(delta2Path) && !deletedFirst) {
+                    LoggerManager.debug(() -> "[Filtered] Duplicates deltas detected for " + delta1.getNewPath() + " and " + delta2.getNewPath());
+                    filteredDeltas.remove(delta1);
+                    deletedFirst = true;
+                    continue;
+                }
 
-                // startsWith is usable since the implication is the path is longer than just the match
-                // seeing as it isn't possible to have two deltas with the same newPath
-                if(delta1.getNewPath().replace("/pom.xml", "").startsWith(delta2.getNewPath().replace("/pom.xml", ""))) {
-                    filteredDeltasCopy.remove(delta1);
-                } else if(delta2.getNewPath().replace("/pom.xml", "").startsWith(delta1.getNewPath().replace("/pom.xml", ""))) {
+                // Check if paths are more/less specific
+                if(delta1Path.matches(delta2Path + "/.*")) {
+                    LoggerManager.debug(() -> "[Filtered] Delta " + delta1.getNewPath() + " more specific than " + delta2.getNewPath());
                     filteredDeltasCopy.remove(delta2);
+                } else if(delta2Path.matches(delta1Path + "/.*")) {
+                    LoggerManager.debug(() -> "[Filtered] Delta " + delta2.getNewPath() + " more specific than " + delta1.getNewPath());
+                    filteredDeltasCopy.remove(delta1);
+                }
+            }
+        }
+
+        deletedFirst = false;
+        // Remove duplicate deletes (pom.xml and build.gradle) of the same microservice
+        List<Delta> deleteDeltas = filteredDeltas.stream().filter(d -> d.getChangeType().equals(ChangeType.DELETE)).collect(Collectors.toList());
+        for(Delta delta1 : deleteDeltas) {
+            for(Delta delta2 : deleteDeltas) {
+                String delta1Path = delta1.getOldPath().replace("/pom.xml", "").replace("/build.gradle", "");
+                String delta2Path = delta2.getOldPath().replace("/pom.xml", "").replace("/build.gradle", "");
+
+
+                // If they are equal and they aren't both additions, arbitrarily remove one of them
+                if(delta1Path.equals(delta2Path) && !delta1.getOldPath().equals(delta2.getOldPath()) && !deletedFirst) {
+                    LoggerManager.debug(() -> "[Filtered] Duplicates deltas detected for " + delta1.getOldPath() + " and " + delta2.getOldPath());
+                    filteredDeltasCopy.remove(delta1);
+                    deletedFirst = true;
                 }
             }
         }

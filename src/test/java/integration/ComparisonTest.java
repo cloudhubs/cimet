@@ -1,3 +1,5 @@
+package integration;
+
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.models.ir.ProjectFile;
@@ -5,7 +7,6 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import org.junit.Test;
 
 
-import java.util.HashSet;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
