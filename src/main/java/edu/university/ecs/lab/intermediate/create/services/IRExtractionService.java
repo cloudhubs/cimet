@@ -97,6 +97,20 @@ public class IRExtractionService {
 
         // Start scanning from the root directory
         List<String> rootDirectories = findRootDirectories(FileUtils.getRepositoryPath(config.getRepoName()));
+        List<String> rootDirectoriesCopy = List.copyOf(rootDirectories);
+
+        // Filter more/less specific
+        for(String s1 : rootDirectoriesCopy) {
+            for(String s2 : rootDirectoriesCopy) {
+                if(s1.equals(s2)) {
+                    continue;
+                } else if(s1.matches(s2.replace(FileUtils.SYS_SEPARATOR, FileUtils.SPECIAL_SEPARATOR) + FileUtils.SPECIAL_SEPARATOR + ".*")) {
+                    rootDirectories.remove(s2);
+                } else if(s2.matches(s1.replace(FileUtils.SYS_SEPARATOR, FileUtils.SPECIAL_SEPARATOR) + FileUtils.SPECIAL_SEPARATOR + ".*")) {
+                    rootDirectories.remove(s1);
+                }
+            }
+        }
 
         // Scan each root directory for microservices
         for (String rootDirectory : rootDirectories) {
@@ -142,25 +156,14 @@ public class IRExtractionService {
                             // Check if the tag is present
                             if (nodeList.getLength() == 0) {
                                 containsPom = true;
-                                break;
                             }
                         } catch (Exception e) {
                             throw new RuntimeException("Error parsing pom.xml");
                         }
-                    }
-                    else if(file.isFile() && file.getName().equals("build.gradle")) {
-                        try {
-                        // Read the build.gradle file content
-                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-
-                        // Check if the file does not contain the 'subprojects' keyword
-                        if (!content.contains("subprojects")) {
-                            containsGradle = true;
-                            break;
-                        }
-                        } catch (IOException e) {
-                            throw new RuntimeException("Error reading build.gradle", e);
-                        }
+                    } else if(file.isFile() && file.getName().equals("build.gradle")) {
+                        containsGradle = true;
+                    } else if (file.isDirectory()) {
+                        rootDirectories.addAll(findRootDirectories(file.getPath()));
                     }
                 }
             }
@@ -170,13 +173,6 @@ public class IRExtractionService {
             } else if (containsGradle){
                 rootDirectories.add(root.getPath());
                 return rootDirectories;
-            } else {
-                // Recursively search for directories containing a Dockerfile
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        rootDirectories.addAll(findRootDirectories(file.getPath()));
-                    }
-                }
             }
         }
         return rootDirectories;

@@ -36,14 +36,14 @@ public class Method extends Node {
     /**
      * Method definition level annotations
      */
-    protected List<Annotation> annotations;
+    protected Set<Annotation> annotations;
 
     /**
      * The class id that this method belongs to
      */
     protected String className;
 
-    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, List<Annotation> annotations, String microserviceName,
+    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, Set<Annotation> annotations, String microserviceName,
                   String className) {
         this.name = name;
         this.packageAndClassName = packageAndClassName;

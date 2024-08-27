@@ -72,8 +72,8 @@ class IRComparisonTest {
         MicroserviceSystem microserviceSystem1 = JsonReadWriteUtils.readFromJSON(NEW_IR_PATH, MicroserviceSystem.class);
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON(TEST_IR_PATH, MicroserviceSystem.class);
 
-        microserviceSystem1.setOrphans(null);
-        microserviceSystem2.setOrphans(null);
+        microserviceSystem1.setOrphans(new HashSet<>());
+        microserviceSystem2.setOrphans(new HashSet<>());
 
         Assertions.assertTrue(Objects.deepEquals(microserviceSystem1, microserviceSystem2));
 

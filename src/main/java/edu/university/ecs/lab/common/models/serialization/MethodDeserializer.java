@@ -32,7 +32,7 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         method.setName(json.get("name").getAsString());
         method.setReturnType(json.get("returnType").getAsString());
 
-        List<Annotation> annotations = new ArrayList<Annotation>();
+        Set<Annotation> annotations = new HashSet<>();
         for (JsonElement annotationJson : json.get("annotations").getAsJsonArray()) {
             annotations.add(context.deserialize(annotationJson, Annotation.class));
         }

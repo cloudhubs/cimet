@@ -88,7 +88,7 @@ public class SourceToObjectUtils {
         }
 
         // Calculate early to determine classrole based on annotation, filter for class based annotations only
-        List<AnnotationExpr> classAnnotations = filterClassAnnotations();
+        Set<AnnotationExpr> classAnnotations = filterClassAnnotations();
         AnnotationExpr requestMapping = classAnnotations.stream().filter(ae -> ae.getNameAsString().equals("RequestMapping")).findFirst().orElse(null);
 
         ClassRole classRole = parseClassRole(classAnnotations);
@@ -307,8 +307,8 @@ public class SourceToObjectUtils {
      * @param annotationExprs the annotation expressions to parse
      * @return the Set of Annotation models
      */
-    private static List<Annotation> parseAnnotations(List<AnnotationExpr> annotationExprs) {
-        List<Annotation> annotations = new ArrayList<>();
+    private static Set<Annotation> parseAnnotations(Iterable<AnnotationExpr> annotationExprs) {
+        Set<Annotation> annotations = new HashSet<>();
 
         for (AnnotationExpr ae : annotationExprs) {
             Annotation annotation;
@@ -338,7 +338,7 @@ public class SourceToObjectUtils {
      * @param annotations the list of annotations to search
      * @return the ClassRole determined
      */
-    private static ClassRole parseClassRole(List<AnnotationExpr> annotations) {
+    private static ClassRole parseClassRole(Set<AnnotationExpr> annotations) {
         for (AnnotationExpr annotation : annotations) {
             switch (annotation.getNameAsString()) {
                 case "RestController":
@@ -380,7 +380,7 @@ public class SourceToObjectUtils {
      * @param classAnnotations
      * @return
      */
-    private static JClass handleFeignClient(AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
+    private static JClass handleFeignClient(AnnotationExpr requestMapping, Set<AnnotationExpr> classAnnotations) {
 
         // Parse the methods
         Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);
@@ -429,8 +429,8 @@ public class SourceToObjectUtils {
         }
     }
 
-    private static List<AnnotationExpr> filterClassAnnotations() {
-        List<AnnotationExpr> classAnnotations = new ArrayList<>();
+    private static Set<AnnotationExpr> filterClassAnnotations() {
+        Set<AnnotationExpr> classAnnotations = new HashSet<>();
         for (AnnotationExpr ae : cu.findAll(AnnotationExpr.class)) {
             if (ae.getParentNode().isPresent()) {
                 Node n = ae.getParentNode().get();
@@ -451,7 +451,7 @@ public class SourceToObjectUtils {
      * @param classAnnotations
      * @return
      */
-    private static JClass handleRepositoryRestResource(AnnotationExpr requestMapping, List<AnnotationExpr> classAnnotations) {
+    private static JClass handleRepositoryRestResource(AnnotationExpr requestMapping, Set<AnnotationExpr> classAnnotations) {
 
         // Parse the methods
         Set<Method> methods = parseMethods(cu.findAll(MethodDeclaration.class), requestMapping);

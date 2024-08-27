@@ -29,7 +29,7 @@ public class Endpoint extends Method {
     private HttpMethod httpMethod;
 
 
-    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, List<Annotation> annotations, String microserviceName,
+    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, Set<Annotation> annotations, String microserviceName,
                     String className) {
         super(methodName, packageName, parameters, returnType, annotations, microserviceName, className);
     }

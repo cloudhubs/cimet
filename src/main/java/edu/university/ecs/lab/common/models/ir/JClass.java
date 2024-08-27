@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * declarations, method calls, fields, etc.
  */
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class JClass extends ProjectFile implements JsonSerializable {
     private String packageName;
 
@@ -46,14 +46,14 @@ public class JClass extends ProjectFile implements JsonSerializable {
     /**
      * Set of class level annotations
      */
-    private List<Annotation> annotations;
+    private Set<Annotation> annotations;
 
     /**
      * Set of method invocations made from within this class
      */
     private Set<MethodCall> methodCalls;
 
-    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, List<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
+    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, Set<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
         this.name = name;
         this.packageName = packageName;
         this.path = path;

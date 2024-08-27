@@ -15,7 +15,6 @@ import java.util.Set;
  */
 @Data
 @AllArgsConstructor
-
 @EqualsAndHashCode
 public class MicroserviceSystem implements JsonSerializable {
     /**
@@ -152,5 +151,6 @@ public class MicroserviceSystem implements JsonSerializable {
             adopt(m);
         }
     }
+
 
 }
