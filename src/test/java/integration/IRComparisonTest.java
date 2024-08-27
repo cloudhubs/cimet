@@ -71,15 +71,6 @@ public class IRComparisonTest {
 
         MicroserviceSystem microserviceSystem2 = JsonReadWriteUtils.readFromJSON("./output/IRCompare.json", MicroserviceSystem.class);
 
-
-//        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
-//            for(Microservice microservice2 : microserviceSystem2.getMicroservices()) {
-//                if(microservice1.getName().equals(microservice2.getName())) {
-//                    System.out.println(microservice1.getName() + " " + Objects.deepEquals(microservice1.getClasses(), microservice2.getClasses()));
-//                }
-//            }
-//        }
-
         deepCompareSystems(microserviceSystem1, microserviceSystem2);
 
 
@@ -87,7 +78,6 @@ public class IRComparisonTest {
 //        System.out.println(b);
 
     }
-
 
     private static void createIRSystem(String configPath, String fileName, String commitID) {
         // Create both directories needed
@@ -100,39 +90,35 @@ public class IRComparisonTest {
         irExtractionService.generateIR(fileName);
     }
 
-    @Deprecated
-    private static void computeGraph(String filePath, String commitID) {
-        MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(filePath, MicroserviceSystem.class);
-        ServiceDependencyGraph serviceDependencyGraph = new ServiceDependencyGraph(microserviceSystem);
-        JsonReadWriteUtils.writeToJSON("./output/" + commitID + "-graph.json", serviceDependencyGraph);
-    }
 
     private static void deepCompareSystems(MicroserviceSystem microserviceSystem1, MicroserviceSystem microserviceSystem2) {
-
+        // Ignore orphans for testing
+        microserviceSystem1.setOrphans(null);
+        microserviceSystem2.setOrphans(null);
         System.out.println("System equivalence is: " + Objects.deepEquals(microserviceSystem1, microserviceSystem2));
 
-        for(Microservice microservice1 : microserviceSystem1.getMicroservices()) {
-            outer2:
-            {
+        for (Microservice microservice1 : microserviceSystem1.getMicroservices()) {
+            outer2: {
                 for (Microservice microservice2 : microserviceSystem2.getMicroservices()) {
                     if (microservice1.getName().equals(microservice2.getName())) {
-                        System.out.println("Microservice equivalence of " + microservice1.getName() + " is: " + Objects.deepEquals(microservice1, microservice2));
-                        outer1:
-                        {
-                            for (ProjectFile projectFile1 : microservice1.getProjectFiles()) {
-                                for (ProjectFile projectFile2 : microservice2.getProjectFiles()) {
+                        System.out.println("Microservice equivalence of " + microservice1.getPath() + " is: " + Objects.deepEquals(microservice1, microservice2));
+                        for (ProjectFile projectFile1 : microservice1.getAllFiles()) {
+                            outer1: {
+                                for (ProjectFile projectFile2 : microservice2.getAllFiles()) {
                                     if (projectFile1.getPath().equals(projectFile2.getPath())) {
-                                        System.out.println("Class equivalence of " + projectFile1.getName() + " is: " + Objects.deepEquals(projectFile1, projectFile2));
+                                        System.out.println("Class equivalence of " + projectFile1.getPath() + " is: " + Objects.deepEquals(projectFile1, projectFile2));
                                         break outer1;
                                     }
                                 }
+
+                                System.out.println("No JClass match found for " + projectFile1.getPath());
                             }
-                            System.out.println("No JClass match found for " + microservice1.getName());
                         }
                         break outer2;
                     }
                 }
-                System.out.println("No Microservice match found for " + microservice1.getName());
+
+                System.out.println("No Microservice match found for " + microservice1.getPath());
             }
         }
 

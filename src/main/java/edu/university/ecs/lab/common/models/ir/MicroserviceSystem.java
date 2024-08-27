@@ -118,7 +118,7 @@ public class MicroserviceSystem implements JsonSerializable {
 
     public ProjectFile findFile(String path){
         ProjectFile returnFile = null;
-        returnFile = getMicroservices().stream().flatMap(m -> m.getProjectFiles().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
+        returnFile = getMicroservices().stream().flatMap(m -> m.getAllFiles().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
         if(returnFile == null){
             returnFile = getOrphans().stream().filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
         }

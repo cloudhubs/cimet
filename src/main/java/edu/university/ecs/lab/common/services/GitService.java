@@ -210,7 +210,6 @@ public class GitService {
             Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
 
-
         return returnList;
     }
 

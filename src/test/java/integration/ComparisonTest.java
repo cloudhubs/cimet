@@ -31,9 +31,9 @@ public class ComparisonTest {
                 for (Microservice microservice2 : microserviceSystem2.getMicroservices()) {
                     if (microservice1.getName().equals(microservice2.getName())) {
                         System.out.println("Microservice equivalence of " + microservice1.getPath() + " is: " + Objects.deepEquals(microservice1, microservice2));
-                        for (ProjectFile projectFile1 : microservice1.getProjectFiles()) {
+                        for (ProjectFile projectFile1 : microservice1.getAllFiles()) {
                             outer1: {
-                                for (ProjectFile projectFile2 : microservice2.getProjectFiles()) {
+                                for (ProjectFile projectFile2 : microservice2.getAllFiles()) {
                                     if (projectFile1.getPath().equals(projectFile2.getPath())) {
                                         System.out.println("Class equivalence of " + projectFile1.getPath() + " is: " + Objects.deepEquals(projectFile1, projectFile2));
                                         break outer1;

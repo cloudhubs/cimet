@@ -2,7 +2,6 @@ package edu.university.ecs.lab.common.models.ir;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import lombok.AllArgsConstructor;
@@ -251,22 +250,22 @@ public class Microservice implements JsonSerializable {
      */
     public Set<JClass> getClasses() {
         Set<JClass> classes = new HashSet<>();
-        classes.addAll(controllers);
-        classes.addAll(services);
-        classes.addAll(repositories);
-        classes.addAll(entities);
-//        classes.addAll(embeddables);
-        classes.addAll(feignClients);
+        classes.addAll(getControllers());
+        classes.addAll(getServices());
+        classes.addAll(getRepositories());
+        classes.addAll(getEntities());
+        classes.addAll(getFeignClients());
 
         return classes;
     }
 
     /**
-     * This method returns all classes of the microservice in a new set
+     * This method returns all files of a microservice, it is
+     * the aggregate of {@link #getClasses()} and {@link #getFiles()}
      *
-     * @return the set of all JClasses
+     * @return the set of all classes and files
      */
-    public Set<ProjectFile> getProjectFiles() {
+    public Set<ProjectFile> getAllFiles() {
         Set<ProjectFile> set = new HashSet<>(getClasses());
         set.addAll(getFiles());
         set.addAll(getClasses());
@@ -275,10 +274,10 @@ public class Microservice implements JsonSerializable {
 
     public Set<RestCall> getRestCalls () {
         Set<RestCall> restCalls = new HashSet<>();
-        restCalls.addAll(this.services.stream()
+        restCalls.addAll(getServices().stream()
                                     .flatMap(service -> service.getRestCalls().stream())
                                     .collect(Collectors.toSet()));
-        restCalls.addAll(this.feignClients.stream()
+        restCalls.addAll(getFeignClients().stream()
                                         .flatMap(client -> client.getRestCalls().stream())
                                         .collect(Collectors.toSet()));
         return restCalls;
