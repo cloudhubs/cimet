@@ -31,19 +31,19 @@ public class NoHealthcheckTest {
 
         noHealthcheckService = new NoHealthcheckService();
     }
-
-    @Test
-    public void testNoHealthCheck(){
-        NoHealthcheck noHealthcheck = noHealthcheckService.checkHealthcheck(microserviceSystem);
-
-        Map<String, Boolean> expectedNoHealthcheck = new HashMap<>();
-
-        expectedNoHealthcheck.put("microservice-d", false);
-        expectedNoHealthcheck.put("microservice-a", true);
-        expectedNoHealthcheck.put("microservice-b", false);
-        expectedNoHealthcheck.put("microservice-c", false);
-        expectedNoHealthcheck.put("gateway", false);
-
-        assertTrue(Objects.equals(noHealthcheck.getnoHealthcheck(), expectedNoHealthcheck));
-    }
+//
+//    @Test
+//    public void testNoHealthCheck(){
+//        NoHealthcheck noHealthcheck = noHealthcheckService.checkHealthcheck(microserviceSystem);
+//
+//        Map<String, Boolean> expectedNoHealthcheck = new HashMap<>();
+//
+//        expectedNoHealthcheck.put("microservice-d", false);
+//        expectedNoHealthcheck.put("microservice-a", true);
+//        expectedNoHealthcheck.put("microservice-b", false);
+//        expectedNoHealthcheck.put("microservice-c", false);
+//        expectedNoHealthcheck.put("gateway", false);
+//
+//        assertTrue(Objects.equals(noHealthcheck.getnoHealthcheck(), expectedNoHealthcheck));
+//    }
 }

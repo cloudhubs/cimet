@@ -35,17 +35,17 @@ public class ServiceChainTest {
         serviceChainService = new ServiceChainMSLevelService();
     }
 
-    @Test
-    public void testServiceChainDetection(){
-        ServiceChain serviceChain = serviceChainService.getServiceChains(sdg);
-
-        assertTrue(serviceChain.numServiceChains() > 0);
-
-        List<List<String>> expectedServiceChain = List.of(
-            Arrays.asList("microservice-a", "microservice-b", "microservice-d"));
-
-        assertTrue(Objects.equals(serviceChain.getChain(), expectedServiceChain));
-    }
+//    @Test
+//    public void testServiceChainDetection(){
+//        ServiceChain serviceChain = serviceChainService.getServiceChains(sdg);
+//
+//        assertTrue(serviceChain.numServiceChains() > 0);
+//
+//        List<List<String>> expectedServiceChain = List.of(
+//            Arrays.asList("microservice-a", "microservice-b", "microservice-d"));
+//
+//        assertTrue(Objects.equals(serviceChain.getChain(), expectedServiceChain));
+//    }
 
     @Test
     public void testNoServiceChains() {

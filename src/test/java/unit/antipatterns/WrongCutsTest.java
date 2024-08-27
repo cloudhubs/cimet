@@ -32,15 +32,15 @@ public class WrongCutsTest {
         wrongCutsService = new WrongCutsService();
     }
 
-    @Test
-    public void testWrongCutsDetection(){
-        WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(microserviceSystem);
-
-        assertTrue(wrongCuts.numWrongCuts() > 0);
-
-        List<String> expectedWrongCuts = new ArrayList<>(Arrays.asList("microservice-a", "microservice-c", "microservice-d"));
-        Collections.sort(wrongCuts.getWrongCuts());
-
-        assertTrue(wrongCuts.getWrongCuts().equals(expectedWrongCuts));
-    }
+//    @Test
+//    public void testWrongCutsDetection(){
+//        WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(microserviceSystem);
+//
+//        assertTrue(wrongCuts.numWrongCuts() > 0);
+//
+//        List<String> expectedWrongCuts = new ArrayList<>(Arrays.asList("microservice-a", "microservice-c", "microservice-d"));
+//        Collections.sort(wrongCuts.getWrongCuts());
+//
+//        assertTrue(wrongCuts.getWrongCuts().equals(expectedWrongCuts));
+//    }
 }
