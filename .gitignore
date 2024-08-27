@@ -1,3 +1,4 @@
+.DS_Store
 /.idea/
 commands.txt
 /.settings/
@@ -12,3 +13,4 @@ commands.txt
 /test-repos/
 /clone/
 /.vscode
+/logs

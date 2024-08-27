@@ -3,12 +3,15 @@ package edu.university.ecs.lab.common.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import edu.university.ecs.lab.common.error.Error;
-import edu.university.ecs.lab.common.models.Method;
-import edu.university.ecs.lab.common.models.MethodCall;
+import edu.university.ecs.lab.common.models.ir.Method;
+import edu.university.ecs.lab.common.models.ir.MethodCall;
+import edu.university.ecs.lab.common.models.ir.ProjectFile;
 import edu.university.ecs.lab.common.models.serialization.MethodCallDeserializer;
 import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
+import edu.university.ecs.lab.common.models.serialization.ProjectFileDeserializer;
 
 import java.io.*;
+import java.util.Optional;
 
 /**
  * Utility class for reading and writing JSON to a file.
@@ -34,7 +37,7 @@ public class JsonReadWriteUtils {
         try (Writer writer = new BufferedWriter(new FileWriter(filePath))) {
             gson.toJson(object, writer);
         } catch (IOException e) {
-            Error.reportAndExit(Error.INVALID_JSON_WRITE);
+            Error.reportAndExit(Error.INVALID_JSON_READ, Optional.of(e));
         }
     }
 
@@ -53,7 +56,7 @@ public class JsonReadWriteUtils {
         try (Reader reader = new BufferedReader(new FileReader(filePath))) {
             return gson.fromJson(reader, type);
         } catch (Exception e) {
-            Error.reportAndExit(Error.INVALID_JSON_READ);
+            Error.reportAndExit(Error.INVALID_JSON_READ, Optional.of(e));
         }
 
         return null;
@@ -63,11 +66,12 @@ public class JsonReadWriteUtils {
      * Function for register custom deserializers when reading JSON from a file
      * @return
      */
-    private static Gson registerDeserializers() {
+    public static Gson registerDeserializers() {
 
         return new GsonBuilder()
                 .registerTypeAdapter(Method.class, new MethodDeserializer())
                 .registerTypeAdapter(MethodCall.class, new MethodCallDeserializer())
+                .registerTypeAdapter(ProjectFile.class, new ProjectFileDeserializer())
                 .create();
     }
 }

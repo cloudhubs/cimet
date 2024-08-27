@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.common.models.enums;
 
-import edu.university.ecs.lab.common.models.JClass;
+import edu.university.ecs.lab.common.models.ir.JClass;
 import lombok.Getter;
 
 /**
@@ -11,6 +11,8 @@ public enum ClassRole {
     SERVICE(JClass.class),
     REPOSITORY(JClass.class),
     ENTITY(JClass.class),
+    REP_REST_RSC(JClass.class),
+    FEIGN_CLIENT(JClass.class),
     UNKNOWN(null);
 
     /**

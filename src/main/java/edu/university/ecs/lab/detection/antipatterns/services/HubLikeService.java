@@ -1,11 +1,11 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import edu.university.ecs.lab.common.models.Edge;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.detection.antipatterns.models.HubLikeMicroservice;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service class for identifying and managing hub-like microservices in a network graph.
@@ -14,7 +14,8 @@ public class HubLikeService {
     /**
      * Threshold for the number of REST calls indicating a microservice is hub-like.
      */
-    private static final int RESTCALL_THRESHOLD = 5;
+    protected static final int DEFAULT_RESTCALL_THRESHOLD = GreedyService.DEFAULT_RESTCALL_THRESHOLD;
+    private final int RESTCALL_THRESHOLD;
 
     /**
      * Retrieves microservices identified as hub-like based on REST call threshold.
@@ -22,23 +23,19 @@ public class HubLikeService {
      * @param graph the network graph to analyze
      * @return a HubLikeMicroservice object containing identified hub-like microservices
      */
-    public HubLikeMicroservice getHubLikeMicroservice(NetworkGraph graph) {
-        Set<String> getHubMircoservice = new HashSet<>();
+    public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
+        List<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
+                .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD)
+                .map(Microservice::getName).collect(Collectors.toList());
 
-        for (String microserviceName : graph.getNodes()) {
-            int restCallCount = 0;
-            for (Edge edge : graph.getEdges()) {
-                if (microserviceName.equals(edge.getTarget())) {
-                    restCallCount++;
-                }
-            }
-            if (restCallCount >= RESTCALL_THRESHOLD) {
-                getHubMircoservice.add(microserviceName);
-            }
-        }
+        return new HubLikeMicroservice(getHubMicroservices);
+    }
 
-        HubLikeMicroservice hublLikeMicroservice = new HubLikeMicroservice(getHubMircoservice);
+    public HubLikeService() {
+        RESTCALL_THRESHOLD = DEFAULT_RESTCALL_THRESHOLD;
+    }
 
-        return hublLikeMicroservice;
+    public HubLikeService(int RESTCALL_THRESHOLD) {
+        this.RESTCALL_THRESHOLD = RESTCALL_THRESHOLD;
     }
 }

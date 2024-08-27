@@ -1,0 +1,6 @@
+{
+  "systemName": "blog-microservices",
+  "repositoryURL": "https://github.com/callistaenterprise/blog-microservices.git",
+  "baseCommit": "1681bdb6b1b0c64147d059f2c2e04726bce8e2f4",
+  "baseBranch": "master"
+}

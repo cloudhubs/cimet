@@ -1,0 +1,6 @@
+{
+  "systemName": "spring-cloud-netflix-example",
+  "repositoryURL": "https://github.com/yidongnan/spring-cloud-netflix-example.git",
+  "baseCommit": "3b86bf0e20a7c7da8f4e3e7e2cb15bf4cd407743",
+  "baseBranch": "master"
+}

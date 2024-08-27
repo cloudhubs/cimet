@@ -3,19 +3,26 @@ package edu.university.ecs.lab.intermediate.create.services;
 import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.error.Error;
-import edu.university.ecs.lab.common.models.JClass;
-import edu.university.ecs.lab.common.models.Microservice;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
+import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
+import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import lombok.extern.java.Log;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -28,36 +35,49 @@ public class IRExtractionService {
      */
     private final GitService gitService;
 
+    /**
+     * Configuration object
+     */
     private final Config config;
 
     /**
-     * @param configPath path to configuration file
+     * CommitID of IR Extraction
      */
-    public IRExtractionService(String configPath) {
-        gitService = new GitService(configPath);
-        config = ConfigUtil.readConfig(configPath);
-    }
+    private final String commitID;
 
-    // TODO REMOVE FOR TESTING ONLY
-    public IRExtractionService(Config config) {
-        gitService = new GitService(config);
-        this.config = config;
+    /**
+     * This constructor initializes a new IRExtractionService and instantiates a
+     * GitService object for repository manipulation
+     *
+     * @param configPath path to configuration file
+     * @param commitID optional commitID for extraction, if empty resolves to HEAD
+     * @see GitService
+     */
+    public IRExtractionService(String configPath, Optional<String> commitID) {
+        gitService = new GitService(configPath);
+
+        if(commitID.isPresent()) {
+            this.commitID = commitID.get();
+            gitService.resetLocal(this.commitID);
+        } else {
+            this.commitID = gitService.getHeadCommit();
+        }
+
+        config = ConfigUtil.readConfig(configPath);
     }
 
     /**
      * Intermediate extraction runner, generates IR from remote repository and writes to file.
      *
+     * @param fileName name of output file for IR extraction
      */
     public void generateIR(String fileName) {
         // Clone remote repositories and scan through each cloned repo to extract endpoints
         Set<Microservice> microservices = cloneAndScanServices();
 
         if (microservices.isEmpty()) {
-            System.out.println("No microservices found");
+            LoggerManager.info(() -> "No microservices were found during IR Extraction!");
         }
-
-        // Scan through each endpoint to update rest call destinations
-//    updateCallDestinations(msDataMap);
 
         //  Write each service and endpoints to IR
         writeToFile(microservices, fileName);
@@ -76,7 +96,21 @@ public class IRExtractionService {
         gitService.cloneRemote();
 
         // Start scanning from the root directory
-        List<String> rootDirectories = findRootDirectories(FileUtils.getClonePath(config.getRepoName()));
+        List<String> rootDirectories = findRootDirectories(FileUtils.getRepositoryPath(config.getRepoName()));
+        List<String> rootDirectoriesCopy = List.copyOf(rootDirectories);
+
+        // Filter more/less specific
+        for(String s1 : rootDirectoriesCopy) {
+            for(String s2 : rootDirectoriesCopy) {
+                if(s1.equals(s2)) {
+                    continue;
+                } else if(s1.matches(s2.replace(FileUtils.SYS_SEPARATOR, FileUtils.SPECIAL_SEPARATOR) + FileUtils.SPECIAL_SEPARATOR + ".*")) {
+                    rootDirectories.remove(s2);
+                } else if(s2.matches(s1.replace(FileUtils.SYS_SEPARATOR, FileUtils.SPECIAL_SEPARATOR) + FileUtils.SPECIAL_SEPARATOR + ".*")) {
+                    rootDirectories.remove(s1);
+                }
+            }
+        }
 
         // Scan each root directory for microservices
         for (String rootDirectory : rootDirectories) {
@@ -90,10 +124,10 @@ public class IRExtractionService {
     }
 
     /**
-     * Recursively search for directories containing a Dockerfile.
+     * Recursively search for directories containing a microservice (pom.xml file)
      *
      * @param directory the directory to start the search from
-     * @return a list of directory paths containing a Dockerfile
+     * @return a list of directory paths containing pom.xml
      */
     private List<String> findRootDirectories(String directory) {
         List<String> rootDirectories = new ArrayList<>();
@@ -101,25 +135,44 @@ public class IRExtractionService {
         if (root.exists() && root.isDirectory()) {
             // Check if the current directory contains a Dockerfile
             File[] files = root.listFiles();
-            boolean containsDockerfile = false;
+            boolean containsPom = false;
+            boolean containsGradle = false;
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().equals("pom.xml") && !file.getParentFile().getName().equals(config.getRepoName())) {
-                        containsDockerfile = true;
-                        break;
-                    }
-                }
-            }
-            if (containsDockerfile) {
-                rootDirectories.add(root.getPath());
-                return rootDirectories;
-            } else {
-                // Recursively search for directories containing a Dockerfile
-                for (File file : files) {
-                    if (file.isDirectory()) {
+                    if (file.isFile() && file.getName().equals("pom.xml")) {
+                        try {
+
+                            // Create a DocumentBuilder
+                            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+                            // Parse the XML file
+                            Document document = builder.parse(file);
+
+                            // Normalize the XML Structure
+                            document.getDocumentElement().normalize();
+
+                            // Get all elements with the specific tag name
+                            NodeList nodeList = document.getElementsByTagName("modules");
+                            // Check if the tag is present
+                            if (nodeList.getLength() == 0) {
+                                containsPom = true;
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException("Error parsing pom.xml");
+                        }
+                    } else if(file.isFile() && file.getName().equals("build.gradle")) {
+                        containsGradle = true;
+                    } else if (file.isDirectory()) {
                         rootDirectories.addAll(findRootDirectories(file.getPath()));
                     }
                 }
+            }
+            if (containsPom) {
+                rootDirectories.add(root.getPath());
+                return rootDirectories;
+            } else if (containsGradle){
+                rootDirectories.add(root.getPath());
+                return rootDirectories;
             }
         }
         return rootDirectories;
@@ -130,28 +183,15 @@ public class IRExtractionService {
      * Write each service and endpoints to intermediate representation
      *
      * @param microservices a list of microservices extracted from repository
+     * @param fileName the name of the output file for IR
      */
     private void writeToFile(Set<Microservice> microservices, String fileName) {
 
-        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), config.getBaseCommit(), microservices, new HashSet<>());
+        MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), commitID, microservices, new HashSet<>());
 
         JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
 
-        System.out.println("Successfully wrote rest extraction to: \"" + fileName + "\"");
-    }
-
-    /**
-     * Get name of output file for the IR
-     *
-     * @return the output file name
-     */
-    private String getOutputFileName() {
-        return FileUtils.getBaseOutputPath()
-                + "/rest-extraction-output-["
-                + config.getBaseBranch()
-                + "-"
-                + config.getBaseCommit().substring(0, 7)
-                + "].json";
+        LoggerManager.info(() -> "Successfully extracted IR at " + commitID);
     }
 
     /**
@@ -161,28 +201,18 @@ public class IRExtractionService {
      * @return model of a single service containing the extracted endpoints and dependencies
      */
     public Microservice recursivelyScanFiles(String rootMicroservicePath) {
-//        System.out.println("Scanning repository '" + rootMicroservicePath + "'...");
-
         // Validate path exists and is a directory
         File localDir = new File(rootMicroservicePath);
         if (!localDir.exists() || !localDir.isDirectory()) {
-            Error.reportAndExit(Error.INVALID_REPO_PATHS);
+            Error.reportAndExit(Error.INVALID_REPO_PATHS, Optional.empty());
         }
 
-        Set<JClass> controllers = new HashSet<>();
-        Set<JClass> services = new HashSet<>();
-        Set<JClass> repositories = new HashSet<>();
-        Set<JClass> entities = new HashSet<>();
 
+        Microservice model = new Microservice(FileUtils.getMicroserviceNameFromPath(rootMicroservicePath),
+                FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()));
+        scanDirectory(localDir, model);
 
-        scanDirectory(localDir, controllers, services, repositories, entities);
-
-        String id = FileUtils.getMicroserviceNameFromPath(rootMicroservicePath);
-
-        Microservice model =
-                new Microservice(id, FileUtils.localPathToGitPath(rootMicroservicePath, config.getRepoName()), controllers, services, repositories, entities);
-
-        System.out.println("Done!");
+        LoggerManager.info(() -> "Done scanning directory  " + rootMicroservicePath);
         return model;
     }
 
@@ -193,58 +223,33 @@ public class IRExtractionService {
      */
     public void scanDirectory(
             File directory,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities) {
+            Microservice microservice) {
         File[] files = directory.listFiles();
 
         if (files != null) {
             for (File file : files) {
                 if (file.isDirectory()) {
-                    scanDirectory(file, controllers, services, repositories, entities);
-                } else if (file.getName().endsWith(".java")) {
-                    scanFile(file, controllers, services, repositories, entities);
+                    scanDirectory(file, microservice);
+                } else if (FileUtils.isValidFile(file.getPath())) {
+
+                    if(FileUtils.isConfigurationFile(file.getPath())) {
+                        ConfigFile configFile = SourceToObjectUtils.parseConfigurationFile(file, config);
+                        if(configFile != null) {
+                            microservice.getFiles().add(configFile);
+                        }
+
+                    } else {
+                        JClass jClass = SourceToObjectUtils.parseClass(file, config, microservice.getName());
+                        if (jClass != null) {
+                            microservice.addJClass(jClass);
+                        }
+                    }
+
+
                 }
             }
         }
     }
 
-    /**
-     * Scan the given file for endpoints and calls to other services.
-     *
-     * @param file the file to scan
-     */
-    public void scanFile(
-            File file,
-            Set<JClass> controllers,
-            Set<JClass> services,
-            Set<JClass> repositories,
-            Set<JClass> entities) {
-        JClass jClass = SourceToObjectUtils.parseClass(file, config);
 
-        if (jClass == null) {
-            return;
-        }
-
-        //jClass.setClassPath(removeFirstTwoComponents(jClass.getClassPath()));
-        // Switch through class roles and handle additional logic if needed
-        switch (jClass.getClassRole()) {
-            case CONTROLLER:
-                controllers.add(jClass);
-                break;
-            case SERVICE:
-                services.add(jClass);
-                break;
-            case REPOSITORY:
-                repositories.add(jClass);
-                break;
-            case ENTITY:
-                entities.add(jClass);
-                break;
-            default:
-                break;
-        }
-
-    }
 }

@@ -1,0 +1,6 @@
+{
+  "systemName": "spring-petclinic-microservices",
+  "repositoryURL": "https://github.com/spring-petclinic/spring-petclinic-microservices.git",
+  "baseCommit": "85f8f36556121a28f765d55fb4d6510edd2165d3",
+  "baseBranch": "main"
+}

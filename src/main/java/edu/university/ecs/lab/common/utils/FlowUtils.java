@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.common.utils;
 
-import edu.university.ecs.lab.common.models.*;
+import edu.university.ecs.lab.common.models.ir.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -250,7 +250,7 @@ public class FlowUtils {
     }
 
     /**
-     * This method find's all method calls from the controllerMethod of a flow
+     * This method find's all method calls from the serviceMethod of a flow
      *
      * @param flow the flow
      * @return the list of MethodCalls from the serviceMethod of the flow

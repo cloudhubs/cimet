@@ -29,38 +29,38 @@ public class StringParserUtils {
         return s;
     }
 
-    /**
-     * Merge the given class and method paths into a single path.
-     *
-     * <p>ex: /abc/def and ghi/jkl --> abc/def/ghi/jkl
-     *
-     * @param classPath  the class base (api) path
-     * @param methodPath the method (api) path
-     * @return the merged path
-     */
-    public static String mergePaths(String classPath, String methodPath) {
-        if (classPath.startsWith("/")) classPath = classPath.substring(1);
-        if (methodPath.startsWith("/")) methodPath = methodPath.substring(1);
-
-        String path =
-                FilenameUtils.normalizeNoEndSeparator(FilenameUtils.concat(classPath, methodPath), true);
-        if (!path.startsWith("/")) path = "/" + path;
-
-        return path;
-    }
-
-    /**
-     * Find the package name in the given compilation unit.
-     *
-     * @param cu the compilation unit
-     * @return the package name else null if not found
-     */
-    public static String findPackage(CompilationUnit cu) {
-        for (PackageDeclaration pd : cu.findAll(PackageDeclaration.class)) {
-            return pd.getNameAsString();
-        }
-        return null;
-    }
+//    /**
+//     * Merge the given class and method paths into a single path.
+//     *
+//     * <p>ex: /abc/def and ghi/jkl --> abc/def/ghi/jkl
+//     *
+//     * @param classPath  the class base (api) path
+//     * @param methodPath the method (api) path
+//     * @return the merged path
+//     */
+//    public static String mergePaths(String classPath, String methodPath) {
+//        if (classPath.startsWith("/")) classPath = classPath.substring(1);
+//        if (methodPath.startsWith("/")) methodPath = methodPath.substring(1);
+//
+//        String path =
+//                FilenameUtils.normalizeNoEndSeparator(FilenameUtils.concat(classPath, methodPath), true);
+//        if (!path.startsWith("/")) path = "/" + path;
+//
+//        return path;
+//    }
+//
+//    /**
+//     * Find the package name in the given compilation unit.
+//     *
+//     * @param cu the compilation unit
+//     * @return the package name else null if not found
+//     */
+//    public static String findPackage(CompilationUnit cu) {
+//        for (PackageDeclaration pd : cu.findAll(PackageDeclaration.class)) {
+//            return pd.getNameAsString();
+//        }
+//        return null;
+//    }
 
     /**
      * Simplifies all path arguments to {?}.

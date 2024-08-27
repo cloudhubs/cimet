@@ -1,0 +1,6 @@
+{
+  "systemName": "Train-ticket",
+  "repositoryURL": "https://github.com/FudanSELab/train-ticket.git",
+  "baseCommit": "313886e99befb94be6cd45f085c98e0019f59829",
+  "baseBranch": "master"
+}

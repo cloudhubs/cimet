@@ -1,0 +1,6 @@
+{
+  "systemName": "spring-netflix-oss-microservices",
+  "repositoryURL": "https://github.com/fernandoabcampos/spring-netflix-oss-microservices.git",
+  "baseCommit": "8668c4dffd9464b5d724f4d1a9547e029ee03d12",
+  "baseBranch": "master"
+}

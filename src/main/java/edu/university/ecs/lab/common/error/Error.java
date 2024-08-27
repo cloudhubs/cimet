@@ -1,6 +1,9 @@
 package edu.university.ecs.lab.common.error;
 
+import edu.university.ecs.lab.common.services.LoggerManager;
 import lombok.Getter;
+
+import java.util.Optional;
 
 /**
  * Enum representing different error types with corresponding error codes and messages.
@@ -9,7 +12,7 @@ import lombok.Getter;
 public enum Error {
     UNKNOWN_ERROR(1, "Unknown error has occured!"),
     NULL_ERROR(1, "Input cannot be null!"),
-    INVALID_REPOSITORY_LINK(2, "Invalid repository link!"),
+    INVALID_REPOSITORY_URL(2, "Invalid repository URL!"),
     INVALID_REPO_PATHS(3, "Invalid relative repository paths!"),
     INVALID_REPO_PATH(4, "Invalid repository relative path after update! Skipping!"),
     INVALID_CONFIG_PATH(5, "Invalid configuration file path!"),
@@ -18,7 +21,8 @@ public enum Error {
     INVALID_ARGS(8, "Invalid arguments!"),
     INVALID_JSON_READ(9, "Unable to read JSON from file!"),
     INVALID_JSON_WRITE(10, "Unable to write JSON to file!"),
-    JPARSE_FAILED(10, "Failed to parse Java Code!");
+    JPARSE_FAILED(10, "Failed to parse Java Code!"),
+    INVALID_CONFIG(10, "Invalid configuration file!");
 
     /**
      *  The unique error code identifying the error type.
@@ -45,8 +49,8 @@ public enum Error {
      *
      * @param error The error enum value to report and exit with.
      */
-    public static void reportAndExit(Error error) {
-        System.err.println(error.getMessage());
+    public static void reportAndExit(Error error, Optional<Exception> exception) {
+        LoggerManager.error(error::getMessage, exception);
         System.exit(error.code);
     }
 

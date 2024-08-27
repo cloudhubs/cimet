@@ -1,78 +1,115 @@
 package edu.university.ecs.lab.detection.antipatterns.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import java.util.Map;
+import java.util.HashMap;
 
+import com.google.gson.JsonObject;
+
+import edu.university.ecs.lab.common.models.enums.FileType;
+import edu.university.ecs.lab.common.models.ir.ConfigFile;
+import edu.university.ecs.lab.common.models.ir.Microservice;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.detection.antipatterns.models.NoHealthcheck;
 
-import java.io.File;
-import java.io.IOException;
 
 /**
- * Service class to check the presence of health check configurations in a YAML file.
- */
+* Service class to check the presence of health check configurations in a YAML file.
+*/
 public class NoHealthcheckService {
 
-    /**
-     * Checks if both circuit breaker and rate limiter health checks are enabled in the YAML configuration.
-     * @param yamlFilePath The path to the YAML file to check.
-     * @return NoHealthcheck object that contains true if both circuit breaker 
-     * and rate limiter health checks are enabled, NoHealthcheck object that contains false otherwise.
-     */
-    public NoHealthcheck checkHealthcheck(String yamlFilePath) {
-        NoHealthcheck noHealthCheck = new NoHealthcheck(false);
-        try {
-            String jsonContent = convertYamlToJson(yamlFilePath);
+   /**
+    * Checks if both circuit breaker and rate limiter health checks are enabled in the YAML configuration.
+    * @param yamlFilePath The path to the YAML file to check.
+    * @return NoHealthcheck object that contains true if both circuit breaker
+    * and rate limiter health checks are enabled, NoHealthcheck object that contains false otherwise.
+    */
+    public NoHealthcheck checkHealthcheck(MicroserviceSystem microserviceSystem) {
+        Map<String, Boolean> noHealthCheckMap = new HashMap<>();
 
-            boolean circuitBreakerEnabled = isCircuitBreakerEnabled(jsonContent);
-            boolean rateLimiterEnabled = isRateLimiterEnabled(jsonContent);
-            return noHealthCheck = new NoHealthcheck(circuitBreakerEnabled && rateLimiterEnabled);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return noHealthCheck;
+        for (Microservice microservice : microserviceSystem.getMicroservices()){
+            if (microservice.getFiles().isEmpty()){
+                noHealthCheckMap.put(microservice.getName(), false);
+            }
+            for (ConfigFile configFile : microservice.getFiles()){
+                if (configFile.getName().equals("application.yml") && configFile.getFileType().equals(FileType.CONFIG)){
+                    JsonObject data = configFile.getData();
+                    if (data != null){
+                        if (containsHealthCheck(data)){
+                            noHealthCheckMap.put(microservice.getName(), true);
+                        }
+                        else{
+                            noHealthCheckMap.put(microservice.getName(), false);
+                        }
+                    }
+                }
+                else{
+                    noHealthCheckMap.put(microservice.getName(), false);
+                }
+            }
         }
-    }
 
-    /**
-     * Converts YAML content from a file to JSON format.
-     * @param yamlFilePath The path to the YAML file.
-     * @return JSON string representation of the YAML content.
-     * @throws IOException If there is an error reading the YAML file.
+        return new NoHealthcheck(noHealthCheckMap);
+   }
+
+   /**
+     * Checks if the given JSON object contains the necessary configurations for health checks.
+     * Specifically, it verifies if both circuit breaker and rate limiter health checks are enabled
+     * and if the health indicators are registered for both circuit breakers and rate limiters.
+     *
+     * @param data The JsonObject representing the configuration data to check.
+     * @return true if the necessary health check configurations are present and enabled, false otherwise.
      */
-    private String convertYamlToJson(String yamlFilePath) throws IOException {
-        ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-        JsonNode yamlNode = yamlMapper.readTree(new File(yamlFilePath));
-        ObjectMapper jsonMapper = new ObjectMapper();
-        return jsonMapper.writeValueAsString(yamlNode);
-    }
+    private boolean containsHealthCheck(JsonObject data){
+        boolean healthCheckEnabled = false;
+        boolean registerHealthIndicatorCB = false;
+        boolean registerHealthIndicatorRL = false;
 
-    /**
-     * Checks if the circuit breaker health check is enabled in the JSON content.
-     * @param jsonContent The JSON content to check.
-     * @return true if circuit breaker health check is enabled, false otherwise.
-     * @throws IOException If there is an error processing the JSON content.
-     */
-    private boolean isCircuitBreakerEnabled(String jsonContent) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(jsonContent);
+        if (data.has("management")) {
+            JsonObject management = data.getAsJsonObject("management");
+            if (management.has("health")) {
+                JsonObject health = management.getAsJsonObject("health");
+                if (health.has("circuitbreakers")) {
+                    if (health.has("ratelimiters")) {
+                        JsonObject ratelimiters = health.getAsJsonObject("ratelimiters");
+                        JsonObject circuitbreakers = health.getAsJsonObject("circuitbreakers");
+                        if (circuitbreakers.has("enabled") && circuitbreakers.get("enabled").getAsBoolean() &&
+                            ratelimiters.has("enabled") && ratelimiters.get("enabled").getAsBoolean()) {
+                            healthCheckEnabled = true;
+                        }
+                    }
+                }
+            }
+        }
 
-        JsonNode circuitBreakerNode = rootNode.path("management.health.circuitbreakers.enabled");
-        return circuitBreakerNode.isBoolean() && circuitBreakerNode.asBoolean(false);
-    }
+        if (data.has("resilience4j")) {
+            JsonObject resilience4j = data.getAsJsonObject("resilience4j");
+            if (resilience4j.has("circuitbreaker")) {
+                JsonObject circuitbreaker = resilience4j.getAsJsonObject("circuitbreaker");
+                if (circuitbreaker.has("configs")) {
+                    JsonObject configs = circuitbreaker.getAsJsonObject("configs");
+                    if (configs.has("default")) {
+                        JsonObject defaultConfig = configs.getAsJsonObject("default");
+                        if (defaultConfig.has("registerHealthIndicator") && defaultConfig.get("registerHealthIndicator").getAsBoolean()) {
+                            registerHealthIndicatorCB = true;
+                        }
+                    }
+                }
+            }
 
-    /**
-     * Checks if the rate limiter health check is enabled in the JSON content.
-     * @param jsonContent The JSON content to check.
-     * @return true if rate limiter health check is enabled, false otherwise.
-     * @throws IOException If there is an error processing the JSON content.
-     */
-    private boolean isRateLimiterEnabled(String jsonContent) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(jsonContent);
+            if (resilience4j.has("ratelimiter")) {
+                JsonObject ratelimiter = resilience4j.getAsJsonObject("ratelimiter");
+                if (ratelimiter.has("configs")) {
+                    JsonObject configs = ratelimiter.getAsJsonObject("configs");
+                    if (configs.has("instances")) {
+                        JsonObject instances = configs.getAsJsonObject("instances");
+                        if (instances.has("registerHealthIndicator") && instances.get("registerHealthIndicator").getAsBoolean()) {
+                            registerHealthIndicatorRL = true;
+                        }
+                    }
+                }
+            }
+        }
 
-        JsonNode rateLimiterNode = rootNode.path("management.health.ratelimiters.enabled");
-        return rateLimiterNode.isBoolean() && rateLimiterNode.asBoolean(false);
-    }
+        return healthCheckEnabled && registerHealthIndicatorCB && registerHealthIndicatorRL;
+   }
 }

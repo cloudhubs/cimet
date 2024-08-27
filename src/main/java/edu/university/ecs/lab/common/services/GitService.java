@@ -7,7 +7,9 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -17,6 +19,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Service for managing local repository including the cloning
@@ -25,7 +28,6 @@ import java.util.Objects;
 public class GitService {
     private static final int EXIT_SUCCESS = 0;
     private static final String HEAD_COMMIT = "HEAD";
-
 
     /**
      * Configuration file path
@@ -37,26 +39,30 @@ public class GitService {
      */
     private final Repository repository;
 
+
+    /**
+     * Instantiation of this service will result in the following
+     * 1.) output and clone directories will be created or validated
+     * 2.) Configuration file will be read and validated by it's constructor
+     * 3.) The repository in config will be cloned or validated
+     *
+     * @param configPath
+     */
     public GitService(String configPath) {
+        // 1.) Read config
         this.config = ConfigUtil.readConfig(configPath);
+
+        // 2.) Make the output and clone directory
+        FileUtils.makeDirs();
+
+        // 3.) Clone the repository
         cloneRemote();
 
         // If clone was successful we can now set repo and reset local repo to config base commit
         this.repository = initRepository();
-        resetLocal(config.getBaseCommit());
 
     }
 
-    // TODO REMOVE THIS IS FOR TESTING ONLY
-    public GitService(Config config) {
-        this.config = config;
-        cloneRemote();
-
-        // If clone was successful we can now set repo and reset local repo to config base commit
-        this.repository = initRepository();
-        resetLocal(config.getBaseCommit());
-
-    }
 
     /**
      * This method clones a remote repository to the local file system. Postcondition: the repository
@@ -64,16 +70,17 @@ public class GitService {
      *
      */
     public void cloneRemote() {
+        // Quietly return assuming cloning already took place
+        String repositoryPath = FileUtils.getRepositoryPath(config.getRepoName());
 
         // Quietly return assuming cloning already took place
-        File file = new File(FileUtils.getClonePath(config.getRepoName()));
-        if (file.exists()) {
+        if (new File(repositoryPath).exists()) {
             return;
         }
 
         try {
             ProcessBuilder processBuilder =
-                    new ProcessBuilder("git", "clone", config.getRepositoryURL(), FileUtils.getClonePath(config.getRepoName()));
+                    new ProcessBuilder("git", "clone", config.getRepositoryURL(), repositoryPath);
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
@@ -85,8 +92,10 @@ public class GitService {
             }
 
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
+
+        LoggerManager.info(() -> "Cloned repository " + config.getRepoName());
     }
 
     /**
@@ -99,35 +108,20 @@ public class GitService {
     public void resetLocal(String commitID) {
         validateLocalExists();
 
+        // If an invalid commit is passed simply make no change
         if (Objects.isNull(commitID) || commitID.isEmpty()) {
-            commitID = HEAD_COMMIT;
+            return;
         }
 
         try (Git git = new Git(repository)) {
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(commitID).call();
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
 
-    }
+        LoggerManager.info(() -> "Set repository " + config.getRepoName() + " to " + commitID);
 
-    /**
-     * This method reset's the local branch to a relative commit
-     * from head
-     *
-     * @param relativeIndex if empty or null, defaults to HEAD
-     * @return boolean indicating success
-     */
-    public boolean resetLocal(int relativeIndex) {
 
-        try (Git git = new Git(repository)) {
-            String relativeHead = HEAD_COMMIT + "~" + relativeIndex;
-            git.reset().setMode(ResetCommand.ResetType.HARD).setRef(relativeHead).call();
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -135,9 +129,9 @@ public class GitService {
      * reports and exits if it doesn't.
      */
     private void validateLocalExists() {
-        File file = new File(FileUtils.getBaseClonePath());
+        File file = new File(FileUtils.getRepositoryPath(config.getRepoName()));
         if (!(file.exists() && file.isDirectory())) {
-            Error.reportAndExit(Error.REPO_DONT_EXIST);
+            Error.reportAndExit(Error.REPO_DONT_EXIST, Optional.empty());
         }
     }
 
@@ -152,11 +146,11 @@ public class GitService {
         Repository repository = null;
 
         try {
-            File localRepoDir = new File(FileUtils.getClonePath(config.getRepoName()));
-            repository = new FileRepositoryBuilder().setGitDir(new File(localRepoDir, ".git")).build();
+            File repositoryPath = new File(FileUtils.getRepositoryPath(config.getRepoName()));
+            repository = new FileRepositoryBuilder().setGitDir(new File(repositoryPath, ".git")).build();
 
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
+            Error.reportAndExit(Error.GIT_FAILED,Optional.of(e));
         }
 
         return repository;
@@ -171,13 +165,17 @@ public class GitService {
      * @return the list of differences as DiffEntrys
      * @throws Exception
      */
-    public List<DiffEntry> getDifferences(String commitOld, String commitNew) throws Exception {
+    public List<DiffEntry> getDifferences(String commitOld, String commitNew) {
         List<DiffEntry> returnList = null;
-
+        RevCommit oldCommit = null, newCommit = null;
         RevWalk revWalk = new RevWalk(repository);
-//    String relativeHead = HEAD_COMMIT + "~" + relativeIndex;
-        RevCommit oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
-        RevCommit newCommit = revWalk.parseCommit(repository.resolve(commitNew));
+
+        try {
+            oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
+            newCommit = revWalk.parseCommit(repository.resolve(commitNew));
+        } catch (Exception e) {
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
+        }
 
         // Prepare tree parsers for both commits
         try (ObjectReader reader = repository.newObjectReader()) {
@@ -195,8 +193,10 @@ public class GitService {
 
             }
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
+
+        LoggerManager.debug(() -> "Got differences of repository " + config.getRepoName() + " between " + commitOld + " -> " + commitNew);
 
         return returnList;
     }
@@ -207,11 +207,31 @@ public class GitService {
         try (Git git = new Git(repository)) {
             returnList = git.log().call();
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED);
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
 
-
         return returnList;
+    }
+
+    public String getHeadCommit() {
+        String commitID = "";
+
+        try {
+            // Get the reference to HEAD
+            Ref head = repository.findRef(HEAD_COMMIT);
+            RevWalk walk = new RevWalk(repository);
+
+            // Use RevWalk to parse the commit
+            ObjectId commitId = head.getObjectId();
+            RevCommit commit = walk.parseCommit(commitId);
+
+            commitID = commit.getName();
+
+        } catch (Exception e) {
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
+        }
+
+        return commitID;
     }
 
 

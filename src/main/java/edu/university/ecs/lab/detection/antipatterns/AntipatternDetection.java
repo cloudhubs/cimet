@@ -1,10 +1,9 @@
 package edu.university.ecs.lab.detection.antipatterns;
 
 import com.google.gson.Gson;
-import edu.university.ecs.lab.common.config.Config;
-import edu.university.ecs.lab.common.config.ConfigUtil;
-import edu.university.ecs.lab.common.models.MicroserviceSystem;
-import edu.university.ecs.lab.common.models.NetworkGraph;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
+import edu.university.ecs.lab.common.models.sdg.MethodDependencyGraph;
+import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
@@ -13,91 +12,115 @@ import edu.university.ecs.lab.detection.antipatterns.services.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
+import java.util.Optional;
 
 public class AntipatternDetection {
     public static void main(String[] args) {
-
-        Config config = ConfigUtil.readConfig("./config.json");
-
         // Create IR of first commit
-        createIRSystem(config, "IR.json");
+        createIRSystem("./configs/config_spring-boot-microservices.json", "IR.json");
 
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
-        NetworkGraph sdg = new NetworkGraph();
-        sdg.createGraph(currentSystem);
+        ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
+        MethodDependencyGraph mdg = new MethodDependencyGraph(currentSystem);
 
-        writeObjectToJsonFile(sdg, "networkgraph.json");
+        writeObjectToJsonFile(sdg.toJsonObject(), "sdg.json");
+        writeObjectToJsonFile(mdg.toJsonObject(), "mdg.json");
 
         int detectedAntipatterns = 0;
 
         GreedyService greedy = new GreedyService();
         GreedyMicroservice greedyMicroservices = greedy.getGreedyMicroservices(sdg);
         if (!greedyMicroservices.getGreedyMicroservices().isEmpty()){
+            System.out.println("Greedy Services detected");
             detectedAntipatterns++;
-            writeObjectToJsonFile(greedyMicroservices, "greedy.json");
+            JsonReadWriteUtils.writeToJSON("./output/greedy.json", greedyMicroservices.toJsonObject());
         }
         
         HubLikeService hublike = new HubLikeService();
         HubLikeMicroservice hublikeMicroservices = hublike.getHubLikeMicroservice(sdg);
         if (!hublikeMicroservices.getHublikeMicroservices().isEmpty()){
+            System.out.println("Hublike Services detected");
             detectedAntipatterns++;
-            writeObjectToJsonFile(hublikeMicroservices, "hublike.json");
+            JsonReadWriteUtils.writeToJSON("./output/hublike.json", hublikeMicroservices.toJsonObject());
         }
         
 
-        ServiceChainService chainService = new ServiceChainService();
-        List<ServiceChain> allChains = chainService.getServiceChains(sdg);
-        if (!allChains.isEmpty()){
+        ServiceChainMSLevelService chainService = new ServiceChainMSLevelService();
+        ServiceChain allChains = chainService.getServiceChains(sdg);
+        if (!allChains.getChain().isEmpty()){
+            System.out.println("Service chains detected (Service level)");
             detectedAntipatterns++;
-            writeObjectToJsonFile(allChains, "servicechain.json");
+            JsonReadWriteUtils.writeToJSON("./output/servicechainMSlevel.json", allChains.toJsonObject());
         }
-        
+
+        ServiceChainMethodLevelService chainService2 = new ServiceChainMethodLevelService();
+        ServiceChain allChains2 = chainService2.getServiceChains(mdg);
+        if (!allChains2.getChain().isEmpty()){
+            System.out.println("Service chains detected (Method level)");
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/servicechainMethodlevel.json", allChains2.toJsonObject());
+        }
+
         WrongCutsService wrongCutsService = new WrongCutsService();
-        List<WrongCuts> wrongCuts = wrongCutsService.identifyAndReportWrongCuts(sdg);
-        if (!wrongCuts.isEmpty()){
+        WrongCuts wrongCuts = wrongCutsService.detectWrongCuts(currentSystem);
+        if (!wrongCuts.getWrongCuts().isEmpty()){
+            System.out.println("Wrongs cuts detected");
             detectedAntipatterns++;
-            writeObjectToJsonFile(wrongCuts, "wrongcuts.json");
+            JsonReadWriteUtils.writeToJSON("./output/wrongcuts.json", wrongCuts.toJsonObject());
         }
         
-        CyclicDependencyService cycles = new CyclicDependencyService();
-        List<CyclicDependency> cycleDependencies = cycles.findCyclicDependencies(sdg);
-        if (!cycleDependencies.isEmpty()){
+        CyclicDependencyMSLevelService cycles = new CyclicDependencyMSLevelService();
+        CyclicDependency cycleDependencies = cycles.findCyclicDependencies(sdg);
+        if (!cycleDependencies.getCycles().isEmpty()){
+            System.out.println("Cyclic dependencies detected (Service level)");
             detectedAntipatterns++;
-            writeObjectToJsonFile(cycleDependencies, "cyclicdependencies.json");
+            JsonReadWriteUtils.writeToJSON("./output/cyclicdependenciesMSlevel.json", cycleDependencies.toJsonObject());
         }
-        
+
+        CyclicDependencyMethodLevelService cycles2 = new CyclicDependencyMethodLevelService();
+        CyclicDependency cycleDependencies2 = cycles2.findCyclicDependencies(mdg);
+        if (!cycleDependencies2.getCycles().isEmpty()){
+            System.out.println("Cyclic dependencies detected (Method level)");
+            detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/cyclicdependenciesMethodlevel.json", cycleDependencies2.toJsonObject());
+        }
+
         NoHealthcheckService noHealthCheckService = new NoHealthcheckService();
-        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck("./healthcheck.yaml");
-        if (noHealthCheck.getnoHealthcheck()){
+        NoHealthcheck noHealthCheck = noHealthCheckService.checkHealthcheck(currentSystem);
+        if (!noHealthCheck.getnoHealthcheck().isEmpty()){
+            System.out.println("No heath check detected");
             detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/nohealthcheck.json", noHealthCheck.toJsonObject());
         }
 
         WobblyServiceInteractionService wobbly = new WobblyServiceInteractionService();
-        List<WobblyServiceInteraction> wobblyService = wobbly.checkForWobblyServiceInteractions(currentSystem);
-        if (!wobblyService.isEmpty()){
+        WobblyServiceInteraction wobblyService = wobbly.findWobblyServiceInteractions(currentSystem);
+        if (!wobblyService.getWobblyServiceInteractions().isEmpty()){
+            System.out.println("Wobbly service interactions detected");
             detectedAntipatterns++;
-            writeObjectToJsonFile(wobblyService, "wobblyserviceinteractions.json");
+            JsonReadWriteUtils.writeToJSON("./output/wobblyserviceinteratcions.json", wobblyService.toJsonObject());
         }
 
         NoApiGatewayService noApiGatewayService = new NoApiGatewayService();
-        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway("./apigateway.yaml");
+        NoApiGateway noApiGateway = noApiGatewayService.checkforApiGateway(currentSystem);
         if (noApiGateway.getnoApiGateway()){
+            System.out.println("No API Gateway detected");
             detectedAntipatterns++;
+            JsonReadWriteUtils.writeToJSON("./output/noapigateway.json", noApiGateway.toJsonObject());
         }
 
         System.out.println("Number of Anti-Patterns Detected: " + detectedAntipatterns);
 
     }
 
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) {
         // Create both directories needed
-        FileUtils.createPaths();
+        FileUtils.makeDirs();
 
         // Initialize the irExtractionService
-        IRExtractionService irExtractionService = new IRExtractionService(config);
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.empty());
 
         // Generate the Intermediate Representation
         irExtractionService.generateIR(fileName);

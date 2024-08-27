@@ -4,8 +4,8 @@ import edu.university.ecs.lab.common.error.Error;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static edu.university.ecs.lab.common.error.Error.NULL_ERROR;
 
@@ -32,58 +32,45 @@ public class Config {
     /**
      * Initial starting commit for repository
      */
-    private String baseCommit;
+    private final String branch;
 
-    /**
-     * Initial starting commit for repository
-     */
-    private final String baseBranch;
 
-    /**
-     * Paths relative to the repository that indicate locations of microservices
-     */
-    private List<String> relativeMicroservicePaths;
-
-    public Config(String systemName, String repositoryURL, List<String> relativeMicroservicePaths, String baseCommit, String baseBranch) throws Exception {
-        Objects.requireNonNull(systemName, NULL_ERROR.getMessage());
-        Objects.requireNonNull(repositoryURL, NULL_ERROR.getMessage());
-        Objects.requireNonNull(relativeMicroservicePaths, NULL_ERROR.getMessage());
-        Objects.requireNonNull(baseCommit, NULL_ERROR.getMessage());
-        Objects.requireNonNull(baseBranch, NULL_ERROR.getMessage());
-        validateRepositoryLink(repositoryURL);
-        validateRelativeRepositoryPaths(relativeMicroservicePaths);
+    public Config(String systemName, String repositoryURL, String branch) throws Exception {
+        validateConfig(systemName, repositoryURL, branch);
 
         this.systemName = systemName;
         this.repositoryURL = repositoryURL;
-        this.baseCommit = baseCommit;
-        this.baseBranch = baseBranch;
+        this.branch = branch;
     }
 
     /**
      * This method
      */
 
-    private void validateConfig() {
+    private void validateConfig(String systemName, String repositoryURL, String branch) {
+        try {
+            Objects.requireNonNull(systemName);
+            Objects.requireNonNull(repositoryURL);
+            Objects.requireNonNull(branch);
+            validateConfig(systemName, repositoryURL, branch);
 
-    }
-
-    /**
-     * The list of repository objects as indicated by config
-     */
-
-    private void validateRepositoryLink(String repositoryLink) {
-        if (!(repositoryLink.isBlank() || repositoryLink.startsWith(GIT_SCHEME_DOMAIN) || repositoryLink.endsWith(GIT_PATH_EXTENSION))) {
-            Error.reportAndExit(Error.INVALID_REPOSITORY_LINK);
+            assert !systemName.isBlank() && !repositoryURL.isBlank() && !branch.isBlank();
+        } catch (Exception e) {
+            Error.reportAndExit(Error.INVALID_CONFIG, Optional.of(e));
         }
+        Objects.requireNonNull(systemName, NULL_ERROR.getMessage());
+        Objects.requireNonNull(repositoryURL, NULL_ERROR.getMessage());
+        Objects.requireNonNull(branch, NULL_ERROR.getMessage());
+        validateRepositoryURL(repositoryURL);
     }
 
     /**
      * The list of repository objects as indicated by config
      */
 
-    private void validateRelativeRepositoryPaths(List<String> relativeMicroservicePaths) {
-        if (relativeMicroservicePaths.isEmpty()) {
-            Error.reportAndExit(Error.INVALID_REPO_PATHS);
+    private void validateRepositoryURL(String repositoryURL) {
+        if (!(repositoryURL.isBlank() || repositoryURL.startsWith(GIT_SCHEME_DOMAIN) || repositoryURL.endsWith(GIT_PATH_EXTENSION))) {
+            Error.reportAndExit(Error.INVALID_REPOSITORY_URL, Optional.empty());
         }
     }
 
