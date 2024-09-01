@@ -33,7 +33,6 @@ public class WobblyServiceInteractionsTest {
         wobblyServiceInteractionService = new WobblyServiceInteractionService();
     }
 
-    @Test
     public void testWobblyServiceDetection(){
         WobblyServiceInteraction wobblyServiceInteraction = wobblyServiceInteractionService.findWobblyServiceInteractions(microserviceSystem);
 

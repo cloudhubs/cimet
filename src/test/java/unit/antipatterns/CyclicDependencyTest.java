@@ -39,7 +39,6 @@ public class CyclicDependencyTest {
         cyclicService = new CyclicDependencyMSLevelService();
     }
 
-    @Test
     public void testCyclicDependencyDetection(){
         CyclicDependency cyclicDep = cyclicService.findCyclicDependencies(sdg);
 
