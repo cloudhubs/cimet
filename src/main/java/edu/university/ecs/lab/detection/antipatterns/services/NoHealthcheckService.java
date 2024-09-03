@@ -64,6 +64,7 @@ public class NoHealthcheckService {
         boolean registerHealthIndicatorCB = false;
         boolean registerHealthIndicatorRL = false;
 
+        // for health check: "management" object needs "health" with both "circuitbreakers" and "ratelimiters" enabled
         if (data.has("management")) {
             JsonObject management = data.getAsJsonObject("management");
             if (management.has("health")) {
@@ -81,6 +82,10 @@ public class NoHealthcheckService {
             }
         }
 
+        // for registered circuit breaker health indicator:
+        //     "resilience4j" needs "circuitbreaker" -> "configs" -> "default" with "registerHealthIndicator" marked as true
+        // for registered rate limiter health indicator:
+        //     "ratelimiter" -> "configs" -> "instances" with "registerHealthIndicator" marked as true
         if (data.has("resilience4j")) {
             JsonObject resilience4j = data.getAsJsonObject("resilience4j");
             if (resilience4j.has("circuitbreaker")) {

@@ -7,7 +7,7 @@ import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
 import java.util.*;
 
 /**
- * Service class for detecting cyclic dependencies in a network graph.
+ * Service class for detecting cyclic dependencies in a microservice network graph.
  */
 public class CyclicDependencyMSLevelService {
 
@@ -30,6 +30,7 @@ public class CyclicDependencyMSLevelService {
         parentMap = new HashMap<>();
         this.graph = graph;
 
+        // Find cycles for each node in service dependency graph
         graph.vertexSet().stream().filter(node -> !visited.contains(node)).forEach(this::findCycles);
 
         return new CyclicDependency(allCycles);
@@ -41,10 +42,15 @@ public class CyclicDependencyMSLevelService {
      * @param currentNode        the current node to check
      */
     private void findCycles(Microservice currentNode) {
+        // Add current node to visited list and recStack
         visited.add(currentNode);
         recStack.add(currentNode);
 
+        // Iterate through each node in adjacency list
         this.graph.getAdjacency(currentNode).forEach(neighbor -> {
+            // If adjacent node has not already been checked, add current node and neigbor 
+            // node to parent map and recursively find cycles for neighbor node. Otherwise, 
+            // use parent map to reconstruct cycle path and add to allCycles list.
             if (!visited.contains(neighbor)) {
                 parentMap.put(neighbor, currentNode);
                 findCycles(neighbor);
@@ -67,6 +73,8 @@ public class CyclicDependencyMSLevelService {
         List<String> fullCyclePath = new ArrayList<>();
         Microservice node = currentNode;
 
+        // Iterate through each node in parent map until startNode is reached, adding each to 
+        // the cycle path
         fullCyclePath.add(startNode.getName());
         while (node != null && !node.equals(startNode)) {
             fullCyclePath.add(node.getName());

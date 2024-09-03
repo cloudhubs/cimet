@@ -11,8 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Service for detecting wobbly service interactions within a microservice system based on specific annotations.
+ */
 public class WobblyServiceInteractionService {
 
+    /**
+     * Detects all wobbly/unstable service interactions in the given network graph
+     * 
+     * @param currentSystem The microservice system representing microservices and their dependencies.
+     * @return A WobblyServiceInteraction object containing a list of services with wobbly interactions.
+     */
     public WobblyServiceInteraction findWobblyServiceInteractions(MicroserviceSystem currentSystem) {
         List<String> wobblyInteractions = new ArrayList<>();
 
@@ -38,6 +47,9 @@ public class WobblyServiceInteractionService {
                             hasBulkhead = true;
                         }
                     }
+                    
+                    // Add each method with CircuitBreaker, RateLimiter, Retry, and Bulkhead annotations to 
+                    // wobblyInteractions list
                     if (hasCircuitBreaker && hasRateLimiter && hasRetry && hasBulkhead) {
                         String interaction = microservice.getName() + "." + jClass.getName() + "." + method.getName();
                         wobblyInteractions.add(interaction);
@@ -52,6 +64,7 @@ public class WobblyServiceInteractionService {
             }
         }
 
+        // Create and return a WobblyServiceInteraction object with the aggregated list
         return new WobblyServiceInteraction(wobblyInteractions);
     }
 }
