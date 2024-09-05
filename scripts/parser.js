@@ -1,51 +1,119 @@
 const acorn = require("acorn");
 const walk = require("acorn-walk");
 
-// Sample Angular code with nested API calls
-const angularCode = `
-class ApiService {
-  constructor(http) {
-    this.http = http;
-  }
+// Sample AngularJS code (same as before)
+const jsCode = `
+'use strict';
 
-  fetchData() {
-    return this.http.get('https://api.example.com/data');
-  }
+/**
+ * @ngdoc service
+ * @name alertApp.dataService
+ * @description
+ * # dataService
+ * Factory in the alertApp.
+ */
+angular.module('oauthApp')
+    .factory('dataService', function ($http, $q) {
+        var userApi = '/user-service/';
+        var taskApi = '/task-service/';
+        var loggedInUserApi = '/api/loggedinuser/me';
 
-  sendData(data) {
-    return this.http.post('https://api.example.com/data', data);
-  }
-}
+        var makeRestCall = function (url) {
+            return $http.get(url)
+                .then(function (response) {
+                    if (typeof response.data === 'object') {
+                        return response.data;
+                    } else {
+                        return $q.reject(response.data);
+                    }
+                }, function (response) {
+                    return $q.reject(response.data);
+                });
+        };
+
+        return {
+            getAllUserData: function () {
+                return makeRestCall(userApi);
+            },
+            getAllTaskData: function () {
+                return makeRestCall(taskApi);
+            },
+            getUserDataByUserName: function (userName) {
+                return makeRestCall(userApi + userName);
+            },
+            getTaskDataByTaskId: function (taskId) {
+                return makeRestCall(taskApi + taskId);
+            },
+            getTaskDataByUserName: function (userName) {
+                return makeRestCall(taskApi + 'usertask' + '/' + userName);
+            },
+            getLoggedInUser: function () {
+                return makeRestCall(loggedInUserApi);
+            }
+        };
+    });
 `;
 
-// Parse the code to get the AST
-const ast = acorn.parse(angularCode, { sourceType: "module", ecmaVersion: 2020 });
+// Parse the JavaScript code to get the AST
+const ast = acorn.parse(jsCode, { sourceType: "module", ecmaVersion: 2020 });
 
-// List of HttpClient methods to identify
-const httpClientMethods = ["get", "post", "put", "delete", "patch", "head", "options"];
+// Object to store variable values
+const variableValues = {};
 
-// Function to check if a node represents an API call
-function isHttpClientApiCall(node) {
+// Function to check if a node is a makeRestCall invocation
+function isMakeRestCall(node) {
     return (
         node.type === "CallExpression" &&
-        node.callee.type === "MemberExpression" &&
-        node.callee.object.type === "MemberExpression" &&
-        node.callee.object.object.type === "ThisExpression" &&
-        node.callee.object.property.name === "http" &&
-        node.callee.property.type === "Identifier" &&
-        httpClientMethods.includes(node.callee.property.name)
+        node.callee.type === "Identifier" &&
+        node.callee.name === "makeRestCall"
     );
 }
 
-// Walk through the AST and find API calls
-walk.ancestor(ast, {
-    CallExpression(node, ancestors) {
-        if (isHttpClientApiCall(node)) {
-            const functionName = ancestors.find((ancestor) => ancestor.type === "FunctionDeclaration" || ancestor.type === "MethodDefinition");
-            const functionNameText = functionName ? functionName.key.name : "anonymous function";
+// Create URL
+function resolveNode(node) {
+    if (node.type === "Literal") {
+        // Return literal value
+        return node.value;
+    } else if (node.type === "Identifier") {
+        // Check if the variable is known
+        return variableValues[node.name] || '{?}';
+    } else if (node.type === "BinaryExpression" && node.operator === "+") {
+        // Resolve both sides of the binary expression (concatenation)
+        const left = resolveNode(node.left);
+        const right = resolveNode(node.right);
+        return concatPaths(left, right);
+    } else if (node.type === "CallExpression") {
+        // Handle function calls as unknown
+        return '{?}';
+    } else {
+        // Handle any other case as unknown
+        return '{?}';
+    }
+}
 
-            console.log(`Found API call: ${node.callee.property.name} in function ${functionNameText}`);
-            console.log(`API URL: ${node.arguments[0].value}`);
+// Helper function to concatenate paths, ensuring proper `/` separation
+function concatPaths(left, right) {
+    // Ensure that '/' is properly placed between the segments
+    const leftStr = left.endsWith('/') ? left.slice(0, -1) : left;
+    const rightStr = right.startsWith('/') ? right.slice(1) : right;
+    return leftStr + '/' + rightStr;
+}
+
+// Walk through the AST and find variable declarations and makeRestCall calls
+walk.simple(ast, {
+    // Store values of found variables
+    VariableDeclarator(node) {
+        if (node.id.type === "Identifier" && node.init && node.init.type === "Literal") {
+            variableValues[node.id.name] = node.init.value;
+        }
+    },
+    // Process the makeRestCall invocations and resolve the URLs
+    CallExpression(node) {
+        if (isMakeRestCall(node)) {
+            const urlArgument = node.arguments[0];
+            const resolvedUrl = resolveNode(urlArgument);
+            console.log(`Resolved REST call URL: ${resolvedUrl}`);
+
         }
     }
 });
