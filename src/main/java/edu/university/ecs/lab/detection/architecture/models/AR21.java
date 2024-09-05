@@ -7,11 +7,19 @@ import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
 import lombok.Data;
 import java.util.*;
 
+/**
+ * Architectural Rule 21 Class: Wrongcuts Service
+ */
 @Data
 public class AR21 extends AbstractAR {
+
+    /**
+     * Architectural rule 21 details
+     */
     protected static final String TYPE = "Architectural Rule 21";
     protected static final String NAME = "Wrongcuts Service";
     protected static final String DESC = "";
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
@@ -41,6 +49,13 @@ public class AR21 extends AbstractAR {
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify wrongly interconnected services
+     * 
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of wrongly interconnected service clusters
+     */
     public static List<AR21> scan(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR21> archRules = new ArrayList<>();
 

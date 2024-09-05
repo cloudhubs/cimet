@@ -9,23 +9,45 @@ import edu.university.ecs.lab.detection.architecture.models.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service class for detecting architectural rule violations
+ */
 public class ARDetectionService {
     SystemChange oldSystem;
     MicroserviceSystem microserviceSystemOld;
     MicroserviceSystem microserviceSystemNew;
 
+    /**
+     * Construct from paths to JSON files
+     * 
+     * @param DeltaPath path to delta JSON file
+     * @param OldIRPath path to old commit JSON file
+     * @param NewIRPath path to new commit JSON file
+     */
     public ARDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) {
         oldSystem = JsonReadWriteUtils.readFromJSON(DeltaPath, SystemChange.class);
         microserviceSystemOld = JsonReadWriteUtils.readFromJSON(OldIRPath, MicroserviceSystem.class);
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
     }
 
+    /**
+     * Construct with System objects
+     * 
+     * @param oldSystem SystemChange object representing the delta between commits
+     * @param microserviceSystemOld old microservice commit object
+     * @param microserviceSystemNew new microservice commit object
+     */
     public ARDetectionService(SystemChange oldSystem, MicroserviceSystem microserviceSystemOld, MicroserviceSystem microserviceSystemNew) {
         this.oldSystem = oldSystem;
         this.microserviceSystemOld = microserviceSystemOld;
         this.microserviceSystemNew = microserviceSystemNew;
     }
 
+    /**
+     * Scans all use cases for architectural rule violations
+     * 
+     * @return list of architectural rule violations
+     */
     public List<AbstractAR> scanUseCases() {
 
         List<AbstractAR> useCases = new ArrayList<>();
@@ -35,8 +57,11 @@ public class ARDetectionService {
         return useCases;
     }
 
-
-
+    /**
+     * Scans delta use cases for architectural rule violations
+     * 
+     * @return list of delta use cases that violate architectural rules
+     */
     public List<AbstractAR> scanDeltaUC() {
         List<AbstractAR> useCases = new ArrayList<>();
         
@@ -66,6 +91,11 @@ public class ARDetectionService {
         return useCases;
     }
 
+    /**
+     * Scans ALL use cases in new system commit for architectural rule violations
+     * 
+     * @return list of architectural rule violations from new system commit
+     */
     public List<AbstractAR> scanSystemUC() {
         List<AbstractAR> useCases = new ArrayList<>();
 

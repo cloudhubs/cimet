@@ -3,6 +3,9 @@ package edu.university.ecs.lab.detection.metrics.models;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Parameter of a method or operation
+ */
 public class Parameter {
     private String type;
     private String name;

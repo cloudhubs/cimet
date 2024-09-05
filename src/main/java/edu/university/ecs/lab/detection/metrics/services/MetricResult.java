@@ -1,6 +1,8 @@
 package edu.university.ecs.lab.detection.metrics.services;
 
-
+/**
+ * Result of a single metric calculation
+ */
 public class MetricResult {
     private String serviceName;
     private String version;

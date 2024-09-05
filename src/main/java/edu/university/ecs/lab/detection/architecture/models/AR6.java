@@ -16,8 +16,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Architectural Rule 6 Class: Affected endpoint due to business logic update
+ */
 @Data
 public class AR6 extends AbstractAR {
+
+    /**
+     * Architectural rule 6 details
+     */
     protected static final String TYPE = "Architectural Rule 6";
     protected static final String NAME = "Affected endpoint due to business logic update";
     protected static final String DESC = "A service method was modified and now causes inconsistent results for calling endpoints";
@@ -50,6 +57,14 @@ public class AR6 extends AbstractAR {
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify endpoints affected by business logic update
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of calls to modified methods (first instance)
+     */
     public static List<AR6> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
 
 
@@ -58,6 +73,7 @@ public class AR6 extends AbstractAR {
             return new ArrayList<>();
         }
 
+        // Return empty list if it isn't modify or not a service
         if(!delta.getChangeType().equals(ChangeType.MODIFY) || !jClass.getClassRole().equals(ClassRole.SERVICE)) {
             return new ArrayList<>();
         }
@@ -81,12 +97,12 @@ public class AR6 extends AbstractAR {
                         AR6 archRule6 = new AR6();
                         JsonObject jsonObject = new JsonObject();
 
-                       jsonObject.add("AffectedMethod", method.toJsonObject());
-                       jsonObject.add("MethodCall", methodCall.toJsonObject());
-                       archRule6.setOldCommitID(oldSystem.getCommitID());
-                       archRule6.setNewCommitID(newSystem.getCommitID());
+                        jsonObject.add("AffectedMethod", method.toJsonObject());
+                        jsonObject.add("MethodCall", methodCall.toJsonObject());
+                        archRule6.setOldCommitID(oldSystem.getCommitID());
+                        archRule6.setNewCommitID(newSystem.getCommitID());
 
-                       archRule6.setMetaData(jsonObject);
+                        archRule6.setMetaData(jsonObject);
                         archRules.add(archRule6);
 
                         break outer;
@@ -106,9 +122,9 @@ public class AR6 extends AbstractAR {
     /**
      * This method gets new method calls not present in oldClass
      *
-     * @param oldClass
-     * @param newClass
-     * @return
+     * @param oldClass old commit class
+     * @param newClass delta class change
+     * @return list of new method calls (not present in old class)
      */
     private static Set<MethodCall> getNewMethodCalls(JClass oldClass, JClass newClass) {
         return newClass.getMethodCalls().stream().filter(methodCall -> !oldClass.getMethodCalls().contains(methodCall)).collect(Collectors.toSet());

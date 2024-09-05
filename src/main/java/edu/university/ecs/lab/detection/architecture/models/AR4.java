@@ -15,11 +15,19 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
+/**
+ * Architectural Rule 4 Class: Floating endpoint due to last call removal
+ */
 @Data
 public class AR4 extends AbstractAR {
+
+    /**
+     * Architectural rule 4 details
+     */ 
     protected static final String TYPE = "Architectural Rule 4";
     protected static final String NAME = "Floating endpoint due to last call removal";
     protected static final String DESC = "Any rest calls referencing an endpoint are now gone. This endpoint is now unused by any other microservice";
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
@@ -44,6 +52,14 @@ public class AR4 extends AbstractAR {
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify last call removal
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of endpoints that were once called but are no longer called
+     */
     public static List<AR4> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR4> archRules = new ArrayList<>();
 
@@ -165,6 +181,13 @@ public class AR4 extends AbstractAR {
         return TYPE;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify last call removal
+     * 
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of endpoints that have no calls in new commit
+     */
     public static List<AR4> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR4> archRules = new ArrayList<>();
 
@@ -190,7 +213,13 @@ public class AR4 extends AbstractAR {
         return archRules;
     }
 
-    // Check for modified/deleted endpoint in new system
+    /**
+     * Check for modified/deleted endpoint in new system
+     * 
+     * @param endpoint to find in new system
+     * @param newSystem commit to search in for endpoint
+     * @return true if a REST call is found to match the endpoint, false otherwise
+     */ 
     private static boolean findMatch(Endpoint endpoint, MicroserviceSystem newSystem) {
         for (Microservice microservice : newSystem.getMicroservices()) {
             for (JClass service : microservice.getServices()) {
