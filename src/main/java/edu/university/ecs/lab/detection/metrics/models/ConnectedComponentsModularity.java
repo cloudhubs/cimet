@@ -8,10 +8,8 @@ import org.jgrapht.alg.clustering.UndirectedModularityMeasurer;
 import org.jgrapht.alg.connectivity.KosarajuStrongConnectivityInspector;
 import org.jgrapht.graph.AsUndirectedGraph;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Class implementing the modularity metric of partitioning a graph into strongly connected components

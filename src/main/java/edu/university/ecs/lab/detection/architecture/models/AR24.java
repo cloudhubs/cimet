@@ -12,12 +12,20 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.detection.architecture.models.enums.Confidence;
 import lombok.Data;
 
+/**
+ * Architectural Rule 24 Class: No Health Checks Found
+ */
 @Data
 public class AR24 extends AbstractAR{
+
+    /**
+     * Architectural rule 24 details
+     */
     protected static final String TYPE = "Architectural Rule 24";
     protected static final String NAME = "No Health Checks Found";
     protected static final String DESC = "The lack of mechanisms for monitoring the health and availability of microservices, which can result in undetected failures and decreased system reliability.";
     protected static final Confidence CONFIDENCE = Confidence.UNKNOWN;
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
@@ -47,6 +55,14 @@ public class AR24 extends AbstractAR{
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to check for health check configuration
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return 
+     */
     public static List<AR24> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
         List<AR24> archRules = new ArrayList<>();
 
@@ -61,6 +77,15 @@ public class AR24 extends AbstractAR{
         return archRules;
     }
 
+    /**
+     * Checks if both circuit breaker and rate limiter health checks are enabled in the YAML configuration.
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param configFile The YAML file to check.
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return AR24 object if no health check configuration is found, null otherwise
+     */
     public static AR24 checkHealthcheck(Delta delta, ConfigFile configFile, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         AR24 archRule24 = new AR24();
 
@@ -86,6 +111,14 @@ public class AR24 extends AbstractAR{
         return archRule24;
     }
 
+    /**
+     * Checks if the given JSON object contains the necessary configurations for health checks.
+     * Specifically, it verifies if both circuit breaker and rate limiter health checks are enabled
+     * and if the health indicators are registered for both circuit breakers and rate limiters.
+     *
+     * @param data The JsonObject representing the configuration data to check.
+     * @return true if the necessary health check configurations are present and enabled, false otherwise.
+     */
     private static boolean containsHealthCheck(JsonObject data){
         boolean healthCheckEnabled = false;
         boolean registerHealthIndicatorCB = false;

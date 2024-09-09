@@ -24,6 +24,9 @@ public class HubLikeService {
      * @return a HubLikeMicroservice object containing identified hub-like microservices
      */
     public HubLikeMicroservice getHubLikeMicroservice(ServiceDependencyGraph graph) {
+        
+        // Filter vertices (microservices) to only those with a sum of incoming edge weights 
+        // greater than or equal to the set restcall threshhold
         List<String> getHubMicroservices = graph.vertexSet().stream().filter(vertex -> graph.incomingEdgesOf(vertex).stream()
                 .map(graph::getEdgeWeight).mapToDouble(Double::doubleValue).sum() >= (double) RESTCALL_THRESHOLD)
                 .map(Microservice::getName).collect(Collectors.toList());

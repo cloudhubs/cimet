@@ -17,17 +17,22 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonObject;
 
 /**
- *
+ * Architectural Rule 3 Class: Floating call due to invalid call creation
  */
 @Data
 public class AR3 extends AbstractAR {
+    
+    /**
+     * Architectural Rule 3 details 
+     */ 
     protected static final String TYPE = "Architectural Rule 3";
     protected static final String NAME = "Floating call due to invalid call creation";
     protected static final String DESC = "A rest call is added that references a nonexistent endpoint";
+    
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
-
 
     @Override
     public String getName() {
@@ -54,6 +59,14 @@ public class AR3 extends AbstractAR {
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify invalid call creation
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of rest calls with no match found in new system
+     */
     public List<AR3> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR3> archRules = new ArrayList<>();
 
@@ -80,9 +93,17 @@ public class AR3 extends AbstractAR {
             }
         }
 
+        // Return list of rest calls (added or modified in a service) without a match found in new system
         return archRules;
     }
 
+    /**
+     * Find rest call/endpoint matched in the given system
+     * 
+     * @param restCall call to be matched to an endpoint
+     * @param newSystem microservice system to search for match in
+     * @return true if an endpoint match is found, false otherwise
+     */
     private static boolean findMatch(RestCall restCall, MicroserviceSystem newSystem) {
         for (Microservice microservice : newSystem.getMicroservices()) {
             for (JClass controller : microservice.getControllers()) {
@@ -97,6 +118,13 @@ public class AR3 extends AbstractAR {
     }
 
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify invalid call creation
+     * 
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of all rest calls without an endpoint match in new system
+     */
     public static List<AR3> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR3> archRules = new ArrayList<>();
 
@@ -117,6 +145,7 @@ public class AR3 extends AbstractAR {
             }
         }
 
+        // Return list of all rest calls without an endpoint match in new system
         return archRules;
     }
 }

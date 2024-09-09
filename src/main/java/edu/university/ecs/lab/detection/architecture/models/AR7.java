@@ -14,6 +14,9 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
+/**
+ * Architectural Rule 7 Class: Affected endpoint due to data access logic update
+ */
 @Data
 public class AR7 extends AbstractAR {
     protected static final String TYPE = "Architectural Rule 7";
@@ -49,16 +52,23 @@ public class AR7 extends AbstractAR {
         return TYPE;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify endpoints affected by data access logic update
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of methods with modified annotations
+     */
     public static List<AR7> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR7> useCases = new ArrayList<>();
 
         JClass oldClass = oldSystem.findClass(delta.getOldPath());
 
+        // Return empty list if it isn't modify or not a repository
         if (!delta.getChangeType().equals(ChangeType.MODIFY) || !oldClass.getClassRole().equals(ClassRole.REPOSITORY)) {
             return useCases;
         }
-
-
 
         for (Method methodOld : oldClass.getMethods()) {
             for (Method methodNew : delta.getClassChange().getMethods()) {

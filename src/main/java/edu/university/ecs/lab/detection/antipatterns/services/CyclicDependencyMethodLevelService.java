@@ -7,7 +7,7 @@ import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
 import java.util.*;
 
 /**
- * Service class for detecting cyclic dependencies in a network graph.
+ * Service class for detecting cyclic dependencies in a method network graph.
  */
 public class CyclicDependencyMethodLevelService {
 
@@ -29,6 +29,8 @@ public class CyclicDependencyMethodLevelService {
         recStack = new ArrayList<>();
         parentMap = new HashMap<>();
         this.graph = graph;
+
+        // Find cycles for each node in method dependency graph
         graph.vertexSet().stream().filter(node -> !visited.contains(node)).forEach(this::findCycles);
 
         return new CyclicDependency(allCycles);
@@ -40,16 +42,26 @@ public class CyclicDependencyMethodLevelService {
      * @param currentNode        the current node to check
      */
     private void findCycles(Method currentNode) {
+        // Add current node to visited list
         visited.add(currentNode);
+
+        // Check if current microservice is different from last microservice and add to recStack if switched
         String currentNodeMS = currentNode.getMicroserviceName();
         boolean switched_service = recStack.isEmpty() || !currentNodeMS.equals(recStack.get(recStack.size() - 1));
         if (switched_service) {
             recStack.add(currentNodeMS);
         }
 
+        // Iterate through each node in adjacency list
         this.graph.getAdjacency(currentNode).forEach(neighbor -> {
             String neighborMS = neighbor.getMicroserviceName();
+            
+            // Check if adjacent node is on the same microservice
             boolean switching_service = !neighborMS.equals(currentNodeMS);
+
+            // If adjacent node has not already been checked and microservices are different, 
+            // add current microservice and neigbor microservice to parent map. Otherwise, use 
+            // parent map to reconstruct cycle path and add to allCycles list.
             if (!visited.contains(neighbor)) {
                 if (switching_service) {
                     parentMap.put(neighborMS, currentNodeMS);
@@ -78,6 +90,8 @@ public class CyclicDependencyMethodLevelService {
         List<String> fullCyclePath = new ArrayList<>();
         String node = currentNode;
 
+        // Iterate through each node in parent map until startNode is reached, adding each to 
+        // the cycle path
         fullCyclePath.add(startNode);
         while (node != null && !node.equals(startNode)) {
             fullCyclePath.add(node);

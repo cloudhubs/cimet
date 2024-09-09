@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Class for calculation of multiple metrics for a given service descriptor
+ */
 public class MetricCalculator {
     //    Add here all metrics instances
     private List<IMetric> getMetrics() {
@@ -17,6 +20,12 @@ public class MetricCalculator {
         );
     }
 
+    /**
+     * Assess and get results of each metric instance
+     * 
+     * @param serviceDescriptor descriptor object of the given service
+     * @return list of metric results
+     */
     public List<MetricResult> assess(IServiceDescriptor serviceDescriptor) {
         List<IMetric> metrics = getMetrics();
 
@@ -24,7 +33,7 @@ public class MetricCalculator {
             return Arrays.asList();
         }
 
-        List metricResults = metrics.stream().map(metric -> {
+        List<MetricResult> metricResults = metrics.stream().map(metric -> {
             metric.setServiceDescriptor(serviceDescriptor);
             metric.evaluate();
             return metric.getResult();

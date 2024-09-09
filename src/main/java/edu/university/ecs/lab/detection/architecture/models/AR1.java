@@ -14,15 +14,22 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
+/**
+ * Architectural Rule 1 Class: Floating call due to endpoint removal (internal)
+ */
 @Data
 public class AR1 extends AbstractAR {
-    protected static final String TYPE = "Architectural Rules 1";
+
+    /**
+     * Architectural rule 1 details
+     */
+    protected static final String TYPE = "Architectural Rule 1";
     protected static final String NAME = "Floating call due to endpoint removal (internal)";
     protected static final String DESC = "An endpoint was removed, inter service calls depending on this method are no longer called";
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
-
 
     @Override
     public String getName() {
@@ -49,6 +56,14 @@ public class AR1 extends AbstractAR {
         return TYPE;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify endpoint removals
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of restCalls called in severed flow (if method was deleted)
+     */
     public static List<AR1> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
         List<AR1> useCases = new ArrayList<>();
 
@@ -91,9 +106,18 @@ public class AR1 extends AbstractAR {
 
         }
 
+        // Return list of restCalls called in severed flow (if method was deleted)
         return useCases;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to identify endpoint removals
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list of restCalls not in any flows
+     */
     public static List<AR1> scan2(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
         List<AR1> useCases = new ArrayList<>();
 
@@ -121,6 +145,7 @@ public class AR1 extends AbstractAR {
             }
         }
 
+        // Return list of restCalls not in any flows
         return useCases;
     }
 }
