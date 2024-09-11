@@ -3,11 +3,15 @@ package edu.university.ecs.lab.common.models.enums;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
+import javassist.expr.Expr;
 import lombok.Getter;
 
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -17,13 +21,17 @@ import java.util.stream.Collectors;
 @Getter
 public class RestCallTemplate {
     public static final Set<String> REST_METHODS = Set.of("getForObject", "postForObject", "patchForObject", "put", "delete", "exchange");
+    private static final String UNKNOWN_VALUE = "{?}";
+
     private final String url;
     private final HttpMethod httpMethod;
     private final CompilationUnit cu;
+    private final MethodCallExpr mce;
 
     public RestCallTemplate(MethodCallExpr mce, CompilationUnit cu) {
         this.cu = cu;
-        this.url = parseURL(mce);
+        this.mce = mce;
+        this.url = mce.getArguments().get(0).toString().isEmpty() ? "" : cleanURL(parseURL(mce.getArguments().get(0)));
         this.httpMethod = getHttpFromName(mce);
     }
 
@@ -74,77 +82,85 @@ public class RestCallTemplate {
     }
 
     /**
-     * Find the URL from the given method call expression.
+     * Find the URL from the given expression.
      *
-     * @param mce the method call to extract url from
+     * @param exp the expression to extract url from
      * @return the URL found
      */
-    private String parseURL(MethodCallExpr mce) {
-        if (mce.getArguments().isEmpty()) {
-            return "";
-        }
-
-        // Arbitrary index of the url parameter
-        Expression exp = mce.getArguments().get(0);
-
+    private String parseURL(Expression exp) {
         if (exp.isStringLiteralExpr()) {
-            return StringParserUtils.removeOuterQuotations(exp.toString());
+            return exp.asStringLiteralExpr().asString();
         } else if (exp.isFieldAccessExpr()) {
             return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
-        } else if (exp.isNameExpr()) {
-            return parseFieldValue(exp.asNameExpr().getNameAsString());
         } else if (exp.isBinaryExpr()) {
-            return parseUrlFromBinaryExp(exp.asBinaryExpr());
+            String left = parseURL(exp.asBinaryExpr().getLeft());
+            String right = parseURL(exp.asBinaryExpr().getRight());
+            return left + right;
+        } else if(exp.isEnclosedExpr()) {
+            return parseURL(exp.asEnclosedExpr());
+        // Base case, if we are a method call or a u
+        } else if(exp.isMethodCallExpr()) {
+            // Here we may try to find a modified url in a method call expr
+            return backupParseURL(exp).isEmpty() ? UNKNOWN_VALUE : backupParseURL(exp);
+        } else if(exp.isNameExpr()) {
+            // Special case
+            if(exp.asNameExpr().getNameAsString().contains("uri") || exp.asNameExpr().getNameAsString().contains("url")) {
+                return "";
+            }
+            return UNKNOWN_VALUE;
+        }
+
+        // If all fails, try to find some viable url
+        return backupParseURL(exp);
+    }
+
+    /**
+     * Find the URL from the given expression.
+     *
+     * @param exp the expression to extract url from
+     * @return the URL found
+     */
+    private String backupParseURL(Expression exp) {
+        // Regular expression to match the first instance of "/.*"
+        String regex = "\"(/.+?)\"";
+
+        // Compile the pattern
+        Pattern pattern = Pattern.compile(regex);
+
+        // Create a matcher for the input string
+        Matcher matcher = pattern.matcher(exp.toString());
+
+        // Find the first match
+        if (matcher.find()) {
+            // Extract the first instance of "/.*"
+            String extracted = matcher.group(1);  // Group 1 corresponds to the part in parentheses (captured group)
+            return extracted;
         }
 
         return "";
+
     }
 
-    private String parseUrlFromBinaryExp(BinaryExpr exp) {
-        StringBuilder returnString = new StringBuilder();
-        Expression left = exp.getLeft();
-        Expression right = exp.getRight();
-
-        if (left instanceof BinaryExpr) {
-            returnString.append(parseUrlFromBinaryExp((BinaryExpr) left));
-        } else if (left instanceof StringLiteralExpr) {
-            returnString.append(formatURL(left.toString()));
-        } else if ((left instanceof NameExpr || left instanceof MethodCallExpr)
-                && !left.asNameExpr().getNameAsString().contains("url")
-                && !left.asNameExpr().getNameAsString().contains("uri")) {
-            returnString.append("/{?}");
-        }
-
-        // Check if right side is a binary expression
-        if (right instanceof BinaryExpr) {
-            returnString.append(parseUrlFromBinaryExp((BinaryExpr) right));
-        } else if (right instanceof StringLiteralExpr) {
-            returnString.append(formatURL(right.toString()));
-        } else if ((right instanceof NameExpr || right instanceof MethodCallExpr)) {
-            returnString.append("/{?}");
-        }
-
-        return returnString.toString(); // URL not found in subtree
-    }
-
-    private static String formatURL(String str) {
+    private static String cleanURL(String str) {
         str = str.replace("http://", "");
         str = str.replace("https://", "");
 
+        // Remove everything before the first /
         int backslashNdx = str.indexOf("/");
         if (backslashNdx > 0) {
             str = str.substring(backslashNdx);
         }
 
-        int questionNdx = str.indexOf("?");
-        if (questionNdx > 0) {
-            str = str.substring(0, questionNdx);
-        }
+//        int questionNdx = str.indexOf("?");
+//        if (questionNdx > 0) {
+//            str = str.substring(0, questionNdx);
+//        }
 
         if (str.endsWith("\"")) {
             str = str.substring(0, str.length() - 1);
         }
 
+        // Remove trailing / (does not affect functionality, trailing /'s are ignored in Spring)
         if (str.endsWith("/")) {
             str = str.substring(0, str.length() - 1);
         }
@@ -164,4 +180,16 @@ public class RestCallTemplate {
 
         return "";
     }
+
+//    private String parseNameValue(Expression mceScope, String name) {
+//        for (VariableDeclarationExpr vdc : mceScope.findAll(VariableDeclarationExpr.class)) {
+//            for(VariableDeclarator vd : vdc.getVariables()) {
+//                if(vd.getNameAsString().equals(name)) {
+//
+//                }
+//            }
+//        }
+//
+//        return "";
+//    }
 }

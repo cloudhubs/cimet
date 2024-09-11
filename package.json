@@ -1,0 +1,20 @@
+{
+  "name": "cimet2",
+  "version": "1.0.0",
+  "description": "This project tracks microservice system evolution changes across repositories.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4",
+    "acorn": "^8.12.1",
+    "acorn-walk": "^8.3.3"
+  }
+}
