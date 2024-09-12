@@ -134,6 +134,10 @@ public class RestCallTemplate {
         if (matcher.find()) {
             // Extract the first instance of "/.*"
             String extracted = matcher.group(1);  // Group 1 corresponds to the part in parentheses (captured group)
+
+            // Replace string formatters if they are present
+            extracted.replaceAll("%[sdif]", UNKNOWN_VALUE);
+
             return extracted;
         }
 
