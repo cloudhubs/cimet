@@ -66,7 +66,7 @@ public class EndpointTemplate {
 
         this.httpMethod = finalHttpMethod;
         this.name = endpointMapping.getNameAsString();
-        this.url = preUrl.replace("\"", "") + simplifyEndpointURL(url.replace("\"", ""));
+        this.url = (preUrl.replace("\"", "") + simplifyEndpointURL(url.replace("\"", ""))).replace("//", "/");
     }
 
 
