@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class RestCallTemplate {
+    public static final Set<String> REST_OBJECTS = Set.of("RestTemplate", "OAuth2RestOperations", "OAuth2RestTemplate");
     public static final Set<String> REST_METHODS = Set.of("getForObject", "postForObject", "patchForObject", "put", "delete", "exchange");
     private static final String UNKNOWN_VALUE = "{?}";
 
@@ -122,7 +123,7 @@ public class RestCallTemplate {
      */
     private String backupParseURL(Expression exp) {
         // Regular expression to match the first instance of "/.*"
-        String regex = "\"(/.+?)\"";
+        String regex = "\".*(/.+?)\"";
 
         // Compile the pattern
         Pattern pattern = Pattern.compile(regex);
@@ -133,12 +134,12 @@ public class RestCallTemplate {
         // Find the first match
         if (matcher.find()) {
             // Extract the first instance of "/.*"
-            String extracted = matcher.group(1);  // Group 1 corresponds to the part in parentheses (captured group)
+            String extracted = matcher.group(0).replace("\"", "");  // Group 1 corresponds to the part in parentheses (captured group)
 
             // Replace string formatters if they are present
-            extracted.replaceAll("%[sdif]", UNKNOWN_VALUE);
+            extracted = extracted.replaceAll("%[sdif]", UNKNOWN_VALUE);
 
-            return extracted;
+            return cleanURL(extracted);
         }
 
         return "";

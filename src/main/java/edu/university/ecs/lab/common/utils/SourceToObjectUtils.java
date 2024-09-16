@@ -24,7 +24,9 @@ import edu.university.ecs.lab.common.models.enums.RestCallTemplate;
 import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.services.LoggerManager;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,7 +50,10 @@ public class SourceToObjectUtils {
         try {
             cu = StaticJavaParser.parse(sourceFile);
         } catch (Exception e) {
-            Error.reportAndExit(Error.JPARSE_FAILED, Optional.of(e));
+            LoggerManager.warn(() -> "Failed to parse  " + sourceFile.getPath());
+            microserviceName = "";
+            return;
+//            Error.reportAndExit(Error.JPARSE_FAILED, Optional.of(e));
         }
         if (!cu.findAll(PackageDeclaration.class).isEmpty()) {
             packageName = cu.findAll(PackageDeclaration.class).get(0).getNameAsString();
@@ -222,7 +227,7 @@ public class SourceToObjectUtils {
      * @return returns methodCall if it is invalid, otherwise a new RestCall
      */
     public static MethodCall convertValidRestCalls(MethodCallExpr methodCallExpr, MethodCall methodCall) {
-        if ((!methodCall.getObjectType().equals("RestTemplate") && !methodCall.getObjectType().equals("OAuth2RestOperations")) || !RestCallTemplate.REST_METHODS.contains(methodCallExpr.getNameAsString())) {
+        if ((!RestCallTemplate.REST_OBJECTS.contains(methodCall.getObjectType()) || !RestCallTemplate.REST_METHODS.contains(methodCallExpr.getNameAsString()))) {
             return methodCall;
         }
 
@@ -529,5 +534,33 @@ public class SourceToObjectUtils {
                 parseAnnotations(classAnnotations),
                 newRestCalls,
                 cu.findAll(ClassOrInterfaceDeclaration.class).get(0).getImplementedTypes().stream().map(NodeWithSimpleName::getNameAsString).collect(Collectors.toSet()));
+    }
+
+    private static JClass handleJS(String filePath) {
+        JClass jClass = new JClass(filePath, filePath, "", ClassRole.FEIGN_CLIENT, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+        try {
+            Set<RestCall> restCalls = new HashSet<>();
+            // Command to run Node.js script
+            ProcessBuilder processBuilder = new ProcessBuilder("node", "scripts/parser.js");
+            Process process = processBuilder.start();
+
+            // Capture the output
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] split = line.split(";");
+                restCalls.add(new RestCall(split[0], split[1], split[2], split[3], split[4], split[5], split[6], split[7]));
+                System.out.println("Node.js Output: " + line);
+            }
+
+            // Wait for the Node.js process to complete
+            int exitCode = process.waitFor();
+            System.out.println("Node.js process exited with code: " + exitCode);
+        } catch (Exception e) {
+            System.err.println(e);
+            System.exit(1);
+        }
+
+        return jClass;
     }
 }

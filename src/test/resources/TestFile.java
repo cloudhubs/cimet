@@ -152,5 +152,27 @@ public class RebookServiceImpl implements RebookService {
         return reTicket.getBody().getData();
     }
 
+    public Ticket testMethod6(String date, String tripId, String startStationId, String endStataionId, int seatType, int tatalNum, List<String> stations, HttpHeaders httpHeaders) {
+        Seat seatRequest = new Seat();
+        seatRequest.setTravelDate(date);
+        seatRequest.setTrainNumber(tripId);
+        seatRequest.setSeatType(seatType);
+        seatRequest.setStartStation(startStationId);
+        seatRequest.setDestStation(endStataionId);
+        seatRequest.setTotalNum(tatalNum);
+        seatRequest.setStations(stations);
+
+        HttpHeaders newHeaders = getAuthorizationHeadersFrom(httpHeaders);
+        HttpEntity requestEntityTicket = new HttpEntity(seatRequest, newHeaders);
+        String seat_service_url = getServiceUrl("ts-seat-service");
+        ResponseEntity<Response<Ticket>> reTicket = restTemplate.exchange(
+                String.format("https://test-service/api/v1/seatservice/%s/test6", "val"),
+                HttpMethod.POST,
+                requestEntityTicket,
+                new ParameterizedTypeReference<Response<Ticket>>() {
+                });
+        return reTicket.getBody().getData();
+    }
+
 
 }
