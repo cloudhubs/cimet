@@ -7,15 +7,15 @@ import java.io.IOException;
 public class AllConfigsExcelRunner {
     public static void main(String[] args) throws IOException {
 
-        File configDir = new File("./configs");
+        File configDir = new File("./valid_configs");
         if (!configDir.exists() || !configDir.isDirectory()) {
-            System.out.println("Config directory './configs' does not exist or is not a directory.");
+            System.out.println("Config directory './valid_configs' does not exist or is not a directory.");
             return;
         }
 
         File[] configFiles = configDir.listFiles((dir, name) -> name.endsWith(".json"));
         if (configFiles == null || configFiles.length == 0) {
-            System.out.println("No configuration files found in './configs' directory.");
+            System.out.println("No configuration files found in './valid_configs' directory.");
             return;
         }
 
