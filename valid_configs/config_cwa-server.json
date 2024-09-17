@@ -1,0 +1,6 @@
+{
+    "systemName": "cwa-server",
+    "repositoryURL": "https://github.com/corona-warn-app/cwa-server.git",
+    "baseCommit": "c61d55f6f83b6d005cb6aca9e9b455afac572d72",
+    "baseBranch": "main"
+  }
