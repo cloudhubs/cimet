@@ -37,12 +37,13 @@ public class MergeService {
     /**
      * This method generates the new IR from the old IR + Delta file
      */
-    public void generateMergeIR() {
+    public void generateMergeIR(String newCommitID) {
 
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
             LoggerManager.debug(() -> "No changes found at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
-            JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
+            String filePath = "./output/IR_" + newCommitID + ".json";
+            JsonReadWriteUtils.writeToJSON(filePath, microserviceSystem);
             return;
         }
 
@@ -69,7 +70,8 @@ public class MergeService {
         microserviceSystem.setCommitID(systemChange.getNewCommit());
 
         LoggerManager.info(() -> "Merged to new IR at " + systemChange.getNewCommit());
-        JsonReadWriteUtils.writeToJSON("./output/NewIR.json", microserviceSystem);
+        String filePath = "./output/IR_" + newCommitID + ".json";
+        JsonReadWriteUtils.writeToJSON(filePath, microserviceSystem);
     }
 
 

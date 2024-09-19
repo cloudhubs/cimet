@@ -5,7 +5,7 @@ public class ExcelOutputRunner {
 
 
     public static void main(String[] args) throws IOException {
-        String configPath = args[0];
+        String configPath = "./valid_configs/java-microservice.json";
         DetectionService detectionService = new DetectionService(configPath);
         detectionService.runDetection();
     }

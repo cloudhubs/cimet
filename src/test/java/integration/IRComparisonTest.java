@@ -53,7 +53,7 @@ class IRComparisonTest {
 
             // Merge Delta changes to old IR to create new IR representing new commit changes
             MergeService mergeService = new MergeService(OLD_IR_PATH, DELTA_PATH, TEST_CONFIG_PATH);
-            mergeService.generateMergeIR();
+            mergeService.generateMergeIR(commitIdNew);
 
             if(i < list.size() - 2) {
                 try {

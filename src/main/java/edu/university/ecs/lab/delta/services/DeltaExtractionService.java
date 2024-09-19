@@ -185,8 +185,10 @@ public class DeltaExtractionService {
             systemChange.getChanges().add(new Delta(oldPath, newPath, changeType, data));
         }
 
+        String filePath = "./output/Delta_" + commitOld.substring(0, 4) + "_" + commitNew.substring(0, 4) + ".json";
+
         // Output the system changes
-        JsonReadWriteUtils.writeToJSON("./output/Delta.json", systemChange);
+        JsonReadWriteUtils.writeToJSON(filePath, systemChange);
 
         // Report
         LoggerManager.info(() -> "Delta changes extracted between " + commitOld + " -> " + commitNew);
