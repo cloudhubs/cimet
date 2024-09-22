@@ -1,0 +1,33 @@
+name: Deploy Javadoc with Custom Index
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  javadoc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+
+      - name: Generate Javadoc
+        run: mvn javadoc:javadoc
+
+      # Copy the custom index.html to the Javadoc output directory
+      - name: Replace Javadoc index.html with custom file
+        run: cp docs/index.html target/site/apidocs/index.html
+
+      # Deploy Javadoc to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/site/apidocs
