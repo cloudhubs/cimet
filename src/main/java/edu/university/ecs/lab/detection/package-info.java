@@ -8,6 +8,7 @@
  *   - {@link edu.university.ecs.lab.detection.metrics}: Includes classes for gathering and analyzing various metrics from microservice systems.
  *   - {@link edu.university.ecs.lab.detection.ExcelOutputRunner}: Contains the main class for generating Excel reports of detected trends and metrics.
  *   - {@link edu.university.ecs.lab.detection.DetectionService}: Contains the main class for detecting and analyzing architectural rules.
+
  * </p>
  */
 package edu.university.ecs.lab.detection;

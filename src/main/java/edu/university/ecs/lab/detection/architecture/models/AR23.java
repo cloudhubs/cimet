@@ -12,12 +12,20 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.detection.architecture.models.enums.Confidence;
 import lombok.Data;
 
+/**
+ * Architectureal Rule 23 Class: No API Gateway Found
+ */
 @Data
 public class AR23 extends AbstractAR{
+
+    /**
+     * Architectural rule 23 details
+     */
     protected static final String TYPE = "Architectural Rule 23";
     protected static final String NAME = "No API Gateway Found";
     protected static final String DESC = "The absence of a centralized entry point for managing, routing, and securing API calls, leading to potential inefficiencies and security vulnerabilities.";
     protected static final Confidence CONFIDENCE = Confidence.UNKNOWN;
+    
     private String oldCommitID;
     private String newCommitID;
     protected JsonObject metaData;
@@ -47,6 +55,14 @@ public class AR23 extends AbstractAR{
         return metaData;
     }
 
+    /**
+     * Scan and compare old microservice system and new microservice system to check for API gateway
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return list with single AR23 object is no API gateway found, empty list otherwise
+     */
     public static List<AR23> scan (Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem){
         List<AR23> archRules = new ArrayList<>();
 
@@ -61,6 +77,15 @@ public class AR23 extends AbstractAR{
         return archRules;
     }
 
+    /**
+     * Checks if the YAML file contains configuration indicating an API Gateway.
+     * 
+     * @param delta change between old commit and new microservice systems
+     * @param configFile The YAML file to check.
+     * @param oldSystem old commit of microservice system
+     * @param newSystem new commit of microservice system
+     * @return AR23 object for no API gateway, otherwise null
+     */
     public static AR23 checkforApiGateway(Delta delta, ConfigFile configFile, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
        AR23 archRule23 = new AR23();
 
@@ -85,9 +110,13 @@ public class AR23 extends AbstractAR{
         return archRule23;
     }
 
-       
-
-   private static boolean containsApiGatewayConfiguration(JsonObject data) {
+    /**
+     * Checks if JSON object contains API gateway configuration details
+     * 
+     * @param data JSON object to check
+     * @return true if API gateway configuration is found, false otherwise
+     */   
+    private static boolean containsApiGatewayConfiguration(JsonObject data) {
     if (data.has("spring")) {
         JsonObject spring = data.getAsJsonObject("spring");
         if (spring.has("cloud")) {

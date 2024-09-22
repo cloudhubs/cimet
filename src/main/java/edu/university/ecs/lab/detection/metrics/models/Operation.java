@@ -3,6 +3,9 @@ package edu.university.ecs.lab.detection.metrics.models;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Operation of a microservice
+ */
 public class Operation {
 	private String path;
 	private String name;

@@ -13,6 +13,9 @@ import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 
 import java.util.Optional;
 
+/**
+ * Calculates structural, degree coupling metrics, and modularity metrics for a microservice system based on service dependency graph (SDG)
+ */
 public class MetricCalculation {
 
     public static void main(String[] args) {
@@ -24,6 +27,7 @@ public class MetricCalculation {
         // Create Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
 
+        // Create SDG
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(currentSystem);
 
         // Structural coupling

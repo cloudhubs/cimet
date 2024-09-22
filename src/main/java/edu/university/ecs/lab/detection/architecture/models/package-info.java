@@ -13,6 +13,8 @@
  *   - {@link edu.university.ecs.lab.detection.architecture.models.AR20}: Represents the rule for identifying hub-like services within the microservice architecture, including methods for scanning and detecting such instances.
  *   - {@link edu.university.ecs.lab.detection.architecture.models.AR21}: Represents the rule for detecting clusters of wrongly interconnected services (wrongcuts) within the microservice system, including methods for scanning and detecting such instances.
  *   - {@link edu.university.ecs.lab.detection.architecture.models.AR22}: Represents the rule for detecting inconsistent modifications of entities across services within the microservice system, including methods for scanning and detecting such instances.
+ *   - {@link edu.university.ecs.lab.detection.architecture.models.AR23}: Represents the rule for detecting the absence of API gateway configuration in the microservice system, including methods for scanning and detecting such instances.
+ *   - {@link edu.university.ecs.lab.detection.architecture.models.AR24}: Represents the rule for detecting the absence of health check configurations in the microservice system, including methods for scanning and detecting such instances.
  * </p>
  */
 package edu.university.ecs.lab.detection.architecture.models;

@@ -34,14 +34,23 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+/**
+ * Service class for detection of antipatterns, architectural rule violations, and metrics
+ */
 public class DetectionService {
+
+    /**
+     * Column labels for violation counts and metrics
+     */
     private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (Method level)",
             "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
             "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
             "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
-
-
+    
+    /**
+     * Count of antipatterns, metrics, and architectural rules
+     */
     private static final int ANTIPATTERNS = 10;
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
@@ -50,6 +59,10 @@ public class DetectionService {
     private static final String DELTA_PATH = "./output/Delta_";
     // private static final String NEW_IR_PATH = "./output/NewIR_";
 
+
+    /**
+     * Detection services and parameters
+     */
     private final String configPath;
     private final Config config;
     private final GitService gitService;
@@ -61,6 +74,10 @@ public class DetectionService {
     private XSSFSheet sheet;
 //    private final String firstCommitID
 
+    /**
+     * Construct with given configuration file path
+     * @param configPath YAML file to extract microservice details from
+     */
     public DetectionService(String configPath) {
         this.configPath = configPath;
         // Read in config
@@ -72,6 +89,9 @@ public class DetectionService {
         workbook = new XSSFWorkbook();
     }
 
+    /**
+     * Method to detect antipatterns, architectural rule violations, and metrics
+     */
     public void runDetection() {
 
         // Get list of commits
@@ -180,7 +200,9 @@ public class DetectionService {
 
     }
 
-
+    /**
+     * Write headers to XSSFSheet
+     */
     private void writeHeaders() {
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < columnLabels.length; i++) {
@@ -189,14 +211,24 @@ public class DetectionService {
         }
     }
 
+    /**
+     * Write empty row to XSSFSheet
+     * 
+     * @param rowIndex index to write row to
+     */
     private void writeEmptyRow(int rowIndex) {
         Row row = sheet.createRow(rowIndex);
         for(int i = 0; i < columnLabels.length; i++) {
             row.createCell(i).setCellValue(0);
         }
-
     }
 
+    /**
+     * Convert iterable to a list
+     * 
+     * @param iterable iterable object to convert
+     * @return iterable object converted to a list
+     */
     private List<RevCommit> iterableToList(Iterable<RevCommit> iterable) {
         Iterator<RevCommit> iterator = iterable.iterator();
         List<RevCommit> list = new LinkedList<>();
@@ -208,6 +240,12 @@ public class DetectionService {
         return list;
     }
 
+    /**
+     * Detect antipatterns in the given microservice
+     * 
+     * @param microserviceSystem microservice to scan for antipatterns
+     * @param allAntiPatterns map of antipattern names and integers to store antipattern counts
+     */
     private void detectAntipatterns(MicroserviceSystem microserviceSystem, Map<String, Integer> allAntiPatterns) {
 
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(microserviceSystem);
@@ -229,7 +267,10 @@ public class DetectionService {
 
     private void detectMetrics(MicroserviceSystem microserviceSystem, Map<String, Double> metrics, String commitID) {
 
+        // Create SDG
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(microserviceSystem);
+        
+        // Degree Coupling
         DegreeCoupling dc = new DegreeCoupling(sdg);
         metrics.put("maxAIS", (double) dc.getMaxAIS());
         metrics.put("avgAIS", dc.getAvgAIS());
@@ -242,14 +283,19 @@ public class DetectionService {
         metrics.put("stdACS", dc.getStdACS());
         metrics.put("SCF", dc.getSCF());
         metrics.put("SIY", (double) dc.getSIY());
+        
+        // Structural Coupling
         StructuralCoupling sc = new StructuralCoupling(sdg);
         metrics.put("maxSC", sc.getMaxSC());
         metrics.put("avgSC", sc.getAvgSC());
         metrics.put("stdSC", sc.getStdSC());
+        
+        // Modularity
         ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
         metrics.put("SCCmodularity", mod.getModularity());
 
         MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics("./output/IR_" + commitID + ".json");
+
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
         metrics.put("stdSIDC", cohesionMetrics.getStdDev("ServiceInterfaceDataCohesion"));
@@ -262,10 +308,17 @@ public class DetectionService {
 
     }
 
+    /**
+     * Update counts of architectural rule violations in excel
+     * 
+     * @param rowIndex XSSFSheet row index
+     * @param currARs list of architectural rule violations
+     */
     private void updateRules(int rowIndex, List<AbstractAR> currARs) {
         int[] arcrules_counts = new int[ARCHRULES];
         Arrays.fill(arcrules_counts, 0);
 
+        // Increment appropriate archrule count
         if (currARs != null && !currARs.isEmpty()) {
             for (AbstractAR archRule : currARs) {
                 if (archRule instanceof AR3) {
@@ -280,6 +333,7 @@ public class DetectionService {
             }
         }
 
+        // Update architectural rule counts in XSSFSheet
         Row row = sheet.getRow(rowIndex);
         for (int i = 0; i < arcrules_counts.length; i++) {
             Cell cell = row.getCell(i + 1 + ANTIPATTERNS + METRICS); // first column is for commit ID + rest for anti-patterns+metrics
@@ -287,6 +341,12 @@ public class DetectionService {
         }
     }
 
+    /**
+     * Update antipattern counts in excel
+     * 
+     * @param rowIndex XSSFSheet row index
+     * @param allAntiPatterns map of antipatterns to integer count
+     */
     private void updateAntiPatterns(int rowIndex, Map<String, Integer> allAntiPatterns) {
         Row row = sheet.getRow(rowIndex);
 
@@ -303,6 +363,12 @@ public class DetectionService {
         }
     }
 
+    /**
+     * Update metric counts in excel
+     * 
+     * @param rowIndex XSSFSheet row index
+     * @param metrics map of metrics to double value
+     */
     private void updateMetrics(int rowIndex, Map<String, Double> metrics) {
         Row row = sheet.getRow(rowIndex);
 
@@ -313,6 +379,12 @@ public class DetectionService {
         }
     }
 
+    /**
+     * Create JSON array from list of architectural rule objects
+     * 
+     * @param archRulesList list of AR objects
+     * @return JSON array with list entities
+     */
     public static JsonArray toJsonArray(List<List<AbstractAR>> archRulesList) {
         JsonArray outerArray = new JsonArray();
 

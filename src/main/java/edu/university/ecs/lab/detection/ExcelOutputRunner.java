@@ -1,6 +1,10 @@
 package edu.university.ecs.lab.detection;
+
 import java.io.IOException;
 
+/**
+ * Runner class to execute detection service
+ */
 public class ExcelOutputRunner {
 
 

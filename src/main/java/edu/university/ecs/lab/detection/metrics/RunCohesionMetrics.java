@@ -12,18 +12,27 @@ import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Calculates cohesion metrics for a microservice system based on its intermediate representation (IR).
+ */
 public class RunCohesionMetrics {
 
     public static void main(String[] args) {
         calculateCohesionMetrics("./output/OldIR.json");
     }
 
+    /**
+     * Calculate cohesion metrics based on microservice IR
+     * 
+     * @param IRPath path to intermediate representation JSON
+     * @return metric result calculation object
+     */
     public static MetricResultCalculation calculateCohesionMetrics(String IRPath) {
+        
+        // Create microservice system object
         MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);
 
-
         MetricResultCalculation metricResultCalculation = new MetricResultCalculation();
-
 
         for (Microservice microservice : microserviceSystem.getMicroservices()) {
 

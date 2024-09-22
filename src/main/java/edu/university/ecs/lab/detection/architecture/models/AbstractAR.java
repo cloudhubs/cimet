@@ -23,7 +23,11 @@ public abstract class AbstractAR implements JsonSerializable {
      */
     public abstract String getDescription();
 
-
+    /**
+     * Get the meta data of the Architectural Rule
+     * 
+     * @return JSON object meta data of the Architectural Rule
+     */
     public abstract JsonObject getMetaData();
 
     /**
@@ -54,6 +58,11 @@ public abstract class AbstractAR implements JsonSerializable {
      */
     public abstract String getType();
 
+    /**
+     * Create JSON object with Architectural Rule name, type, old commit ID, new commit ID, and meta data
+     * 
+     * @return JSON object with Architectural Rule details
+     */
     @Override
     public final JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
