@@ -19,7 +19,6 @@ public class NoHealthcheckService {
 
    /**
     * Checks if both circuit breaker and rate limiter health checks are enabled in the YAML configuration.
-    * @param yamlFilePath The path to the YAML file to check.
     * @return NoHealthcheck object that contains true if both circuit breaker
     * and rate limiter health checks are enabled, NoHealthcheck object that contains false otherwise.
     */

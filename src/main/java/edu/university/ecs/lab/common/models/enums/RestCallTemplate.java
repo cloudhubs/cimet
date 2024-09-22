@@ -39,7 +39,7 @@ public class RestCallTemplate {
     /**
      * Find the RestTemplate by the method name.
      *
-     * @param methodName the method name
+     * @param mce the method call
      * @return the RestTemplate found (null if not found)
      */
     public HttpMethod getHttpFromName(MethodCallExpr mce) {

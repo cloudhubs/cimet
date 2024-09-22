@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 
 /**
- * Class implementing the calculation of degree-related Coupling metrics according to [1]
- * [1] Bogner, J., Wagner, S., & Zimmermann, A. (2017, October).
+ * Class implementing the calculation of degree-related Coupling metrics according to (1)
+ * (1) Bogner, J., Wagner, S., &#38; Zimmermann, A. (2017, October).
  * Automatically measuring the maintainability of service-and microservice-based systems: a literature review.
  * In Proceedings of the 27th international workshop on software measurement and 12th international conference
  * on software process and product measurement (pp. 107-115).

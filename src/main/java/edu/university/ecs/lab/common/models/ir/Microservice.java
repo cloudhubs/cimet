@@ -261,7 +261,7 @@ public class Microservice implements JsonSerializable {
 
     /**
      * This method returns all files of a microservice, it is
-     * the aggregate of {@link #getClasses()} and {@link #getFiles()}
+     * the aggregate of getClasses() and getFiles()
      *
      * @return the set of all classes and files
      */
