@@ -1,12 +1,12 @@
-name: Deploy Documentation to GitHub Pages
+name: Generate and Validate Javadocs
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '17' # Adjust the Java version as needed
 
       - name: Build with Maven
         run: mvn clean install
@@ -25,13 +25,7 @@ jobs:
       - name: Generate Javadocs
         run: mvn javadoc:javadoc
 
-      - name: Copy Javadocs to Docs
+      - name: Validate Javadocs
         run: |
-          rm -rf docs/javadoc
-          cp -r target/site/apidocs docs/javadoc
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          # Add your validation scripts here
+          echo "Validating Javadocs..."
