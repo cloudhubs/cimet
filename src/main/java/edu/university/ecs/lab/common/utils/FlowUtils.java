@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 public class FlowUtils {
 
     /**
-     * Method for generating <strong>ALL</strong> possibilities
+     * Method for generating all possibilities
      * of Flows
      *
      * @param microserviceSystem the microservice system to scan for flows
@@ -223,7 +223,7 @@ public class FlowUtils {
      * This method finds any jClass affiliated with the serviceField of a flow.
      * Due to polymorphism the type is not guaranteed to match one class so all
      * possibilities will be considered.
-     * <br/><strong>Note: This is a source of approximation -- Runtime types</strong>
+     * Note: This is a source of approximation -- Runtime types
      *
      * @param flow the flow
      * @return the jClass affiliated with the serviceField
@@ -278,7 +278,7 @@ public class FlowUtils {
      * This method finds any jClass affiliated with the repositoryField of a flow.
      * Due to polymorphism the type is not guaranteed to match one class so all
      * possibilities will be considered.
-     * <br/><strong>Note: This is a source of approximation -- Runtime types</strong>
+     * Note: This is a source of approximation -- Runtime types
      *
      * @param flow the flow
      * @return the jClass affiliated with the repositoryField
