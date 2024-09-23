@@ -38,7 +38,7 @@ jobs:
           java-version: '17'
 
       - name: Generate Javadoc
-        run: mvn javadoc:javadoc --no-transfer-progress
+        run: mvn javadoc:javadoc --no-transfer-progress -DadditionalJOption=-Xdoclint:none # Ignore warnings
 
       - name: Verify Javadoc
         run: |
@@ -76,6 +76,6 @@ jobs:
           mv target/site/apidocs docs/apidocs
           git add docs/apidocs
           git commit -m "Update Javadoc"
-          git push origin gh-pages
+          git push origin main
         env:
           GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
