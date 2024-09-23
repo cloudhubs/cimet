@@ -1,6 +1,5 @@
 {
   "systemName": "spring-cloud-movie-recommendation",
   "repositoryURL": "https://github.com/mdeket/spring-cloud-movie-recommendation.git",
-  "baseCommit": "5aa5ee9e2e64c33e294409e39cb9708591230e08",
   "baseBranch": "master"
 }

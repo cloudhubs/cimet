@@ -1,37 +1,79 @@
-## This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-## For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-#
-## For each push and pull request, it builds the project, formats the code and runs units tests.
-#name: CI
-#
-#on:
-#  push:
-#    branches: [ "main" ]
-#  pull_request:
-#    branches: [ "main" ]
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v3
-#    - name: Set up JDK 17
-#      uses: actions/setup-java@v3
-#      with:
-#        java-version: '17'
-#        distribution: 'temurin'
-#        cache: maven
-#    - name: Build with Maven
-#      run: mvn -B package --file pom.xml
-#
-#  formatting:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3 # v2 minimum required
-#      - uses: axel-op/googlejavaformat-action@v3
-#        with:
-#          args: "--skip-sorting-imports --replace"
-#          # Recommended if you use MacOS:
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#
-#
+name: CI for Java Project
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies and run tests
+        run: mvn install -B
+
+      - name: Run tests
+        run: mvn test --no-transfer-progress
+
+  javadoc:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate Javadoc
+        run: mvn javadoc:javadoc --no-transfer-progress
+
+      - name: Verify Javadoc
+        run: |
+          if [ ! -d target/site/apidocs ]; then
+            echo "Javadoc failed to compile!"
+            exit 1
+          fi
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH for deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+      - name: Generate Javadoc
+        run: mvn javadoc:javadoc --no-transfer-progress
+
+      - name: Push Javadoc to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          rm -rf docs/apidocs
+          mv target/site/apidocs docs/apidocs
+          git add docs/apidocs
+          git commit -m "Update Javadoc"
+          git push origin main
+        env:
+          GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"

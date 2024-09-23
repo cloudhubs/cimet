@@ -15,7 +15,6 @@ public class NoApiGatewayService {
 
    /**
     * Checks if the YAML file contains configuration indicating an API Gateway.
-    * @param yamlFilePath The path to the YAML file to check.
     * @return NoApiGateway object that contains true if an API Gateway configuration is detected,
     * NoApiGateway object that contains false otherwise.
     */
@@ -41,7 +40,7 @@ public class NoApiGatewayService {
 
    /**
      * Checks if the given JsonObject contains the "cloud" -> "gateway" configuration.
-     * @param jsonObject The JsonObject to check.
+     * @param data The JsonObject to check.
      * @return true if the configuration is found, false otherwise.
      */
     private boolean containsApiGatewayConfiguration(JsonObject data) {

@@ -32,7 +32,6 @@ public class NonJsonReadWriteUtils {
      * This method reads YAML from a file returning structure as JsonObject
      * @param path the path to the YAML file.
      * @return JsonObject YAML file structure as json object
-     * @throws IOException If there is an error reading the YAML file.
      */
     public static ConfigFile readFromYaml(String path, Config config) {
         JsonObject data = null;

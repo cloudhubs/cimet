@@ -32,7 +32,7 @@ public class CyclicDependency extends AntiPattern{
     /**
      * Constructs a CyclicDependency object initialized with the given cycle.
      *
-     * @param cycle the list of nodes representing the cycle
+     * @param cycles the list of nodes representing the cycle
      */
     public CyclicDependency(List<List<String>> cycles) {
         this.cycles = cycles;

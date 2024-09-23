@@ -9,7 +9,8 @@ public class ExcelOutputRunner {
 
 
     public static void main(String[] args) throws IOException {
-        DetectionService detectionService = new DetectionService("./config.json");
+        String configPath = "./valid_configs/java-microservice.json";
+        DetectionService detectionService = new DetectionService(configPath);
         detectionService.runDetection();
     }
 

@@ -163,7 +163,6 @@ public class GitService {
      * @param commitOld the old commit ID
      * @param commitNew the new commit ID
      * @return the list of differences as DiffEntrys
-     * @throws Exception
      */
     public List<DiffEntry> getDifferences(String commitOld, String commitNew) {
         List<DiffEntry> returnList = null;

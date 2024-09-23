@@ -33,6 +33,6 @@ public class IRMergeRunner {
 
         MergeService mergeService = new MergeService(args[0], args[1], args[2]);
 
-        mergeService.generateMergeIR();
+        //mergeService.generateMergeIR();
     }
 }

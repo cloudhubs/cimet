@@ -36,11 +36,11 @@ public class EndpointTemplate {
                 NormalAnnotationExpr nae = (NormalAnnotationExpr) requestMapping;
                 for (MemberValuePair pair : nae.getPairs()) {
                     if (pair.getNameAsString().equals("value")) {
-                        preUrl = pair.getValue().toString();
+                        preUrl = pair.getValue().toString().replaceAll("\"", "");
                     }
                 }
             } else if (requestMapping instanceof SingleMemberAnnotationExpr) {
-                preUrl = requestMapping.asSingleMemberAnnotationExpr().getMemberValue().toString();
+                preUrl = requestMapping.asSingleMemberAnnotationExpr().getMemberValue().toString().replaceAll("\"", "");
             }
         }
 
@@ -52,21 +52,42 @@ public class EndpointTemplate {
                     String methodValue = pair.getValue().toString();
                     finalHttpMethod = httpFromMapping(methodValue);
                 } else if(pair.getNameAsString().equals("path") || pair.getNameAsString().equals("value")) {
-                    url = pair.getValue().toString();
+                    url = pair.getValue().toString().replaceAll("\"", "");
                 }
             }
         } else if (endpointMapping instanceof SingleMemberAnnotationExpr) {
-            url = endpointMapping.asSingleMemberAnnotationExpr().getMemberValue().toString();
+            url = endpointMapping.asSingleMemberAnnotationExpr().getMemberValue().toString().replaceAll("\"", "");
         }
 
         if(finalHttpMethod == HttpMethod.ALL) {
             finalHttpMethod = httpFromMapping(endpointMapping.getNameAsString());
         }
 
+        String finalURL = "";
+        // Ensure preUrl starts with a slash if it exists
+        if((!preUrl.isEmpty() && !preUrl.startsWith("/"))) {
+            preUrl = "/" + preUrl;
+        // Ensure Url starts with a slash if it exists
+        } else if ((!url.isEmpty() && !url.startsWith("/"))) {
+            url = "/" + url;
+        }
+
+
+        if(preUrl.isEmpty() && url.isEmpty()) {
+            finalURL = "/";
+        } else {
+            finalURL = preUrl + url;
+        }
+
+        // Replace any double slashes
+        finalURL = finalURL.replaceAll("//", "/");
+        // If it ends with a slash remove it
+        finalURL = finalURL.endsWith("/") ? finalURL.substring(0, finalURL.length() - 1) : finalURL;
+
 
         this.httpMethod = finalHttpMethod;
         this.name = endpointMapping.getNameAsString();
-        this.url = preUrl.replace("\"", "") + simplifyEndpointURL(url.replace("\"", ""));
+        this.url = finalURL;
     }
 
 

@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class ExtractionTest {
     private static final String TEST_FILE = "src/test/resources/TestFile.java";
     private static final String TEST_CONFIG_FILE = "src/test/resources/test_config.json";
-    private static final int EXPECTED_CALLS = 5;
+    private static final int EXPECTED_CALLS = 6;
     private static final String PRE_URL = "/api/v1/seatservice/test";
 
     @Before

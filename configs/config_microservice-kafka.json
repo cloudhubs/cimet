@@ -1,6 +1,0 @@
-{
-  "systemName": "microservice-kafka",
-  "repositoryURL": "https://github.com/ewolff/microservice-kafka.git",
-  "baseCommit": "103de22da497c631708f0541a0cad0e662d04aa5",
-  "baseBranch": "master"
-}
