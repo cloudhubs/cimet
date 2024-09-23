@@ -42,8 +42,10 @@ jobs:
 
       - name: Verify Javadoc
         run: |
-          if [ ! -d target/site/apidocs ]; then
-            echo "Javadoc failed to compile!"
+          if [ -d target/site/apidocs ]; then
+            echo "Javadoc generated successfully."
+          else
+            echo "Javadoc failed to generate!"
             exit 1
           fi
 
