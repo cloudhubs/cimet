@@ -26,7 +26,8 @@ jobs:
 
   javadoc:
     runs-on: ubuntu-latest
-    needs: test  # Ensures the javadoc phase runs only after the test phase succeeds
+    needs: test  # Ensures the javadoc job runs after tests pass
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -38,46 +39,21 @@ jobs:
           java-version: '17'
 
       - name: Generate Javadoc
-        run: mvn javadoc:javadoc --no-transfer-progress -DadditionalJOption=-Xdoclint:none # Ignore warnings
+        run: mvn javadoc:javadoc --no-transfer-progress
 
       - name: Verify Javadoc
         run: |
-          if [ -d target/site/apidocs ]; then
-            echo "Javadoc generated successfully."
-          else
-            echo "Javadoc failed to generate!"
-            exit 1
-          fi
+            if [ -d docs/apidocs ]; then
+              echo "Javadoc generated successfully."
+            else
+              echo "Javadoc failed to generate!"
+              exit 1
+            fi
 
-  update-docs:
-    runs-on: ubuntu-latest
-    needs: [test, javadoc]  # This ensures that deploy phase runs only after both test and javadoc phases succeed
-    if: github.event.pull_request.merged == true  # Ensures this runs only when the PR is merged
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up SSH for deploy key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
-      - name: Generate Javadoc
-        run: mvn javadoc:javadoc --no-transfer-progress
-
-      - name: Deploy docs to GitHub Pages
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin git@github.com:${{ github.repository }}.git
-          rm -rf docs/apidocs
-          mv target/site/apidocs docs/apidocs
-          git add docs/apidocs
-          git commit -m "Update Javadoc"
-          git push origin main
-        env:
-          GIT_SSH_COMMAND: "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes"
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true

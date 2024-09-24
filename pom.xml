@@ -14,8 +14,6 @@
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
 
     </properties>
-
-
     <dependencies>
         <!-- new dependencies -->
         <dependency>
@@ -40,11 +38,6 @@
             <version>2.8.9</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
             <version>6.8.0.202311291450-r</version>
@@ -65,62 +58,10 @@
             <version>1.5.2</version>
         </dependency>
         <dependency>
-            <groupId>javax.json</groupId>
-            <artifactId>javax.json-api</artifactId>
-            <version>1.1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-            <version>1.1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>3.2.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.jemos.podam</groupId>
-            <artifactId>podam</artifactId>
-            <version>8.0.1.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -134,22 +75,16 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
-
     <build>
         <plugins>
+            <!-- Maven Exec Plugin to run Java classes -->
             <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler-plugin.version}</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <mainClass>${mainClass}</mainClass>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -157,6 +92,8 @@
                 <version>3.4.1</version>
                 <configuration>
                     <show>private</show>
+                    <reportOutputDirectory>./docs</reportOutputDirectory>
+                    <outputDirectory>./docs</outputDirectory>
                     <groups>
                         <group>
                             <title>common</title>
@@ -179,44 +116,51 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <systemPropertyVariables>
-                                        <native.image.path>
-                                            ${project.build.directory}/${project.build.finalName}-runner
-                                        </native.image.path>
-                                        <java.util.logging.manager>org.jboss.logmanager.LogManager
-                                        </java.util.logging.manager>
-                                        <maven.home>${maven.home}</maven.home>
-                                    </systemPropertyVariables>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
 
-                </plugins>
-            </build>
+    <profiles>
+        <!-- Profile for Main Class 1 -->
+        <profile>
+            <id>run-ir</id>
             <properties>
-                <quarkus.package.type>native</quarkus.package.type>
+                <mainClass>edu.university.ecs.lab.intermediate.create.IRExtractionRunner</mainClass>
+                <build>
+                    <defaultGoal>exec:java</defaultGoal>
+                </build>
+            </properties>
+        </profile>
+
+        <!-- Profile for Main Class 2 -->
+        <profile>
+            <id>run-delta</id>
+            <properties>
+                <mainClass>edu.university.ecs.lab.delta.DeltaExtractionRunner</mainClass>
+                <build>
+                    <defaultGoal>exec:java</defaultGoal>
+                </build>
+            </properties>
+        </profile>
+
+        <!-- Add more profiles for additional main classes if needed -->
+        <!-- Profile for Main Class 3 -->
+        <profile>
+            <id>run-merge</id>
+            <properties>
+                <mainClass>edu.university.ecs.lab.intermediate.merge.IRMergeRunner</mainClass>
+                <build>
+                    <defaultGoal>exec:java</defaultGoal>
+                </build>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>run-history</id>
+            <properties>
+                <mainClass>edu.university.ecs.lab.detection.ExcelOutputRunner</mainClass>
+                <build>
+                    <defaultGoal>exec:java</defaultGoal>
+                </build>
             </properties>
         </profile>
     </profiles>
+
 </project>
