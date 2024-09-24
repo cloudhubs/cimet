@@ -7,13 +7,12 @@
     <artifactId>cimet</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <surefire-plugin.version>2.22.1</surefire-plugin.version>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
-
     </properties>
+
     <dependencies>
         <!-- new dependencies -->
         <dependency>
@@ -58,10 +57,31 @@
             <version>1.5.2</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.17.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -123,10 +143,10 @@
             <id>run-ir</id>
             <properties>
                 <mainClass>edu.university.ecs.lab.intermediate.create.IRExtractionRunner</mainClass>
-                <build>
-                    <defaultGoal>exec:java</defaultGoal>
-                </build>
             </properties>
+            <build>
+                <defaultGoal>exec:java</defaultGoal>
+            </build>
         </profile>
 
         <!-- Profile for Main Class 2 -->
@@ -134,32 +154,32 @@
             <id>run-delta</id>
             <properties>
                 <mainClass>edu.university.ecs.lab.delta.DeltaExtractionRunner</mainClass>
-                <build>
-                    <defaultGoal>exec:java</defaultGoal>
-                </build>
             </properties>
+            <build>
+                <defaultGoal>exec:java</defaultGoal>
+            </build>
         </profile>
 
-        <!-- Add more profiles for additional main classes if needed -->
         <!-- Profile for Main Class 3 -->
         <profile>
             <id>run-merge</id>
             <properties>
                 <mainClass>edu.university.ecs.lab.intermediate.merge.IRMergeRunner</mainClass>
-                <build>
-                    <defaultGoal>exec:java</defaultGoal>
-                </build>
             </properties>
+            <build>
+                <defaultGoal>exec:java</defaultGoal>
+            </build>
         </profile>
 
+        <!-- Profile for Main Class 4 -->
         <profile>
             <id>run-history</id>
             <properties>
                 <mainClass>edu.university.ecs.lab.detection.ExcelOutputRunner</mainClass>
-                <build>
-                    <defaultGoal>exec:java</defaultGoal>
-                </build>
             </properties>
+            <build>
+                <defaultGoal>exec:java</defaultGoal>
+            </build>
         </profile>
     </profiles>
 
