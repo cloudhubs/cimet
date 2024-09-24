@@ -49,18 +49,6 @@ jobs:
               exit 1
             fi
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: javadoc  # Ensures deploy runs only after Javadoc is generated
-    if: github.ref == 'refs/heads/main'  # Deploy only on push to main
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Generate Javadoc for deploy
-        run: mvn javadoc:javadoc --no-transfer-progress
-
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v1  # GitHub Pages deploy action
         with:
