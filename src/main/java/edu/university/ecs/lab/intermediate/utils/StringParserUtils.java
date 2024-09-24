@@ -17,7 +17,6 @@ public class StringParserUtils {
     /**
      * Remove start/end quotations from the given string.
      *
-     * <p>ex: "abcde" --> abcde
      *
      * @param s the string to remove quotations from
      * @return the string with quotations removed

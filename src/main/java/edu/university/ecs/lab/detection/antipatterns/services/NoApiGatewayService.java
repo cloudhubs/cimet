@@ -39,7 +39,7 @@ public class NoApiGatewayService {
    }
 
    /**
-     * Checks if the given JsonObject contains the "cloud" -> "gateway" configuration.
+     * Checks if the given JsonObject contains the "cloud" or "gateway" configuration.
      * @param data The JsonObject to check.
      * @return true if the configuration is found, false otherwise.
      */

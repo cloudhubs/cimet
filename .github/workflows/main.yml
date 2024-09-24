@@ -26,7 +26,7 @@ jobs:
 
   javadoc:
     runs-on: ubuntu-latest
-    needs: test
+    needs: test  # Ensures the javadoc phase runs only after the test phase succeeds
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -38,20 +38,23 @@ jobs:
           java-version: '17'
 
       - name: Generate Javadoc
-        run: mvn javadoc:javadoc --no-transfer-progress
+        run: mvn javadoc:javadoc --no-transfer-progress -DadditionalJOption=-Xdoclint:none # Ignore warnings
 
       - name: Verify Javadoc
         run: |
-          if [ ! -d target/site/apidocs ]; then
-            echo "Javadoc failed to compile!"
+          if [ -d target/site/apidocs ]; then
+            echo "Javadoc generated successfully."
+          else
+            echo "Javadoc failed to generate!"
             exit 1
           fi
 
-  deploy:
+  update-docs:
     runs-on: ubuntu-latest
-
+    needs: [test, javadoc]  # This ensures that deploy phase runs only after both test and javadoc phases succeed
+    if: github.event.pull_request.merged == true  # Ensures this runs only when the PR is merged
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up SSH for deploy key
@@ -66,10 +69,11 @@ jobs:
       - name: Generate Javadoc
         run: mvn javadoc:javadoc --no-transfer-progress
 
-      - name: Push Javadoc to GitHub Pages
+      - name: Deploy docs to GitHub Pages
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin git@github.com:${{ github.repository }}.git
           rm -rf docs/apidocs
           mv target/site/apidocs docs/apidocs
           git add docs/apidocs

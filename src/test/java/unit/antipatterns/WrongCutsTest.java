@@ -30,6 +30,7 @@ public class WrongCutsTest {
         microserviceSystem = JsonReadWriteUtils.readFromJSON("./output/TestIR.json", MicroserviceSystem.class);
 
         wrongCutsService = new WrongCutsService();
+
     }
 
 //    @Test
