@@ -53,6 +53,19 @@ public class JClass extends ProjectFile implements JsonSerializable {
      */
     private Set<MethodCall> methodCalls;
 
+    public JClass(String name, String path, String packageName, ClassRole classRole) {
+        this.name = name;
+        this.packageName = packageName;
+        this.path = path;
+        this.classRole = classRole;
+        this.methods = new HashSet<>();
+        this.fields = new HashSet<>();
+        this.annotations = new HashSet<>();
+        this.methodCalls = new HashSet<>();
+        this.implementedTypes = new HashSet<>();
+        this.fileType = FileType.JCLASS;
+    }
+
     public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, Set<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
         this.name = name;
         this.packageName = packageName;
