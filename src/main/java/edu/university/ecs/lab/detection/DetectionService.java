@@ -44,7 +44,7 @@ public class DetectionService {
      */
     private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (Method level)",
             "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
-            "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
+            "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADS", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
             "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
     
