@@ -55,9 +55,9 @@ public class DetectionService {
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
 
-    // private static final String OLD_IR_PATH = "./output/OldIR_";
-    private static final String DELTA_PATH = "./output/Delta_";
-    // private static final String NEW_IR_PATH = "./output/NewIR_";
+    private static final String BASE_DELTA_PATH = "./output/Delta/Delta_";
+    private static final String BASE_IR_PATH = "./output/IR/IR_";
+
 
 
     /**
@@ -101,7 +101,7 @@ public class DetectionService {
         // Generate the initial IR
         irExtractionService = new IRExtractionService(configPath, Optional.of(commits.get(0).toString().split(" ")[1]));
         String firstCommit = commits.get(0).getName().substring(0, 4);
-        irExtractionService.generateIR("IR_" + firstCommit + ".json");
+        irExtractionService.generateIR(BASE_IR_PATH + firstCommit + ".json");
 
         // Setup sheet and headers
         sheet = workbook.createSheet(config.getSystemName());
@@ -130,27 +130,27 @@ public class DetectionService {
 
             // Set the commitID as the first cell value
             Cell commitIdCell = row.createCell(0);
-            commitIdCell.setCellValue(commitIdOld.substring(0, 7));
+            commitIdCell.setCellValue(commitIdOld);
 
             // Read in the old system
-            String oldSysPath = "./output/IR_" + commitIdOld.substring(0, 4) +".json";
-            MicroserviceSystem oldSystem = JsonReadWriteUtils.readFromJSON(oldSysPath, MicroserviceSystem.class);
+            String oldIRPath = BASE_IR_PATH + commitIdOld.substring(0, 4) +".json";
+            MicroserviceSystem oldSystem = JsonReadWriteUtils.readFromJSON(oldIRPath, MicroserviceSystem.class);
 
             // Extract changes from one commit to the other
             if(i < commits.size() - 1) {
                 String commitIdNew = commits.get(i + 1).toString().split(" ")[1];
-                String newSysPath = "./output/IR_" + commitIdNew.substring(0, 4) +".json";
-                String deltaPath = DELTA_PATH + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
+                String newIRPath = BASE_IR_PATH + commitIdNew.substring(0, 4) +".json";
+                String deltaPath = BASE_DELTA_PATH + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
 
-                deltaExtractionService = new DeltaExtractionService(configPath, oldSysPath, commitIdOld, commitIdNew);
+                deltaExtractionService = new DeltaExtractionService(configPath, deltaPath, commitIdOld, commitIdNew);
                 deltaExtractionService.generateDelta();
 
                 // Merge Delta changes to old IR to create new IR representing new commit changes
-                MergeService mergeService = new MergeService(oldSysPath, deltaPath, configPath);
+                MergeService mergeService = new MergeService(oldIRPath, deltaPath, configPath, newIRPath);
                 mergeService.generateMergeIR(commitIdNew.substring(0, 4));
 
                 // Read in the new system and system change
-                newSystem = JsonReadWriteUtils.readFromJSON(newSysPath, MicroserviceSystem.class);
+                newSystem = JsonReadWriteUtils.readFromJSON(newIRPath, MicroserviceSystem.class);
                 systemChange = JsonReadWriteUtils.readFromJSON(deltaPath, SystemChange.class);
             }
 
@@ -294,7 +294,7 @@ public class DetectionService {
         ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
         metrics.put("SCCmodularity", mod.getModularity());
 
-        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics("./output/IR_" + commitID + ".json");
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(BASE_IR_PATH + commitID + ".json");
 
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));

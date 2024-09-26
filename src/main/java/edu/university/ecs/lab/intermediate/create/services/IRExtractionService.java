@@ -189,7 +189,7 @@ public class IRExtractionService {
 
         MicroserviceSystem microserviceSystem = new MicroserviceSystem(config.getSystemName(), commitID, microservices, new HashSet<>());
 
-        JsonReadWriteUtils.writeToJSON("./output/" + fileName, microserviceSystem.toJsonObject());
+        JsonReadWriteUtils.writeToJSON(fileName, microserviceSystem.toJsonObject());
 
         LoggerManager.info(() -> "Successfully extracted IR at " + commitID);
     }

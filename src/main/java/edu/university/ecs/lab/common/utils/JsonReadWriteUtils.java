@@ -11,6 +11,9 @@ import edu.university.ecs.lab.common.models.serialization.MethodDeserializer;
 import edu.university.ecs.lab.common.models.serialization.ProjectFileDeserializer;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -31,13 +34,15 @@ public class JsonReadWriteUtils {
      * @param filePath the file path where the JSON should be saved
      */
     public static <T> void writeToJSON(String filePath, T object) {
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.setPrettyPrinting();
-        Gson gson = gsonBuilder.create();
-        try (Writer writer = new BufferedWriter(new FileWriter(filePath))) {
-            gson.toJson(object, writer);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        try {
+            Path path = Paths.get(filePath);
+            Files.createDirectories(path.getParent());
+            try (Writer writer = Files.newBufferedWriter(path)) {
+                gson.toJson(object, writer);
+            }
         } catch (IOException e) {
-            Error.reportAndExit(Error.INVALID_JSON_READ, Optional.of(e));
+            Error.reportAndExit(Error.INVALID_JSON_WRITE, Optional.of(e));
         }
     }
 
