@@ -11,7 +11,7 @@ import lombok.Data;
  * Represents the "No Health Check" anti-pattern
  */
 @Data
-public class NoHealthcheck extends AntiPattern{
+public class NoHealthcheck extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

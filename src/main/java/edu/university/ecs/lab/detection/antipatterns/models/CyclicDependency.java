@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
  * Represents a list of one cycle of Cyclic Dependency Anti-pattern detected
  */
 @Data
-public class CyclicDependency extends AntiPattern{
+public class CyclicDependency extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

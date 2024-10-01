@@ -1,5 +1,7 @@
 package edu.university.ecs.lab.common.models.ir;
 
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
@@ -21,7 +23,7 @@ public class Method extends Node {
     /**
      * Set of fields representing parameters
      */
-    protected Set<Field> parameters;
+    protected Set<Parameter> parameters;
 
     /**
      * Java return type of the method
@@ -43,7 +45,7 @@ public class Method extends Node {
      */
     protected String className;
 
-    public Method(String name, String packageAndClassName, Set<Field> parameters, String typeAsString, Set<Annotation> annotations, String microserviceName,
+    public Method(String name, String packageAndClassName, Set<Parameter> parameters, String typeAsString, Set<Annotation> annotations, String microserviceName,
                   String className) {
         this.name = name;
         this.packageAndClassName = packageAndClassName;
@@ -52,6 +54,12 @@ public class Method extends Node {
         this.annotations = annotations;
         this.microserviceName = microserviceName;
         this.className = className;
+    }
+
+    public Method(MethodDeclaration methodDeclaration) {
+        this.name = methodDeclaration.getNameAsString();
+        this.packageAndClassName = methodDeclaration.getClass().getPackageName() + "." + methodDeclaration.getClass().getName();
+        this.parameters = parseParameters(methodDeclaration.getParameters());
     }
 
     /**
@@ -70,6 +78,17 @@ public class Method extends Node {
         jsonObject.addProperty("className", className);
 
         return jsonObject;
+    }
+
+    private Set<Parameter> parseParameters(NodeList<com.github.javaparser.ast.body.Parameter> parameters) {
+        HashSet<Parameter> parameterSet = new HashSet<>();
+
+        for(com.github.javaparser.ast.body.Parameter parameter : parameters) {
+            parameterSet.add(new Parameter(parameter, getPackageAndClassName()));
+        }
+
+
+        return parameterSet;
     }
 
 }

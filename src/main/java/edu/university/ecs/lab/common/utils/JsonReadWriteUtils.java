@@ -34,7 +34,7 @@ public class JsonReadWriteUtils {
      * @param filePath the file path where the JSON should be saved
      */
     public static <T> void writeToJSON(String filePath, T object) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         try {
             Path path = Paths.get(filePath);
             Files.createDirectories(path.getParent());

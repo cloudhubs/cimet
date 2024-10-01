@@ -85,7 +85,7 @@ public class ServiceChainTest {
 
         Microservice microservice2 = new Microservice("ms2", "/ms2");
         JClass jClass2 = new JClass("class2", "/class2","class2", ClassRole.SERVICE);
-        jClass2.setMethodCalls(Set.of(new RestCall(new MethodCall(), "/endpoint1", HttpMethod.GET)));
+        jClass2.setMethodCalls(List.of(new RestCall(new MethodCall(), "/endpoint1", HttpMethod.GET)));
         microservice2.addJClass(jClass2);
         JClass jClass3 = new JClass("class3", "/class3","class3", ClassRole.CONTROLLER);
         jClass3.setMethods(Set.of(new Endpoint(new Method(), "/endpoint2", HttpMethod.GET)));
@@ -93,7 +93,7 @@ public class ServiceChainTest {
 
         Microservice microservice3 = new Microservice("ms3", "/ms3");
         JClass jClass4 = new JClass("class4", "/class4","class4", ClassRole.SERVICE);
-        jClass4.setMethodCalls(Set.of(new RestCall(new MethodCall(), "/endpoint2", HttpMethod.GET)));
+        jClass4.setMethodCalls(List.of(new RestCall(new MethodCall(), "/endpoint2", HttpMethod.GET)));
         microservice3.addJClass(jClass4);
 
         MicroserviceSystem microserviceSystem1 = new MicroserviceSystem("test", "1", Set.of(microservice1, microservice2, microservice3), new HashSet<>());
@@ -113,12 +113,12 @@ public class ServiceChainTest {
         jClass1.setMethods(Set.of(new Endpoint(new Method(), "/endpoint1", HttpMethod.GET)));
         microservice1.addJClass(jClass1);
         JClass jClass5 = new JClass("class5", "/class5","class5", ClassRole.SERVICE);
-        jClass5.setMethodCalls(Set.of(new RestCall(new MethodCall(), "/endpoint3", HttpMethod.GET)));
+        jClass5.setMethodCalls(List.of(new RestCall(new MethodCall(), "/endpoint3", HttpMethod.GET)));
         microservice1.addJClass(jClass5);
 
         Microservice microservice2 = new Microservice("ms2", "/ms2");
         JClass jClass2 = new JClass("class2", "/class2","class2", ClassRole.SERVICE);
-        jClass2.setMethodCalls(Set.of(new RestCall(new MethodCall(), "/endpoint1", HttpMethod.GET)));
+        jClass2.setMethodCalls(List.of(new RestCall(new MethodCall(), "/endpoint1", HttpMethod.GET)));
         microservice2.addJClass(jClass2);
         JClass jClass3 = new JClass("class3", "/class3","class3", ClassRole.CONTROLLER);
         jClass3.setMethods(Set.of(new Endpoint(new Method(), "/endpoint2", HttpMethod.GET)));
@@ -126,7 +126,7 @@ public class ServiceChainTest {
 
         Microservice microservice3 = new Microservice("ms3", "/ms3");
         JClass jClass4 = new JClass("class4", "/class4","class4", ClassRole.SERVICE);
-        jClass4.setMethodCalls(Set.of(new RestCall(new MethodCall(), "/endpoint2", HttpMethod.GET)));
+        jClass4.setMethodCalls(List.of(new RestCall(new MethodCall(), "/endpoint2", HttpMethod.GET)));
         microservice3.addJClass(jClass4);
         JClass jClass6 = new JClass("class6", "/class6","class6", ClassRole.CONTROLLER);
         jClass6.setMethods(Set.of(new Endpoint(new Method(), "/endpoint3", HttpMethod.GET)));

@@ -7,73 +7,37 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-/**
- * Service for managing local repository including the cloning
- * and resetting the current commit.
- */
 public class GitService {
     private static final int EXIT_SUCCESS = 0;
     private static final String HEAD_COMMIT = "HEAD";
 
-    /**
-     * Configuration file path
-     */
     private final Config config;
-
-    /**
-     * Repository object for jgit usage
-     */
     private final Repository repository;
 
-
-    /**
-     * Instantiation of this service will result in the following
-     * 1.) output and clone directories will be created or validated
-     * 2.) Configuration file will be read and validated by it's constructor
-     * 3.) The repository in config will be cloned or validated
-     *
-     * @param configPath
-     */
     public GitService(String configPath) {
-        // 1.) Read config
         this.config = ConfigUtil.readConfig(configPath);
-
-        // 2.) Make the output and clone directory
         FileUtils.makeDirs();
-
-        // 3.) Clone the repository
         cloneRemote();
-
-        // If clone was successful we can now set repo and reset local repo to config base commit
         this.repository = initRepository();
-
     }
 
-
-    /**
-     * This method clones a remote repository to the local file system. Postcondition: the repository
-     * has been cloned to the local file system.
-     *
-     */
     public void cloneRemote() {
-        // Quietly return assuming cloning already took place
         String repositoryPath = FileUtils.getRepositoryPath(config.getRepoName());
 
-        // Quietly return assuming cloning already took place
         if (new File(repositoryPath).exists()) {
             return;
         }
@@ -83,9 +47,7 @@ public class GitService {
                     new ProcessBuilder("git", "clone", config.getRepositoryURL(), repositoryPath);
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
-
             int exitCode = process.waitFor();
-
 
             if (exitCode != EXIT_SUCCESS) {
                 throw new Exception();
@@ -98,17 +60,9 @@ public class GitService {
         LoggerManager.info(() -> "Cloned repository " + config.getRepoName());
     }
 
-    /**
-     * This method resets the local repository to commitID.
-     * Used to initially set commit for clone and additionally to
-     * advance the local repository as we step through commits
-     *
-     * @param commitID if empty or null, defaults to HEAD
-     */
     public void resetLocal(String commitID) {
         validateLocalExists();
 
-        // If an invalid commit is passed simply make no change
         if (Objects.isNull(commitID) || commitID.isEmpty()) {
             return;
         }
@@ -120,14 +74,8 @@ public class GitService {
         }
 
         LoggerManager.info(() -> "Set repository " + config.getRepoName() + " to " + commitID);
-
-
     }
 
-    /**
-     * This method validates that the local repository exists or
-     * reports and exits if it doesn't.
-     */
     private void validateLocalExists() {
         File file = new File(FileUtils.getRepositoryPath(config.getRepoName()));
         if (!(file.exists() && file.isDirectory())) {
@@ -135,11 +83,6 @@ public class GitService {
         }
     }
 
-    /**
-     * Establish a local endpoint for the given repository path.
-     *
-     * @return the repository object
-     */
     public Repository initRepository() {
         validateLocalExists();
 
@@ -150,26 +93,19 @@ public class GitService {
             repository = new FileRepositoryBuilder().setGitDir(new File(repositoryPath, ".git")).build();
 
         } catch (Exception e) {
-            Error.reportAndExit(Error.GIT_FAILED,Optional.of(e));
+            Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
         }
 
         return repository;
     }
 
-
-    /**
-     * Get the differences between commitOld and commitNew
-     *
-     * @param commitOld the old commit ID
-     * @param commitNew the new commit ID
-     * @return the list of differences as DiffEntrys
-     */
     public List<DiffEntry> getDifferences(String commitOld, String commitNew) {
         List<DiffEntry> returnList = null;
         RevCommit oldCommit = null, newCommit = null;
         RevWalk revWalk = new RevWalk(repository);
 
         try {
+            // Parse the old and new commits
             oldCommit = revWalk.parseCommit(repository.resolve(commitOld));
             newCommit = revWalk.parseCommit(repository.resolve(commitNew));
         } catch (Exception e) {
@@ -180,16 +116,24 @@ public class GitService {
         try (ObjectReader reader = repository.newObjectReader()) {
             CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
             CanonicalTreeParser newTreeParser = new CanonicalTreeParser();
-            oldTreeParser.reset(reader, oldCommit.getTree());
-            newTreeParser.reset(reader, newCommit.getTree());
 
-            // Compute differences
+            // Use tree objects from the commits
+            oldTreeParser.reset(reader, oldCommit.getTree().getId());
+            newTreeParser.reset(reader, newCommit.getTree().getId());
+
+            // Compute differences between the trees of the two commits
             try (Git git = new Git(repository)) {
-                returnList = git.diff()
-                        .setNewTree(newTreeParser)
+                List<DiffEntry> rawDiffs = git.diff()
                         .setOldTree(oldTreeParser)
+                        .setNewTree(newTreeParser)
                         .call();
 
+                // Filter out diffs that only contain whitespace or comment changes
+                RevCommit finalOldCommit = oldCommit;
+                RevCommit finalNewCommit = newCommit;
+                returnList = rawDiffs.stream()
+                        .filter(diff -> isCodeChange(diff, repository, finalOldCommit, finalNewCommit))
+                        .collect(Collectors.toList());
             }
         } catch (Exception e) {
             Error.reportAndExit(Error.GIT_FAILED, Optional.of(e));
@@ -198,6 +142,58 @@ public class GitService {
         LoggerManager.debug(() -> "Got differences of repository " + config.getRepoName() + " between " + commitOld + " -> " + commitNew);
 
         return returnList;
+    }
+
+    private boolean isCodeChange(DiffEntry diff, Repository repository, RevCommit oldCommit, RevCommit newCommit) {
+        if((!diff.getOldPath().endsWith(".java") && !diff.getNewPath().endsWith(".java"))) {
+            return true;
+        }
+
+        // Read the file contents before and after the changes
+        String oldContent = getContentFromTree(repository, oldCommit.getTree().getId(), diff.getOldPath());
+        String newContent = getContentFromTree(repository, newCommit.getTree().getId(), diff.getNewPath());
+
+        // Remove comments and whitespace from both contents
+        String oldCode = stripCommentsAndWhitespace(oldContent);
+        String newCode = stripCommentsAndWhitespace(newContent);
+
+        // If the meaningful code is different, return true
+        return !oldCode.equals(newCode);
+    }
+
+    private String getContentFromTree(Repository repository, ObjectId treeId, String filePath) {
+        try (ObjectReader reader = repository.newObjectReader();
+             TreeWalk treeWalk = new TreeWalk(repository)) {
+
+            // Add the tree to the tree walker
+            treeWalk.addTree(treeId);
+            treeWalk.setRecursive(true); // We want to search recursively
+
+            // Walk through the tree to find the file
+            while (treeWalk.next()) {
+                String currentPath = treeWalk.getPathString();
+                if (currentPath.equals(filePath)) {
+                    // Ensure we have a blob (file) and not a tree
+                    if (treeWalk.getFileMode(0).getObjectType() == Constants.OBJ_BLOB) {
+                        // Read the file content and return it
+                        byte[] data = reader.open(treeWalk.getObjectId(0)).getBytes();
+                        return new String(data, StandardCharsets.UTF_8);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            // Return an empty string in case of an error
+            return "";
+        }
+
+        // If the file is not found, return an empty string
+        return "";
+    }
+
+
+    private String stripCommentsAndWhitespace(String content) {
+        return content.replaceAll("(//.*|/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/|\\s+)", "");
     }
 
     public Iterable<RevCommit> getLog() {
@@ -216,14 +212,10 @@ public class GitService {
         String commitID = "";
 
         try {
-            // Get the reference to HEAD
             Ref head = repository.findRef(HEAD_COMMIT);
             RevWalk walk = new RevWalk(repository);
-
-            // Use RevWalk to parse the commit
             ObjectId commitId = head.getObjectId();
             RevCommit commit = walk.parseCommit(commitId);
-
             commitID = commit.getName();
 
         } catch (Exception e) {
@@ -232,6 +224,4 @@ public class GitService {
 
         return commitID;
     }
-
-
 }

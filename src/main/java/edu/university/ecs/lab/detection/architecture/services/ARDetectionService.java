@@ -82,10 +82,10 @@ public class ARDetectionService {
             }
 
             
-            // List<UseCase7> useCase7List = UseCase7.scan(d, microserviceSystemOld, microserviceSystemNew);
-            // if(!useCase7List.isEmpty()){
-            //     useCases.addAll(useCase7List);
-            // }
+             List<AR7> useCase7List = AR7.scan(d, microserviceSystemOld, microserviceSystemNew);
+             if(!useCase7List.isEmpty()){
+                 useCases.addAll(useCase7List);
+             }
         }
 
         return useCases;
@@ -109,10 +109,10 @@ public class ARDetectionService {
             useCases.addAll(useCase4List);
         }
 
-        List<AR20> useCase20List = AR20.scan(microserviceSystemOld, microserviceSystemNew);
-        if(!useCase20List.isEmpty()){
-            useCases.addAll(useCase20List);
-        }
+//        List<AR7> useCase7List = AR7.scan(demicroserviceSystemOld, microserviceSystemNew);
+//        if(!useCase7List.isEmpty()){
+//            useCases.addAll(useCase7List);
+//        }
 
         // List<UseCase21> useCase21List = UseCase21.scan(microserviceSystemOld, microserviceSystemNew);
         // if(!useCase21List.isEmpty()){

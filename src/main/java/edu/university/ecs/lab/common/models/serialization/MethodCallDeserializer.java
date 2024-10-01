@@ -5,6 +5,8 @@ import edu.university.ecs.lab.common.models.ir.MethodCall;
 import edu.university.ecs.lab.common.models.ir.RestCall;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Class for deserializing a MethodCall when using Gson
@@ -40,6 +42,8 @@ public class MethodCallDeserializer implements JsonDeserializer<MethodCall> {
         MethodCall methodCall = jsonToMethodCall(json);
         String url = json.get("url").getAsString();
         String httpMethod = json.get("httpMethod").getAsString();
+
+
 
 
         return new RestCall(methodCall, url, HttpMethod.valueOf(httpMethod));

@@ -1,25 +1,20 @@
 package edu.university.ecs.lab.common.models.enums;
 
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MemberValuePair;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
-import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.*;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Factory class for generating an endpoint template from annotations
  */
 @Getter
 public class EndpointTemplate {
-//    GET_MAPPING("GetMapping", HttpMethod.GET),
-//    POST_MAPPING("PostMapping", HttpMethod.POST),
-//    DELETE_MAPPING("DeleteMapping", HttpMethod.DELETE),
-//    private static final EndpointTemplate PUT_MAPPING = new EndpointTemplate("PutMapping", HttpMethod.PUT);
-
     public static final List<String> ENDPOINT_ANNOTATIONS = Arrays.asList("RequestMapping", "GetMapping", "PutMapping", "PostMapping", "DeleteMapping", "PatchMapping");
     private final HttpMethod httpMethod;
     private final String name;
@@ -57,6 +52,10 @@ public class EndpointTemplate {
             }
         } else if (endpointMapping instanceof SingleMemberAnnotationExpr) {
             url = endpointMapping.asSingleMemberAnnotationExpr().getMemberValue().toString().replaceAll("\"", "");
+        } else if(endpointMapping instanceof MarkerAnnotationExpr) {
+            if(preUrl.isEmpty()) {
+                url = "/";
+            }
         }
 
         if(finalHttpMethod == HttpMethod.ALL) {
@@ -82,12 +81,14 @@ public class EndpointTemplate {
         // Replace any double slashes
         finalURL = finalURL.replaceAll("//", "/");
         // If it ends with a slash remove it
-        finalURL = finalURL.endsWith("/") ? finalURL.substring(0, finalURL.length() - 1) : finalURL;
+        finalURL = finalURL.endsWith("/") && !finalURL.equals("/") ? finalURL.substring(0, finalURL.length() - 1) : finalURL;
 
+
+        // Get query Parameters
 
         this.httpMethod = finalHttpMethod;
         this.name = endpointMapping.getNameAsString();
-        this.url = finalURL;
+        this.url = simplifyEndpointURL(finalURL);
     }
 
 

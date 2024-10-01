@@ -8,7 +8,7 @@ import lombok.Data;
  * Represents the "No API-Gateway" anti-pattern
  */
 @Data
-public class NoApiGateway extends AntiPattern{
+public class NoApiGateway extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

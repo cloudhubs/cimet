@@ -70,9 +70,7 @@ public class StrictServiceImplementationCohesion extends AbstractMetric {
                     }).flatMap(types -> types.stream())
                     .collect(Collectors.toSet()).size();
 
-            // multiplica por dois porque é o conjunto de pares, então tanto a ida como a
-            // volta
-            // ex: (Service::A-Service::B e Service::B-Service::A) contam.
+
             this.getResult().setMetricValue(intersectTypesSize * 2.0 / (uniqueUsingTypes.size() * numberOfOperations));
         }
 

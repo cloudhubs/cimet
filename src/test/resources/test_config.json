@@ -1,5 +1,5 @@
 {
-  "systemName": "Train-ticket",
+  "systemName": "train-ticket",
   "repositoryURL": "https://github.com/FudanSELab/train-ticket.git",
-  "baseBranch": "main"
+  "baseBranch": "master"
 }

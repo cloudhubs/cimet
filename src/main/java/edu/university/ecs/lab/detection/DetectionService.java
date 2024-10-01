@@ -46,7 +46,7 @@ public class DetectionService {
             "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
             "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADS", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
-            "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
+            "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Change)", "AR7 (Change)"};
     
     /**
      * Count of antipatterns, metrics, and architectural rules
@@ -55,8 +55,8 @@ public class DetectionService {
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
 
-    private static final String BASE_DELTA_PATH = "./output/Delta/Delta";
-    private static final String BASE_IR_PATH = "./output/IR/IR";
+    private static String BASE_DELTA_PATH = "/Delta/Delta";
+    private static String BASE_IR_PATH = "/IR/IR";
 
 
 
@@ -87,6 +87,9 @@ public class DetectionService {
         // Setup local repo
         gitService = new GitService(configPath);
         workbook = new XSSFWorkbook();
+
+        BASE_DELTA_PATH = "./output/" + config.getRepoName() + BASE_DELTA_PATH;
+        BASE_IR_PATH = "./output/" + config.getRepoName() + BASE_IR_PATH;
     }
 
     /**
@@ -188,7 +191,7 @@ public class DetectionService {
         }
 
         // At the end we write the workbook to file
-        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
+        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/%s/output-%s.xlsx",config.getRepoName(), config.getSystemName()))) {
             workbook.write(fileOut);
             System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
             workbook.close();
@@ -327,7 +330,7 @@ public class DetectionService {
                     arcrules_counts[1]++;
                 } else if (archRule instanceof AR6) {
                     arcrules_counts[2]++;
-                } else if (archRule instanceof AR20) {
+                } else if (archRule instanceof AR7) {
                     arcrules_counts[3]++;
                 }
             }

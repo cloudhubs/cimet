@@ -98,7 +98,7 @@ public class DegreeCoupling {
         //  Service coupling factor (graph density)
         Map<Microservice, Set<Microservice>> adjacency = graph.getAdjacency();
         double E = adjacency.values().stream().map(Set::size).mapToDouble(Integer::doubleValue).sum();
-        long N = AIS.size();
+        long N = graph.vertexSet().size();
         SCF = E/(N*(N-1));
 
         // Service Interdependence in the System

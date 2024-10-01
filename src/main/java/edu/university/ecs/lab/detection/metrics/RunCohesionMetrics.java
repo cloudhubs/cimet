@@ -37,41 +37,30 @@ public class RunCohesionMetrics {
         for (Microservice microservice : microserviceSystem.getMicroservices()) {
 
             IServiceDescriptor serviceDescriptor = new ServiceDescriptor();
-//                JSONObject microservice = microservices.getJSONObject(i);
-//                String serviceName = microservice.getString("name");
-//                JSONArray controllers = microservice.getJSONArray("controllers");
 
             serviceDescriptor.setServiceName(microservice.getName());
 
             for (JClass controller : microservice.getControllers()) {
-//                    JSONObject controller = controllers.getJSONObject(j);
-//                    JSONArray methods = controller.getJSONArray("methods");
 
                 List<Operation> operations = new ArrayList<>();
 
                 for (Method method : controller.getMethods()) {
-//                        JSONObject method = methods.getJSONObject(k);
                     Operation operation = new Operation();
                     String operationName = microservice.getName() + "::" + method.getName();
                     operation.setResponseType(method.getReturnType());
                     operation.setName(operationName);
 
-//                        JSONArray parameters = method.getJSONArray("parameters");
-                    List<Parameter> paramList = new ArrayList<>();
-                    for (Field field : method.getParameters()) {
-//                            JSONObject parameter = parameters.getJSONObject(l);
-                        Parameter param = new Parameter();
-                        param.setName(field.getName());
-                        param.setType(field.getType());
-                        paramList.add(param);
+                    List<String> paramList = new ArrayList<>();
+                    for (edu.university.ecs.lab.common.models.ir.Parameter field : method.getParameters()) {
+//                        Parameter param = new Parameter();
+//                        param.setName(field.getName());
+//                        param.setType(field.getType());
+                        paramList.add(field.getType());
                     }
                     operation.setParamList(paramList);
 
                     List<String> usingTypes = new ArrayList<>();
-                    // Assume annotations can imply using types
-//                        JSONArray annotations = method.getJSONArray("annotations");
                     for (Annotation annotation : method.getAnnotations()) {
-//                            JSONObject annotation = annotations.getJSONObject(m);
                         usingTypes.add(annotation.getName() + " - " + annotation.getContents());
                     }
                     operation.setUsingTypesList(usingTypes);

@@ -86,8 +86,8 @@ public class LackOfMessageLevelCohesion extends AbstractMetric {
         HashSet<String> unionOfProperties = new HashSet<>();
 
         // Get parameter names from each operation
-        List<String> firstOperationParameterNames = Parameter.getParameterNames(firstOperation.getParamList());
-        List<String> secondOperationParameterNames = Parameter.getParameterNames(secondOperation.getParamList());
+        List<String> firstOperationParameterNames = firstOperation.getParamList();
+        List<String> secondOperationParameterNames = secondOperation.getParamList();
 
         // Join properties of both operations and get total number of properties
         unionOfProperties.addAll(firstOperationParameterNames);

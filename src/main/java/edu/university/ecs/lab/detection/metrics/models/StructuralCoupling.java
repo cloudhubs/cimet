@@ -46,7 +46,7 @@ public class StructuralCoupling {
      */
     private final double stdGWF;
     /**
-     * Structural Coupling(s1, s2) = 1 - 1/degree(s1, s2) - LWF(s1, s2)*GWF(s1, s2)
+     * Structural Coupling(s1, s2) = 1 - 1/degree(s1, s2) - LWF(s1, s2) * GWF(s1, s2)
      */
     private final Map<List<String>, Double> SC;
     /**
@@ -114,7 +114,7 @@ public class StructuralCoupling {
         }
         for (List<String> pair: LWF.keySet()) {
             GWF.put(pair, degree.get(pair)/max_degree);
-            SC.put(pair, 1-(1/degree.get(pair))*LWF.get(pair)*GWF.get(pair));
+            SC.put(pair, (1-(1/degree.get(pair)))-LWF.get(pair)*GWF.get(pair));
         }
 
         // Amount of actually connected pairs

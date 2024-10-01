@@ -1,10 +1,14 @@
 package edu.university.ecs.lab.common.models.ir;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
+import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.Set;
 
 
 /**
@@ -25,6 +29,8 @@ public class RestCall extends MethodCall {
      * The httpMethod of the api endpoint e.g. GET, POST, PUT see semantics.models.enums.httpMethod
      */
     private HttpMethod httpMethod;
+
+
 
 
     public RestCall(String methodName, String packageAndClassName, String objectType, String objectName, String calledFrom, String parameterContents,
@@ -57,6 +63,35 @@ public class RestCall extends MethodCall {
             return false;
         }
 
-        return restcall.getUrl().equals(endpoint.getUrl()) && restcall.getHttpMethod().equals(endpoint.getHttpMethod());
+        int queryParamIndex = restcall.getUrl().replace("{?}", "temp").indexOf("?");
+        String baseURL = queryParamIndex == -1 ? restcall.getUrl() : restcall.getUrl().substring(0, queryParamIndex);
+        return baseURL.equals(endpoint.getUrl()) && (restcall.getHttpMethod().equals(endpoint.getHttpMethod()) || endpoint.getHttpMethod().equals(HttpMethod.ALL)) && matchQueryParams(restcall, endpoint, queryParamIndex);
     }
+
+    private static boolean matchQueryParams(RestCall restCall, Endpoint endpoint, int queryParamIndex) {
+        for(Parameter parameter : endpoint.getParameters()) {
+            for(Annotation annotation : parameter.getAnnotations()) {
+                if(annotation.getName().equals("RequestParam")) {
+                    String queryParameterName = "";
+                    if(annotation.getAttributes().containsKey("default")) {
+                        queryParameterName = annotation.getAttributes().get("default");
+                    } else if(annotation.getAttributes().containsKey("name")) {
+                        if(annotation.getAttributes().containsKey("required")
+                                && annotation.getAttributes().get("required").equals("false")) {
+                            continue;
+                        }
+                        queryParameterName = annotation.getAttributes().get("name");
+                    } else {
+                        queryParameterName = parameter.getName();
+                    }
+
+                    if(!restCall.getUrl().substring(queryParamIndex + 1, restCall.getUrl().length()).contains(queryParameterName + "=")) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 }
