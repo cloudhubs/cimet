@@ -194,7 +194,7 @@ public class AR4 extends AbstractAR {
         // If we are not removing or modifying a service
 
         // Get endpoints that do not have any calls
-        Set<Endpoint> allEndpoints = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).flatMap(jClass -> jClass.getEndpoints().stream()).collect(Collectors.toSet());
+        Set<Endpoint> allEndpoints = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getEndpoints().stream()).collect(Collectors.toSet());
 
 
         for(Endpoint endpoint: allEndpoints){
@@ -222,12 +222,11 @@ public class AR4 extends AbstractAR {
      */ 
     private static boolean findMatch(Endpoint endpoint, MicroserviceSystem newSystem) {
         for (Microservice microservice : newSystem.getMicroservices()) {
-            for (JClass service : microservice.getServices()) {
-                for (RestCall restcall : service.getRestCalls()) {
-                    if (RestCall.matchEndpoint(restcall, endpoint)) {
-                        return true;
-                    }
+            for (RestCall restcall : microservice.getRestCalls()) {
+                if (RestCall.matchEndpoint(restcall, endpoint)) {
+                    return true;
                 }
+
             }
         }
         return false;
