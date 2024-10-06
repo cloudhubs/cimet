@@ -4,6 +4,10 @@ import edu.university.ecs.lab.detection.ExcelOutputRunner;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Runs excel output runner for all config files in valid_configs directory
+ * NOTE: Must change the ExcelOutputRunner class to take config filepath as input args
+ */
 public class AllConfigsExcelRunner {
     public static void main(String[] args) throws IOException {
 

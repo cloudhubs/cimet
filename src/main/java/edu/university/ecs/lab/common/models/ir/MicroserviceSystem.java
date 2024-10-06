@@ -105,6 +105,12 @@ public class MicroserviceSystem implements JsonSerializable {
 
     }
 
+    /**
+     * Get the class of a given endpoint
+     * 
+     * @param path endpoint 
+     * @return class that endpoint is in
+     */
     public JClass findClass(String path){
         JClass returnClass = null;
         returnClass = getMicroservices().stream().flatMap(m -> m.getClasses().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);
@@ -115,6 +121,12 @@ public class MicroserviceSystem implements JsonSerializable {
         return returnClass;
     }
 
+    /**
+     * Get the file of a given endpoint
+     * 
+     * @param path endpoint
+     * @return file that endpoint is in
+     */
     public ProjectFile findFile(String path){
         ProjectFile returnFile = null;
         returnFile = getMicroservices().stream().flatMap(m -> m.getAllFiles().stream()).filter(c -> c.getPath().equals(path)).findFirst().orElse(null);

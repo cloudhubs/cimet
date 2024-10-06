@@ -85,57 +85,6 @@ public class FlowUtils {
         return allFlows;
     }
 
-//    public static List<Flow> buildFlows(Map<String, Microservice> msModelMap) {
-//        // 1. get controller name & controller endpoint name
-//        List<Flow> flows = generateNewFlows(getAllModelControllers(msModelMap));
-//
-//        for (Flow flow : flows) {
-//            // 2. get service method call in controller method
-//            Optional<MethodCall> serviceMethodCall = Optional.ofNullable(findServiceMethodCall(flow));
-//            if (serviceMethodCall.isPresent()) {
-//                flow.setServiceMethodCall(serviceMethodCall.get());
-//                // 3. get service field variable in controller class by method call
-//                Optional<Field> serviceField = Optional.ofNullable(findServiceField(flow));
-//                if (serviceField.isPresent()) {
-//                    flow.setControllerServiceField(serviceField.get());
-//                    // 4. get service class
-//                    Optional<JClass> ServiceClass = Optional.ofNullable(findService(flow));
-//                    if (ServiceClass.isPresent()) {
-//                        flow.setService(ServiceClass.get());
-//                        // 5. find service method name
-//                        Optional<Method> ServiceMethod = Optional.ofNullable(findServiceMethod(flow));
-//                        if (ServiceMethod.isPresent()) {
-//                            flow.setServiceMethod(ServiceMethod.get());
-//                            // 6. find method call in the service
-//                            Optional<MethodCall> repositoryMethodCall =
-//                                    Optional.ofNullable(findRepositoryMethodCall(flow));
-//                            if (repositoryMethodCall.isPresent()) {
-//                                flow.setRepositoryMethodCall(repositoryMethodCall.get());
-//                                // 7. find repository variable
-//                                Optional<Field> repositoryField = Optional.ofNullable(findRepositoryField(flow));
-//                                if (repositoryField.isPresent()) {
-//                                    flow.setServiceRepositoryField(repositoryField.get());
-//                                    // 8. find repository class
-//                                    Optional<JClass> repositoryClass = Optional.ofNullable(findRepository(flow));
-//                                    if (repositoryClass.isPresent()) {
-//                                        flow.setRepository(repositoryClass.get());
-//                                        // 9. find repository method
-//                                        Optional<Method> repositoryMethod =
-//                                                Optional.ofNullable(findRepositoryMethod(flow));
-//                                        if (repositoryMethod.isPresent()) {
-//                                            flow.setRepositoryMethod(repositoryMethod.get());
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        return flows;
-//    }
-
     /**
      * This method returns a map of microservices to their controller classes
      *

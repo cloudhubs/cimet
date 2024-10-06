@@ -92,7 +92,12 @@ public class EndpointTemplate {
     }
 
 
-
+    /**
+     * Method to get http method from mapping
+     * 
+     * @param mapping mapping string for a given method
+     * @return HttpMethod object of same method type
+     */
     private static HttpMethod httpFromMapping(String mapping) {
         switch (mapping) {
             case "GetMapping":
@@ -116,6 +121,13 @@ public class EndpointTemplate {
 
     }
 
+    /**
+     * Method to get endpoint path from annotations
+     * 
+     * @param ae annotation expression from method
+     * @param url string formatted as a url
+     * @return endpoint path/url from annotation expression
+     */
     public static String getPathFromAnnotation(AnnotationExpr ae, String url) {
         // Annotations of type @Mapping("/endpoint")
         if (ae.isSingleMemberAnnotationExpr()) {

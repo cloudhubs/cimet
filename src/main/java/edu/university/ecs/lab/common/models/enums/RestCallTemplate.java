@@ -150,6 +150,12 @@ public class RestCallTemplate {
 
     }
 
+    /**
+     * Shorten URLs to only endpoint query
+     * 
+     * @param str full url
+     * @return url query
+     */
     private static String cleanURL(String str) {
         str = str.replace("http://", "");
         str = str.replace("https://", "");
@@ -160,11 +166,7 @@ public class RestCallTemplate {
             str = str.substring(backslashNdx);
         }
 
-//        int questionNdx = str.indexOf("?");
-//        if (questionNdx > 0) {
-//            str = str.substring(0, questionNdx);
-//        }
-
+        // Remove any trailing quotes
         if (str.endsWith("\"")) {
             str = str.substring(0, str.length() - 1);
         }

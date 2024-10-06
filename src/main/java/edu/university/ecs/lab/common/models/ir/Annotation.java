@@ -34,6 +34,11 @@ public class Annotation extends Node {
         this.attributes = attributes;
     }
 
+    /**
+     * Get contents of annotation object
+     * 
+     * @return comma-delimmited list of annotation content key-value pairs
+     */
     public String getContents() {
         return getAttributes().entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(","));
     }
@@ -54,6 +59,12 @@ public class Annotation extends Node {
         return jsonObject;
     }
 
+    /**
+     * Map attributes from annotation expression
+     * 
+     * @param annotationExpr annotation expression object to parse
+     * @return map of annotation attributes and their values
+     */
     private static HashMap<String, String> parseAttributes(AnnotationExpr annotationExpr) {
         HashMap<String, String> attributes = new HashMap<>();
 

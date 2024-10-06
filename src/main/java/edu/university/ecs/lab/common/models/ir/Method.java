@@ -80,6 +80,12 @@ public class Method extends Node {
         return jsonObject;
     }
 
+    /**
+     * Get set of parameters from node list
+     * 
+     * @param parameters Node list of javaparser parameter objects
+     * @return set of parameter objects
+     */
     private Set<Parameter> parseParameters(NodeList<com.github.javaparser.ast.body.Parameter> parameters) {
         HashSet<Parameter> parameterSet = new HashSet<>();
 

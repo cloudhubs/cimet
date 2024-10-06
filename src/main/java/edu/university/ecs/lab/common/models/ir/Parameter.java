@@ -7,6 +7,9 @@ import lombok.Data;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a method call parameter
+ */
 @Data
 public class Parameter extends Node implements JsonSerializable {
 

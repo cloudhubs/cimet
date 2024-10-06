@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an object dependency graph with dependent vertices connected by edges
+ */
 public interface DependencyGraphI<V, E> extends Graph<V, E>, JsonSerializable {
 
     /**
@@ -31,6 +34,11 @@ public interface DependencyGraphI<V, E> extends Graph<V, E>, JsonSerializable {
      */
     boolean isMultigraph();
 
+    /**
+     * Method to get adjacency list of the entire graph
+     * 
+     * @return adjacency list of entire graph
+     */
     default Map<V, Set<V>> getAdjacency() {
         return this.vertexSet().stream()
                 .collect(Collectors.toMap(
@@ -39,13 +47,21 @@ public interface DependencyGraphI<V, E> extends Graph<V, E>, JsonSerializable {
                 ));
     }
 
+    /**
+     * Method to get addjacency list of a given vertex
+     * 
+     * @param vertex vertex to get adjacency list of
+     * @return adjacency list for given vertex
+     */
     default Set<V> getAdjacency(V vertex) {
         return this.outgoingEdgesOf(vertex).stream()
                 .map(this::getEdgeTarget)
                 .collect(Collectors.toSet());
     }
 
-
+    /**
+     * see {@link JsonSerializable#toJsonObject()}
+     */
     default JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 

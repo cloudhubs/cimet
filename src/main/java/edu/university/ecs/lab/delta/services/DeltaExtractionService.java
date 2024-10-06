@@ -97,6 +97,11 @@ public class DeltaExtractionService {
 
     }
 
+    /**
+     * Process differences between commits
+     * 
+     * @param diffEntries list of differences
+     */
     public void processDelta(List<DiffEntry> diffEntries) {
         // Set up a new SystemChangeObject
         systemChange = new SystemChange();

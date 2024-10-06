@@ -44,7 +44,7 @@ public class Config {
     }
 
     /**
-     * This method
+     * Check that config file is valid and has all required fields
      */
 
     private void validateConfig(String systemName, String repositoryURL, String branch) {

@@ -58,6 +58,13 @@ public class RestCall extends MethodCall {
         return jsonObject;
     }
 
+    /**
+     * Checks if a rest call matches a given endpoint
+     * 
+     * @param restcall rest call to match
+     * @param endpoint endpoint to match
+     * @return true if rest call and enpoint match, false otherwise
+     */
     public static boolean matchEndpoint(RestCall restcall, Endpoint endpoint){
         if(restcall.getMicroserviceName().equals(endpoint.getMicroserviceName())){
             return false;
@@ -68,6 +75,14 @@ public class RestCall extends MethodCall {
         return baseURL.equals(endpoint.getUrl()) && (restcall.getHttpMethod().equals(endpoint.getHttpMethod()) || endpoint.getHttpMethod().equals(HttpMethod.ALL)) && matchQueryParams(restcall, endpoint, queryParamIndex);
     }
 
+    /**
+     * Checks if rest call parameters match parameters for the target endpoint
+     * 
+     * @param restCall rest call to match
+     * @param endpoint endpoint to match
+     * @param queryParamIndex string index at which query parameters start
+     * @return true if parameters match, false otherwise
+     */
     private static boolean matchQueryParams(RestCall restCall, Endpoint endpoint, int queryParamIndex) {
         for(Parameter parameter : endpoint.getParameters()) {
             for(Annotation annotation : parameter.getAnnotations()) {

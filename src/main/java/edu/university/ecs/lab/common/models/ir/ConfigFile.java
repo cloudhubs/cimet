@@ -5,6 +5,9 @@ import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Getter;
 
+/**
+ * Represents a project configuration file
+ */
 @Getter
 public class ConfigFile extends ProjectFile implements JsonSerializable {
     private final JsonObject data;
