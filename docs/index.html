@@ -50,9 +50,9 @@
 
 <section style="padding: 20px; background-color: #ffffff; margin: 20px auto; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-left: 10px solid #81c784;">
     <h2 style="border-bottom: 2px solid #81c784; padding-bottom: 10px; font-weight: 600;">Setup</h2>
-    <button class="os-btn" onclick="showInstructions('windows')">Windows</button>
-    <button class="os-btn" onclick="showInstructions('macos')">macOS</button>
-    <button class="os-btn" onclick="showInstructions('linux')">Linux</button>
+    <a href="setup-windows.html"><button class="os-btn" onclick="showInstructions('windows')">Windows</button>
+    <a href="setup-macos.html"><button class="os-btn" onclick="showInstructions('macos')">macOS</button>
+    <a href="setup-linux.html"><button class="os-btn" onclick="showInstructions('linux')">Linux</button>
     <!-- Subsection: Prerequisites -->
     <h3 style="font-weight: 600; margin-top: 20px;">Prerequisites</h3>
     <p style="font-weight: 300;">
@@ -79,15 +79,35 @@
 
     <!-- Subsection: Running the Project -->
     <h3 style="font-weight: 600; margin-top: 20px;">Running the Project</h3>
-    <p style="font-weight: 300;">
-        After the installation is complete, you can run the project by executing the following command:
-    <ul style="margin-left: 20px;">
-        <li>To Generate an IR: <code>mvn clean compile -P run-ir</code></li>
-        <li>To Generate an Delta: <code>mvn clean compile -P run-delta</code></li>
-        <li>To Generate an Merge: <code>mvn clean compile -P run-merge</code></li>
-        <li>To Generate Historical Data: <code>mvn clean compile -P run-history</code></li>
-    </ul>
-    </p>
+<p style="font-weight: 300;">
+    After the installation is complete, you can run the project using either Maven or by executing the JAR file:
+<ul style="margin-left: 20px;">
+    <li>To Generate an IR:
+        <ul>
+            <li>Using Maven: <code>mvn clean compile -P run-ir</code></li>
+            <li>Using JAR: <code>java -jar cimet2-ir.jar</code></li>
+        </ul>
+    </li>
+    <li>To Generate a Delta:
+        <ul>
+            <li>Using Maven: <code>mvn clean compile -P run-delta</code></li>
+            <li>Using JAR: <code>java -jar cimet2-delta.jar</code></li>
+        </ul>
+    </li>
+    <li>To Generate a Merge:
+        <ul>
+            <li>Using Maven: <code>mvn clean compile -P run-merge</code></li>
+            <li>Using JAR: <code>java -jar cimet2-merge.jar</code></li>
+        </ul>
+    </li>
+    <li>To Generate Historical Data:
+        <ul>
+            <li>Using Maven: <code>mvn clean compile -P run-history</code></li>
+            <li>Using JAR: <code>java -jar cimet2-data.jar</code></li>
+        </ul>
+    </li>
+</ul>
+</p>
 </section>
 
 <section style="padding: 20px; background-color: #ffffff; margin: 20px auto; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-left: 10px solid #81c784;">
