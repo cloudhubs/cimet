@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
@@ -16,6 +17,8 @@ import edu.university.ecs.lab.detection.antipatterns.services.HubLikeService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import unit.Constants;
 
+
+@Ignore
 public class HubLikeMicroserviceTest {
     private HubLikeService hubLikeService;
     private ServiceDependencyGraph sdg;

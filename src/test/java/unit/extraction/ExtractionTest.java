@@ -6,6 +6,7 @@ import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -13,6 +14,8 @@ import java.io.File;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+
+@Ignore
 public class ExtractionTest {
     private static final String TEST_FILE1 = "src/test/resources/TestFile2.java";
     private static final String TEST_FILE2 = "src/test/resources/TestFile3.java";

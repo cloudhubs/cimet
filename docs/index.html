@@ -50,21 +50,9 @@
 
 <section style="padding: 20px; background-color: #ffffff; margin: 20px auto; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-left: 10px solid #81c784;">
     <h2 style="border-bottom: 2px solid #81c784; padding-bottom: 10px; font-weight: 600;">Setup</h2>
-    <a href="setup-windows.html"><button class="os-btn" onclick="showInstructions('windows')">Windows</button>
-    <a href="setup-macos.html"><button class="os-btn" onclick="showInstructions('macos')">macOS</button>
-    <a href="setup-linux.html"><button class="os-btn" onclick="showInstructions('linux')">Linux</button>
-    <!-- Subsection: Prerequisites -->
-    <h3 style="font-weight: 600; margin-top: 20px;">Prerequisites</h3>
-    <p style="font-weight: 300;">
-        Before you begin, ensure you have met the following requirements:
-        <ul style="margin-left: 20px;">
-            <li>Operating system: Windows, macOS, or Linux</li>
-            <li>Git <a style="color: #004d40;" href="https://git-scm.com/downloads/">Download</a></li>
-            <li>Java 17+ <a style="color: #004d40;" href="https://www.oracle.com/java/technologies/downloads/">Download</a></li>
-            <li>Maven 3.0+ <a style="color: #004d40;" href="https://maven.apache.org/download.cgi">Download</a></li>
-
-        </ul>
-    </p>
+    <a href="setup-windows.html"><button class="os-btn">Windows</button></a>
+    <a href="setup-macos.html"><button class="os-btn">macOS</button></a>
+    <a href="setup-linux.html"><button class="os-btn">Linux</button></a>
 
     <!-- Subsection: Installation -->
     <h3 style="font-weight: 600; margin-top: 20px;">Installation</h3>
@@ -81,40 +69,35 @@
     <h3 style="font-weight: 600; margin-top: 20px;">Running the Project</h3>
 <p style="font-weight: 300;">
     After the installation is complete, you can run the project using either Maven or by executing the JAR file:
-<ul style="margin-left: 20px;">
-    <li>To Generate an IR:
-        <ul>
-            <li>Using Maven: <code>mvn clean compile -P run-ir</code></li>
-            <li>Using JAR: <code>java -jar cimet2-ir.jar</code></li>
-        </ul>
-    </li>
-    <li>To Generate a Delta:
-        <ul>
-            <li>Using Maven: <code>mvn clean compile -P run-delta</code></li>
-            <li>Using JAR: <code>java -jar cimet2-delta.jar</code></li>
-        </ul>
-    </li>
-    <li>To Generate a Merge:
-        <ul>
-            <li>Using Maven: <code>mvn clean compile -P run-merge</code></li>
-            <li>Using JAR: <code>java -jar cimet2-merge.jar</code></li>
-        </ul>
-    </li>
-    <li>To Generate Historical Data:
-        <ul>
-            <li>Using Maven: <code>mvn clean compile -P run-history</code></li>
-            <li>Using JAR: <code>java -jar cimet2-data.jar</code></li>
-        </ul>
-    </li>
-</ul>
+    <ul style="margin-left: 20px;">
+        <li>To Generate Historical Data:
+            <ul>
+                <li>Using Maven: <code>mvn clean package -P run-history</code></li>
+                <li>Using JAR: <code>java -jar cimet2-data.jar</code></li>
+            </ul>
+        </li>
+    </ul>
+
+    Ensure you have a configuration file named "config.json" present in the same directory as the JAR. A sample configuration file is below...
+
+    <br>
+    <code>
+        {<br>
+        "systemName": "systemName",<br>
+        "repositoryURL": "http://gitRepository.git",<br>
+        "baseBranch": "master"<br>
+        }
+    </code>
 </p>
 </section>
 
 <section style="padding: 20px; background-color: #ffffff; margin: 20px auto; max-width: 800px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-left: 10px solid #81c784;">
-    <h2 style="border-bottom: 2px solid #81c784; padding-bottom: 10px;">Footnotes</h2>
-    <p>
-    </p>
+    <h2 style="border-bottom: 2px solid #81c784; padding-bottom: 10px; font-weight: 600;">Demo</h2>
+    <a href="https://youtu.be/mKWueuln_80"><button class="os-btn">Click Here</button></a>
+
 </section>
+
+
 
 <footer style="background-color: #81c784; color: #fff; padding: 20px; text-align: center;">
     <p>For more information and documentation, <a href="apidocs/index.html" style="color: #004d40;">click here</a>.</p>

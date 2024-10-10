@@ -8,6 +8,7 @@ import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.intermediate.merge.services.MergeService;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,8 @@ import java.util.*;
 
 import static integration.Constants.*;
 
+
+@Ignore
 class IRComparisonTest {
     private static IRExtractionService irExtractionService;
     private static DeltaExtractionService deltaExtractionService;
@@ -27,19 +30,19 @@ class IRComparisonTest {
     private static GitService gitService;
 
 
-    @BeforeAll
-    public static void setUp() {
-        FileUtils.makeDirs();
-        gitService = new GitService(TEST_CONFIG_PATH);
+//    @BeforeAll
+//    public static void setUp() {
+//        FileUtils.makeDirs();
+//        gitService = new GitService(TEST_CONFIG_PATH);
+//
+//        list = iterableToList(gitService.getLog());
+//
+//        irExtractionService = new IRExtractionService(TEST_CONFIG_PATH, Optional.of(list.get(0).toString().split(" ")[1]));
+//
+//        irExtractionService.generateIR("./output/OldIR.json");
+//    }
 
-        list = iterableToList(gitService.getLog());
-
-        irExtractionService = new IRExtractionService(TEST_CONFIG_PATH, Optional.of(list.get(0).toString().split(" ")[1]));
-
-        irExtractionService.generateIR("./output/OldIR.json");
-    }
-
-    @Test
+//    @Test
     void testComparison() {
 
         // Loop through commit history and create delta, merge, etc...

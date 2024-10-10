@@ -42,16 +42,16 @@ public class DetectionService {
     /**
      * Column labels for violation counts and metrics
      */
-    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (Method level)",
-            "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
+    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
+            "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions",  "No Healthchecks",
             "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADS", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
-            "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Change)", "AR7 (Change)"};
+            "maxLOMLC", "avgLOMLC", "stdLOMLC"};
     
     /**
      * Count of antipatterns, metrics, and architectural rules
      */
-    private static final int ANTIPATTERNS = 10;
+    private static final int ANTIPATTERNS = 8;
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
 
@@ -169,17 +169,15 @@ public class DetectionService {
 
                 updateAntiPatterns(currIndex, antipatterns);
                 updateMetrics(currIndex, metrics);
-
-                // For simplicity we will skip rules on the last iteration since there is no newSystem
-                if(i < commits.size() - 1) {
-                    arDetectionService = new ARDetectionService(systemChange, oldSystem, newSystem);
-                    rules = arDetectionService.scanUseCases();
-
-                    updateRules(nextIndex, rules);
-                } else {
-                    continue;
-                }
             }
+
+            // For simplicity we will skip rules on the last iteration since there is no newSystem
+//            if(i < commits.size() - 1) {
+//                arDetectionService = new ARDetectionService(systemChange, oldSystem, newSystem);
+//                rules = arDetectionService.scanUseCases();
+//
+//                updateRules(nextIndex, rules);
+//            }
 
             // After completing this iteration, we can replace oldIR with newIR
             // try {
@@ -193,7 +191,7 @@ public class DetectionService {
         // At the end we write the workbook to file
         try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/%s/output-%s.xlsx",config.getRepoName(), config.getSystemName()))) {
             workbook.write(fileOut);
-            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
+//            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
             workbook.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -257,11 +255,11 @@ public class DetectionService {
         // KEYS must match columnLabels field
         allAntiPatterns.put("Greedy Microservices", new GreedyService().getGreedyMicroservices(sdg).numGreedyMicro());
         allAntiPatterns.put("Hub-like Microservices", new HubLikeService().getHubLikeMicroservice(sdg).numHubLike());
-        allAntiPatterns.put("Service Chains (MS level)", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
-        allAntiPatterns.put("Service Chains (Method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
+        allAntiPatterns.put("Service Chains", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
+//        allAntiPatterns.put("Service Chains (Method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
         allAntiPatterns.put("Wrong Cuts", new WrongCutsService().detectWrongCuts(microserviceSystem).numWrongCuts());
-        allAntiPatterns.put("Cyclic Dependencies (MS level)", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
-        allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
+        allAntiPatterns.put("Cyclic Dependencies", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
+//        allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
         allAntiPatterns.put("Wobbly Service Interactions", new WobblyServiceInteractionService().findWobblyServiceInteractions(microserviceSystem).numWobbblyService());
         allAntiPatterns.put("No Healthchecks", new NoHealthcheckService().checkHealthcheck(microserviceSystem).numNoHealthChecks());
         allAntiPatterns.put("No API Gateway", new NoApiGatewayService().checkforApiGateway(microserviceSystem).getBoolApiGateway());
