@@ -50,7 +50,6 @@ public class ServiceInterfaceDataCohesion extends AbstractMetric {
             long totalOfParamsType = serviceDescriptor.getServiceOperations()
                     .stream()
                     .map(o -> o.getParamList())
-                    .map(o -> Parameter.getParameterTypes(o))
                     .filter(Objects::nonNull)
                     .flatMap(types -> types.stream())
                     .distinct()
@@ -70,8 +69,8 @@ public class ServiceInterfaceDataCohesion extends AbstractMetric {
     }
 
     private List<String> commonParameterTypes(Operation operation1, Operation operation2) {
-        List<String> typesIntoFirstOperation = Parameter.getParameterTypes(operation1.getParamList());
-        List<String> typesIntoSecondOperation = Parameter.getParameterTypes(operation2.getParamList());
+        List<String> typesIntoFirstOperation = operation1.getParamList();
+        List<String> typesIntoSecondOperation = operation2.getParamList();
 
         return typesIntoFirstOperation.stream()
                 .filter(typesIntoSecondOperation::contains).collect(Collectors.toList());

@@ -10,7 +10,7 @@ import java.util.List;
  * Represents a collection of microservices identified as hub-like.
  */
 @Data
-public class HubLikeMicroservice extends AntiPattern {
+public class HubLikeMicroservice extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

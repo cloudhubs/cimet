@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
  * Represents a service chain, which is a sequence of services in a network graph.
  */
 @Data
-public class ServiceChain extends AntiPattern{
+public class ServiceChain extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

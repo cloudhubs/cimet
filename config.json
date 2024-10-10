@@ -1,5 +1,5 @@
 {
-  "systemName": "Train-ticket",
-  "repositoryURL": "https://github.com/FudanSELab/train-ticket.git",
-  "baseBranch": "main"
+  "systemName": "sample-spring-microservices-new",
+  "repositoryURL": "https://github.com/piomin/sample-spring-microservices-new.git",
+  "baseBranch": "master"
 }

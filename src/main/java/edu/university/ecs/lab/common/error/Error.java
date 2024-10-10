@@ -22,7 +22,8 @@ public enum Error {
     INVALID_JSON_READ(9, "Unable to read JSON from file!"),
     INVALID_JSON_WRITE(10, "Unable to write JSON to file!"),
     JPARSE_FAILED(10, "Failed to parse Java Code!"),
-    INVALID_CONFIG(10, "Invalid configuration file!");
+    INVALID_CONFIG(10, "Invalid configuration file!"),
+    MISSING_CONFIG(10, "Missing configuration file!");
 
     /**
      *  The unique error code identifying the error type.

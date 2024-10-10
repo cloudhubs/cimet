@@ -42,22 +42,22 @@ public class DetectionService {
     /**
      * Column labels for violation counts and metrics
      */
-    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains (MS level)", "Service Chains (Method level)",
-            "Wrong Cuts", "Cyclic Dependencies (MS level)", "Cyclic Dependencies (Method level)", "Wobbly Service Interactions",  "No Healthchecks",
-            "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADC", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
+    private static final String[] columnLabels = new String[]{"Commit ID", "Greedy Microservices", "Hub-like Microservices", "Service Chains",
+            "Wrong Cuts", "Cyclic Dependencies", "Wobbly Service Interactions",  "No Healthchecks",
+            "No API Gateway", "maxAIS", "avgAIS", "stdAIS", "maxADS", "ADCS", "stdADS", "maxACS", "avgACS", "stdACS", "SCF", "SIY", "maxSC", "avgSC",
             "stdSC", "SCCmodularity", "maxSIDC", "avgSIDC", "stdSIDC", "maxSSIC", "avgSSIC", "stdSSIC",
-            "maxLOMLC", "avgLOMLC", "stdLOMLC", "AR3 (System)","AR4 (System)", "AR6 (Delta)", "AR20 (System)"};
+            "maxLOMLC", "avgLOMLC", "stdLOMLC"};
     
     /**
      * Count of antipatterns, metrics, and architectural rules
      */
-    private static final int ANTIPATTERNS = 10;
+    private static final int ANTIPATTERNS = 8;
     private static final int METRICS = 24;
     private static final int ARCHRULES = 4;
 
-    // private static final String OLD_IR_PATH = "./output/OldIR_";
-    private static final String DELTA_PATH = "./output/Delta_";
-    // private static final String NEW_IR_PATH = "./output/NewIR_";
+    private static String BASE_DELTA_PATH = "/Delta/Delta";
+    private static String BASE_IR_PATH = "/IR/IR";
+
 
 
     /**
@@ -87,6 +87,9 @@ public class DetectionService {
         // Setup local repo
         gitService = new GitService(configPath);
         workbook = new XSSFWorkbook();
+
+        BASE_DELTA_PATH = "./output/" + config.getRepoName() + BASE_DELTA_PATH;
+        BASE_IR_PATH = "./output/" + config.getRepoName() + BASE_IR_PATH;
     }
 
     /**
@@ -101,7 +104,7 @@ public class DetectionService {
         // Generate the initial IR
         irExtractionService = new IRExtractionService(configPath, Optional.of(commits.get(0).toString().split(" ")[1]));
         String firstCommit = commits.get(0).getName().substring(0, 4);
-        irExtractionService.generateIR("IR_" + firstCommit + ".json");
+        irExtractionService.generateIR(BASE_IR_PATH + "1_" + firstCommit + ".json");
 
         // Setup sheet and headers
         sheet = workbook.createSheet(config.getSystemName());
@@ -130,27 +133,27 @@ public class DetectionService {
 
             // Set the commitID as the first cell value
             Cell commitIdCell = row.createCell(0);
-            commitIdCell.setCellValue(commitIdOld.substring(0, 7));
+            commitIdCell.setCellValue(commitIdOld);
 
             // Read in the old system
-            String oldSysPath = "./output/IR_" + commitIdOld.substring(0, 4) +".json";
-            MicroserviceSystem oldSystem = JsonReadWriteUtils.readFromJSON(oldSysPath, MicroserviceSystem.class);
+            String oldIRPath = BASE_IR_PATH + (i+1) + "_" + commitIdOld.substring(0, 4) +".json";
+            MicroserviceSystem oldSystem = JsonReadWriteUtils.readFromJSON(oldIRPath, MicroserviceSystem.class);
 
             // Extract changes from one commit to the other
             if(i < commits.size() - 1) {
                 String commitIdNew = commits.get(i + 1).toString().split(" ")[1];
-                String newSysPath = "./output/IR_" + commitIdNew.substring(0, 4) +".json";
-                String deltaPath = DELTA_PATH + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
+                String newIRPath = BASE_IR_PATH + (i+2) + "_" + commitIdNew.substring(0, 4) +".json";
+                String deltaPath = BASE_DELTA_PATH + (i+1) + "_" + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
 
-                deltaExtractionService = new DeltaExtractionService(configPath, oldSysPath, commitIdOld, commitIdNew);
+                deltaExtractionService = new DeltaExtractionService(configPath, deltaPath, commitIdOld, commitIdNew);
                 deltaExtractionService.generateDelta();
 
                 // Merge Delta changes to old IR to create new IR representing new commit changes
-                MergeService mergeService = new MergeService(oldSysPath, deltaPath, configPath);
+                MergeService mergeService = new MergeService(oldIRPath, deltaPath, configPath, newIRPath);
                 mergeService.generateMergeIR(commitIdNew.substring(0, 4));
 
                 // Read in the new system and system change
-                newSystem = JsonReadWriteUtils.readFromJSON(newSysPath, MicroserviceSystem.class);
+                newSystem = JsonReadWriteUtils.readFromJSON(newIRPath, MicroserviceSystem.class);
                 systemChange = JsonReadWriteUtils.readFromJSON(deltaPath, SystemChange.class);
             }
 
@@ -162,21 +165,19 @@ public class DetectionService {
             // We can detect/update if there are >= 1 microservices
             if (Objects.nonNull(oldSystem.getMicroservices()) && !oldSystem.getMicroservices().isEmpty()) {
                 detectAntipatterns(oldSystem, antipatterns);
-                detectMetrics(oldSystem, metrics, commitIdOld.substring(0, 4));
+                detectMetrics(oldSystem, metrics, oldIRPath);
 
                 updateAntiPatterns(currIndex, antipatterns);
                 updateMetrics(currIndex, metrics);
-
-                // For simplicity we will skip rules on the last iteration since there is no newSystem
-                if(i < commits.size() - 1) {
-                    arDetectionService = new ARDetectionService(systemChange, oldSystem, newSystem);
-                    rules = arDetectionService.scanUseCases();
-
-                    updateRules(nextIndex, rules);
-                } else {
-                    continue;
-                }
             }
+
+            // For simplicity we will skip rules on the last iteration since there is no newSystem
+//            if(i < commits.size() - 1) {
+//                arDetectionService = new ARDetectionService(systemChange, oldSystem, newSystem);
+//                rules = arDetectionService.scanUseCases();
+//
+//                updateRules(nextIndex, rules);
+//            }
 
             // After completing this iteration, we can replace oldIR with newIR
             // try {
@@ -188,9 +189,9 @@ public class DetectionService {
         }
 
         // At the end we write the workbook to file
-        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/AntiPatterns_%s.xlsx", config.getSystemName()))) {
+        try (FileOutputStream fileOut = new FileOutputStream(String.format("./output/%s/output-%s.xlsx",config.getRepoName(), config.getSystemName()))) {
             workbook.write(fileOut);
-            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
+//            System.out.printf("Excel file created: AntiPatterns_%s.xlsx%n", config.getSystemName());
             workbook.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -254,18 +255,18 @@ public class DetectionService {
         // KEYS must match columnLabels field
         allAntiPatterns.put("Greedy Microservices", new GreedyService().getGreedyMicroservices(sdg).numGreedyMicro());
         allAntiPatterns.put("Hub-like Microservices", new HubLikeService().getHubLikeMicroservice(sdg).numHubLike());
-        allAntiPatterns.put("Service Chains (MS level)", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
-        allAntiPatterns.put("Service Chains (Method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
+        allAntiPatterns.put("Service Chains", new ServiceChainMSLevelService().getServiceChains(sdg).numServiceChains());
+//        allAntiPatterns.put("Service Chains (Method level)", new ServiceChainMethodLevelService().getServiceChains(mdg).numServiceChains());
         allAntiPatterns.put("Wrong Cuts", new WrongCutsService().detectWrongCuts(microserviceSystem).numWrongCuts());
-        allAntiPatterns.put("Cyclic Dependencies (MS level)", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
-        allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
+        allAntiPatterns.put("Cyclic Dependencies", new CyclicDependencyMSLevelService().findCyclicDependencies(sdg).numCyclicDep());
+//        allAntiPatterns.put("Cyclic Dependencies (Method level)", new CyclicDependencyMethodLevelService().findCyclicDependencies(mdg).numCyclicDep());
         allAntiPatterns.put("Wobbly Service Interactions", new WobblyServiceInteractionService().findWobblyServiceInteractions(microserviceSystem).numWobbblyService());
         allAntiPatterns.put("No Healthchecks", new NoHealthcheckService().checkHealthcheck(microserviceSystem).numNoHealthChecks());
         allAntiPatterns.put("No API Gateway", new NoApiGatewayService().checkforApiGateway(microserviceSystem).getBoolApiGateway());
 
     }
 
-    private void detectMetrics(MicroserviceSystem microserviceSystem, Map<String, Double> metrics, String commitID) {
+    private void detectMetrics(MicroserviceSystem microserviceSystem, Map<String, Double> metrics, String oldIRPath) {
 
         // Create SDG
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(microserviceSystem);
@@ -294,7 +295,7 @@ public class DetectionService {
         ConnectedComponentsModularity mod = new ConnectedComponentsModularity(sdg);
         metrics.put("SCCmodularity", mod.getModularity());
 
-        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics("./output/IR_" + commitID + ".json");
+        MetricResultCalculation cohesionMetrics = RunCohesionMetrics.calculateCohesionMetrics(oldIRPath);
 
         metrics.put("maxSIDC", cohesionMetrics.getMax("ServiceInterfaceDataCohesion"));
         metrics.put("avgSIDC", cohesionMetrics.getAverage("ServiceInterfaceDataCohesion"));
@@ -327,7 +328,7 @@ public class DetectionService {
                     arcrules_counts[1]++;
                 } else if (archRule instanceof AR6) {
                     arcrules_counts[2]++;
-                } else if (archRule instanceof AR20) {
+                } else if (archRule instanceof AR7) {
                     arcrules_counts[3]++;
                 }
             }

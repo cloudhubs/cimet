@@ -11,7 +11,7 @@ import lombok.Data;
  * Represents a wobbly service interaction.
  */
 @Data
-public class WobblyServiceInteraction extends AntiPattern {
+public class WobblyServiceInteraction extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

@@ -33,6 +33,7 @@ public class WobblyServiceInteractionService {
                 boolean hasRateLimiter = false;
                 boolean hasRetry = false;
                 boolean hasBulkhead = false;
+                boolean passes = false;
 
                 // Check annotations at the method level
                 for (Method method : jClass.getMethods()) {

@@ -46,7 +46,7 @@ public class StructuralCoupling {
      */
     private final double stdGWF;
     /**
-     * Structural Coupling(s1, s2) = 1 - 1/degree(s1, s2) - LWF(s1, s2)*GWF(s1, s2)
+     * Structural Coupling(s1, s2) = 1 - 1/degree(s1, s2) - LWF(s1, s2) * GWF(s1, s2)
      */
     private final Map<List<String>, Double> SC;
     /**
@@ -81,11 +81,21 @@ public class StructuralCoupling {
                             graph.getAllEdges(vertexA, vertexB).stream().mapToDouble(graph::getEdgeWeight).sum());
                     in_degree.put(pair,
                             graph.getAllEdges(vertexB, vertexA).stream().mapToDouble(graph::getEdgeWeight).sum());
+                }
+            }
+        }
+
+        for (Microservice vertexA: graph.vertexSet()) {
+            for (Microservice vertexB: graph.vertexSet()) {
+                List<String> pair = Arrays.asList(vertexA.getName(), vertexB.getName());
+                if (!vertexA.equals(vertexB) && graph.containsEdge(vertexA, vertexB)) {
                     degree.put(pair, in_degree.get(pair)+out_degree.get(pair));
                     LWF.put(pair, (1+out_degree.get(pair))/(1+degree.get(pair)));
                 }
             }
         }
+
+
         double max_degree;
         try {
             max_degree = degree.values().stream().max(Comparator.comparingDouble(Double::doubleValue)).
@@ -104,7 +114,7 @@ public class StructuralCoupling {
         }
         for (List<String> pair: LWF.keySet()) {
             GWF.put(pair, degree.get(pair)/max_degree);
-            SC.put(pair, 1-1/degree.get(pair)-LWF.get(pair)*GWF.get(pair));
+            SC.put(pair, (1-(1/degree.get(pair)))-LWF.get(pair)*GWF.get(pair));
         }
 
         // Amount of actually connected pairs

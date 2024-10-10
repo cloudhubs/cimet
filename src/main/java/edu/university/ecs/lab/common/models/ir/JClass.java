@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
@@ -49,11 +50,25 @@ public class JClass extends ProjectFile implements JsonSerializable {
     private Set<Annotation> annotations;
 
     /**
-     * Set of method invocations made from within this class
+     * List of method invocations made from within this class
      */
-    private Set<MethodCall> methodCalls;
+    private List<MethodCall> methodCalls;
 
-    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, Set<Annotation> classAnnotations, Set<MethodCall> methodCalls, Set<String> implementedTypes) {
+
+    public JClass(String name, String path, String packageName, ClassRole classRole) {
+        this.name = name;
+        this.packageName = packageName;
+        this.path = path;
+        this.classRole = classRole;
+        this.methods = new HashSet<>();
+        this.fields = new HashSet<>();
+        this.annotations = new HashSet<>();
+        this.methodCalls = new ArrayList<>();
+        this.implementedTypes = new HashSet<>();
+        this.fileType = FileType.JCLASS;
+    }
+
+    public JClass(String name, String path, String packageName, ClassRole classRole, Set<Method> methods, Set<Field> fields, Set<Annotation> classAnnotations, List<MethodCall> methodCalls, Set<String> implementedTypes) {
         this.name = name;
         this.packageName = packageName;
         this.path = path;
@@ -105,11 +120,9 @@ public class JClass extends ProjectFile implements JsonSerializable {
      * see {@link RestCall}
      * @return set of all restCalls
      */
-    public Set<RestCall> getRestCalls() {
-        if((!getClassRole().equals(ClassRole.SERVICE) && !getClassRole().equals(ClassRole.FEIGN_CLIENT)) || getMethodCalls().isEmpty()) {
-            return new HashSet<>();
-        }
-        return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableSet());
+    public List<RestCall> getRestCalls() {
+
+        return methodCalls.stream().filter(methodCall -> methodCall instanceof RestCall).map(methodCall -> (RestCall) methodCall).collect(Collectors.toUnmodifiableList());
     }
 
     /**

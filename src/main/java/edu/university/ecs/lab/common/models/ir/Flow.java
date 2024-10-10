@@ -23,6 +23,9 @@ public class Flow implements JsonSerializable {
     private JClass repository;
     private Method repositoryMethod;
 
+    /**
+     * Create JSON object from flow object
+     */
     @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
@@ -41,6 +44,11 @@ public class Flow implements JsonSerializable {
         return jsonObject;
     }
 
+    /**
+     * Create JSON object from flow object with only names
+     * 
+     * @return flow JSON object 
+     */
     public JsonObject toSmallJsonObject() {
         JsonObject jsonObject = new JsonObject();
 

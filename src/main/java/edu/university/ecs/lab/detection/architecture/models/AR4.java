@@ -16,7 +16,7 @@ import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
 
 /**
- * Architectural Rule 4 Class: Floating endpoint due to last call removal
+ * Architectural Rule 4 Class: Floating endpoint
  */
 @Data
 public class AR4 extends AbstractAR {
@@ -25,8 +25,8 @@ public class AR4 extends AbstractAR {
      * Architectural rule 4 details
      */ 
     protected static final String TYPE = "Architectural Rule 4";
-    protected static final String NAME = "Floating endpoint due to last call removal";
-    protected static final String DESC = "Any rest calls referencing an endpoint are now gone. This endpoint is now unused by any other microservice";
+    protected static final String NAME = "Floating endpoint";
+    protected static final String DESC = "No rest calls reference this endpoint. This endpoint is now unused by any other microservice";
     
     private String oldCommitID;
     private String newCommitID;
@@ -73,7 +73,7 @@ public class AR4 extends AbstractAR {
         // Get endpoints that do not have any calls
         Set<Endpoint> uncalledEndpoints = getEndpointsWithNoCalls(newSystem);
 
-        Set<RestCall> restCalls = new HashSet<>();
+        List<RestCall> restCalls = new ArrayList<>();
 
         if (delta.getChangeType().equals(ChangeType.MODIFY)) {
             restCalls = getRemovedRestCalls(delta, jClass);
@@ -123,8 +123,8 @@ public class AR4 extends AbstractAR {
      * @param oldClass the delta changed class from the oldSystem
      * @return a set of rest calls
      */
-    private static Set<RestCall> getRemovedRestCalls(Delta delta, JClass oldClass){
-        Set<RestCall> removedRestCalls = new HashSet<>();
+    private static List<RestCall> getRemovedRestCalls(Delta delta, JClass oldClass){
+        List<RestCall> removedRestCalls = new ArrayList<>();
 
         // For the restCalls in delta
         for(RestCall modifiedRestCall: delta.getClassChange().getRestCalls()){
@@ -194,7 +194,7 @@ public class AR4 extends AbstractAR {
         // If we are not removing or modifying a service
 
         // Get endpoints that do not have any calls
-        Set<Endpoint> allEndpoints = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getControllers().stream()).flatMap(jClass -> jClass.getEndpoints().stream()).collect(Collectors.toSet());
+        Set<Endpoint> allEndpoints = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getEndpoints().stream()).collect(Collectors.toSet());
 
 
         for(Endpoint endpoint: allEndpoints){
@@ -222,12 +222,11 @@ public class AR4 extends AbstractAR {
      */ 
     private static boolean findMatch(Endpoint endpoint, MicroserviceSystem newSystem) {
         for (Microservice microservice : newSystem.getMicroservices()) {
-            for (JClass service : microservice.getServices()) {
-                for (RestCall restcall : service.getRestCalls()) {
-                    if (RestCall.matchEndpoint(restcall, endpoint)) {
-                        return true;
-                    }
+            for (RestCall restcall : microservice.getRestCalls()) {
+                if (RestCall.matchEndpoint(restcall, endpoint)) {
+                    return true;
                 }
+
             }
         }
         return false;

@@ -1,7 +1,10 @@
 package edu.university.ecs.lab.detection.architecture.models;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
 
@@ -63,32 +66,68 @@ public class AR7 extends AbstractAR {
     public static List<AR7> scan(Delta delta, MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR7> useCases = new ArrayList<>();
 
-        JClass oldClass = oldSystem.findClass(delta.getOldPath());
+        JClass jClass = oldSystem.findClass(delta.getOldPath());
+        if(jClass == null) {
+            return new ArrayList<>();
+        }
 
         // Return empty list if it isn't modify or not a repository
-        if (!delta.getChangeType().equals(ChangeType.MODIFY) || !oldClass.getClassRole().equals(ClassRole.REPOSITORY)) {
+        if (!delta.getChangeType().equals(ChangeType.MODIFY) || !jClass.getClassRole().equals(ClassRole.REPOSITORY)) {
             return useCases;
         }
 
-        for (Method methodOld : oldClass.getMethods()) {
-            for (Method methodNew : delta.getClassChange().getMethods()) {
-                // Match old and new Methods
-                if (methodOld.getID().equals(methodNew.getID()) && !methodOld.equals(methodNew)) {
-                    // Any annotations that don't equal their counterpart we can add to metadata
-                    for (Annotation annotationOld : methodOld.getAnnotations()) {
-                        for (Annotation annotationNew : methodNew.getAnnotations()) {
-                            // Annotation names match but not the contents
-                            if (annotationNew.getName().equals(annotationOld.getName()) && !annotationNew.getContents().equals(annotationOld.getContents())) {
-                                AR7 useCase7 = new AR7();
-                                JsonObject jsonObject = new JsonObject();
-                                jsonObject.isJsonNull();
-                                jsonObject.addProperty("OldMethodDeclaration", methodOld.getID());
-                                jsonObject.addProperty("NewMethodDeclaration", methodNew.getID());
-                                useCase7.setOldCommitID(oldSystem.getCommitID());
-                                useCase7.setNewCommitID(newSystem.getCommitID());
 
-                                useCase7.setMetaData(jsonObject);
-                                useCases.add(useCase7);
+        for (Method methodOld : jClass.getMethods()) {
+            outer:
+            {
+                for (Method methodNew : delta.getClassChange().getMethods()) {
+                    // Match old and new Methods
+                    if (methodOld.getID().equals(methodNew.getID())) {
+                        // Flag any added, removed
+                        Set<String> oldAnnotations = methodOld.getAnnotations().stream()
+                                .map(Annotation::getName)
+                                .collect(Collectors.toSet());
+                        Set<String> newAnnotations = methodNew.getAnnotations().stream()
+                                .map(Annotation::getName)
+                                .collect(Collectors.toSet());
+
+                        // Check for added or removed annotations
+                        Set<String> addedAnnotations = new HashSet<>(newAnnotations);
+                        addedAnnotations.removeAll(oldAnnotations);
+
+                        Set<String> removedAnnotations = new HashSet<>(oldAnnotations);
+                        removedAnnotations.removeAll(newAnnotations);
+
+                        if (!addedAnnotations.isEmpty() || !removedAnnotations.isEmpty()) {
+                            AR7 useCase7 = new AR7();
+                            JsonObject jsonObject = new JsonObject();
+                            jsonObject.addProperty("OldMethodDeclaration", methodOld.getID());
+                            jsonObject.addProperty("NewMethodDeclaration", methodNew.getID());
+                            jsonObject.addProperty("AddedAnnotations", addedAnnotations.toString());
+                            jsonObject.addProperty("RemovedAnnotations", removedAnnotations.toString());
+                            useCase7.setOldCommitID(oldSystem.getCommitID());
+                            useCase7.setNewCommitID(newSystem.getCommitID());
+                            useCase7.setMetaData(jsonObject);
+                            useCases.add(useCase7);
+                            break outer;
+                        }
+
+                        // Check for modified annotations (same name but different contents)
+                        for (Annotation annotationOld : methodOld.getAnnotations()) {
+                            for (Annotation annotationNew : methodNew.getAnnotations()) {
+                                if (annotationNew.getName().equals(annotationOld.getName())
+                                        && !annotationNew.getContents().equals(annotationOld.getContents())) {
+                                    AR7 useCase7 = new AR7();
+                                    JsonObject jsonObject = new JsonObject();
+                                    jsonObject.addProperty("OldMethodDeclaration", methodOld.getID());
+                                    jsonObject.addProperty("NewMethodDeclaration", methodNew.getID());
+                                    jsonObject.addProperty("ModifiedAnnotation", annotationNew.getName());
+                                    useCase7.setOldCommitID(oldSystem.getCommitID());
+                                    useCase7.setNewCommitID(newSystem.getCommitID());
+                                    useCase7.setMetaData(jsonObject);
+                                    useCases.add(useCase7);
+                                    break outer;
+                                }
                             }
                         }
                     }

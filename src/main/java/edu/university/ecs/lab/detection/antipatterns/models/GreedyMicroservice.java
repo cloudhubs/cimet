@@ -11,7 +11,7 @@ import java.util.List;
  * Represents a collection of microservices identified as greedy.
  */
 @Data
-public class GreedyMicroservice extends AntiPattern {
+public class GreedyMicroservice extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

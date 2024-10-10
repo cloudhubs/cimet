@@ -128,7 +128,7 @@ public class AR3 extends AbstractAR {
     public static List<AR3> scan2(MicroserviceSystem oldSystem, MicroserviceSystem newSystem) {
         List<AR3> archRules = new ArrayList<>();
 
-        List<RestCall> allRestCalls = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getServices().stream()).flatMap(jClass -> jClass.getRestCalls().stream()).collect(Collectors.toList());
+        List<RestCall> allRestCalls = newSystem.getMicroservices().stream().flatMap(microservice -> microservice.getRestCalls().stream()).collect(Collectors.toList());
 
 
         // For each restCall if we don't find a match in the new System

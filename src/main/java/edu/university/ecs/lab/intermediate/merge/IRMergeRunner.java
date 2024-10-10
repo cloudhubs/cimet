@@ -25,13 +25,13 @@ public class IRMergeRunner {
         String[] finalArgs = args;
         LoggerManager.info(() -> "IRMergeRunner starting... args: " + Arrays.toString(finalArgs));
 
-        if (args.length != 3) {
+        if (args.length != 4) {
             Error.reportAndExit(Error.INVALID_ARGS, Optional.empty());
         }
 
         Config config = ConfigUtil.readConfig(args[0]);
 
-        MergeService mergeService = new MergeService(args[0], args[1], args[2]);
+        MergeService mergeService = new MergeService(args[0], args[1], args[2], args[3]);
 
         //mergeService.generateMergeIR();
     }

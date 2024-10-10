@@ -76,6 +76,13 @@ public class MethodCall extends Node {
         return jsonObject;
     }
 
+    /**
+     * Checks if a method call matches a given method
+     * 
+     * @param methodCall method call object to match
+     * @param method method object to match
+     * @return true if method call and method match, false otherwise
+     */
     public static boolean matchMethod(MethodCall methodCall, Method method) {
         return methodCall.microserviceName.equals(method.microserviceName) && methodCall.objectType.equals(method.className)
                 && methodCall.name.equals(method.name);

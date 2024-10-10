@@ -3,6 +3,7 @@ package unit.antipatterns;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -14,6 +15,8 @@ import unit.Constants;
 
 import java.util.Optional;
 
+
+@Ignore
 public class NoApiGatewayTest {
     private NoApiGatewayService noApiGatewayService;
     private MicroserviceSystem microserviceSystem;

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,6 @@ public class Microservice implements JsonSerializable {
         jsonObject.addProperty("path", path);
         jsonObject.add("controllers", JsonSerializable.toJsonArray(controllers));
         jsonObject.add("entities", JsonSerializable.toJsonArray(entities));
-//        jsonObject.add("embeddables", JsonSerializable.toJsonArray(embeddables));
         jsonObject.add("feignClients", JsonSerializable.toJsonArray(feignClients));
         jsonObject.add("services", JsonSerializable.toJsonArray(services));
         jsonObject.add("repositories", JsonSerializable.toJsonArray(repositories));
@@ -98,6 +98,9 @@ public class Microservice implements JsonSerializable {
     }
 
 
+    /**
+     * see {@link JsonSerializable#toJsonArray(Iterable)}
+     */
     private static JsonArray toJsonArray(Iterable<JsonObject> list) {
         JsonArray jsonArray = new JsonArray();
         for (JsonObject object : list) {
@@ -272,28 +275,42 @@ public class Microservice implements JsonSerializable {
         return set;
     }
 
-    public Set<RestCall> getRestCalls () {
-        Set<RestCall> restCalls = new HashSet<>();
-        restCalls.addAll(getServices().stream()
-                                    .flatMap(service -> service.getRestCalls().stream())
-                                    .collect(Collectors.toSet()));
-        restCalls.addAll(getFeignClients().stream()
-                                        .flatMap(client -> client.getRestCalls().stream())
-                                        .collect(Collectors.toSet()));
-        return restCalls;
+    /**
+     * This method returns all rest calls of a microservice
+     *
+     * @return the list of all rest calls
+     */
+    public List<RestCall> getRestCalls () {
+        return getClasses().stream()
+                .flatMap(jClass -> jClass.getRestCalls().stream()).collect(Collectors.toList());
     }
 
+    /**
+     * This method returns all endpoints of a microservice
+     *
+     * @return the set of all endpoints
+     */
     public Set<Endpoint> getEndpoints () {
-        return this.controllers.stream().flatMap(controller ->
+        return getControllers().stream().flatMap(controller ->
                 controller.getEndpoints().stream()).collect(Collectors.toSet());
     }
 
+    /**
+     * This method returns all method calls of a microservice
+     *
+     * @return the set of all method calls
+     */
     public Set<MethodCall> getMethodCalls () {
-        return this.getClasses().stream().flatMap(jClass -> jClass.getMethodCalls().stream()).collect(Collectors.toSet());
+        return getClasses().stream().flatMap(jClass -> jClass.getMethodCalls().stream()).collect(Collectors.toSet());
     }
 
+    /**
+     * This method returns all methods of a microservice
+     *
+     * @return the set of all methods
+     */
     public Set<Method> getMethods () {
-        return this.getClasses().stream().flatMap(jClass -> jClass.getMethods().stream()).collect(Collectors.toSet());
+        return getClasses().stream().flatMap(jClass -> jClass.getMethods().stream()).collect(Collectors.toSet());
     }
 
 

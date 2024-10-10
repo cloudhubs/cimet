@@ -1,10 +1,7 @@
 package edu.university.ecs.lab.common.models.serialization;
 
 import com.google.gson.*;
-import edu.university.ecs.lab.common.models.ir.Annotation;
-import edu.university.ecs.lab.common.models.ir.Endpoint;
-import edu.university.ecs.lab.common.models.ir.Field;
-import edu.university.ecs.lab.common.models.ir.Method;
+import edu.university.ecs.lab.common.models.ir.*;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -38,11 +35,11 @@ public class MethodDeserializer implements JsonDeserializer<Method> {
         }
         method.setAnnotations(annotations);
 
-        Set<Field> fields = new HashSet<Field>();
+        Set<Parameter> parameters = new HashSet<>();
         for (JsonElement fieldJson : json.get("parameters").getAsJsonArray()) {
-            fields.add(context.deserialize(fieldJson, Field.class));
+            parameters.add(context.deserialize(fieldJson, Parameter.class));
         }
-        method.setParameters(fields);
+        method.setParameters(parameters);
         method.setPackageAndClassName(json.get("packageAndClassName").getAsString());
         method.setMicroserviceName(json.get("microserviceName").getAsString());
         method.setClassName(json.get("className").getAsString());

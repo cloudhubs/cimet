@@ -1,11 +1,13 @@
 package edu.university.ecs.lab.common.models.ir;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.serialization.JsonSerializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 
@@ -29,7 +31,8 @@ public class Endpoint extends Method {
     private HttpMethod httpMethod;
 
 
-    public Endpoint(String methodName, String packageName, Set<Field> parameters, String returnType, Set<Annotation> annotations, String microserviceName,
+
+    public Endpoint(String methodName, String packageName, Set<Parameter> parameters, String returnType, Set<Annotation> annotations, String microserviceName,
                     String className) {
         super(methodName, packageName, parameters, returnType, annotations, microserviceName, className);
     }
@@ -52,5 +55,6 @@ public class Endpoint extends Method {
 
         return jsonObject;
     }
+
 
 }

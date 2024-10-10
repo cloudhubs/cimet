@@ -23,15 +23,18 @@ public class MergeService {
     private final Config config;
     private final MicroserviceSystem microserviceSystem;
     private final SystemChange systemChange;
+    private final String outputPath;
 
     // TODO handle exceptions here
     public MergeService(
             String intermediatePath,
             String deltaPath,
-            String configPath) {
+            String configPath,
+            String outputPath) {
         this.config = ConfigUtil.readConfig(configPath);
         this.microserviceSystem = JsonReadWriteUtils.readFromJSON(Path.of(intermediatePath).toAbsolutePath().toString(), MicroserviceSystem.class);
         this.systemChange = JsonReadWriteUtils.readFromJSON(Path.of(deltaPath).toAbsolutePath().toString(), SystemChange.class);
+        this.outputPath = outputPath.isEmpty() ? "./NewIR.json" : outputPath;
     }
 
     /**
@@ -42,8 +45,7 @@ public class MergeService {
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
             LoggerManager.debug(() -> "No changes found at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
-            String filePath = "./output/IR_" + newCommitID + ".json";
-            JsonReadWriteUtils.writeToJSON(filePath, microserviceSystem);
+            JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
             return;
         }
 
@@ -70,8 +72,7 @@ public class MergeService {
         microserviceSystem.setCommitID(systemChange.getNewCommit());
 
         LoggerManager.info(() -> "Merged to new IR at " + systemChange.getNewCommit());
-        String filePath = "./output/IR_" + newCommitID + ".json";
-        JsonReadWriteUtils.writeToJSON(filePath, microserviceSystem);
+        JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
     }
 
 

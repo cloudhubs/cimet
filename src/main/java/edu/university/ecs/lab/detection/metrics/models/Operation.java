@@ -9,7 +9,7 @@ import java.util.List;
 public class Operation {
 	private String path;
 	private String name;
-	private List<Parameter> paramList;
+	private List<String> paramList;
 	private List<String> usingTypesList;
 	private String responseType;
 
@@ -37,11 +37,11 @@ public class Operation {
 		this.name = name;
 	}
 	
-	public List<Parameter> getParamList() {
+	public List<String> getParamList() {
 		return paramList;
 	}
 	
-	public void setParamList(List<Parameter> paramList) {
+	public void setParamList(List<String> paramList) {
 		this.paramList = paramList;
 	}
 	

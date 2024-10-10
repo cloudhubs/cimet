@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
  * Represents a cluster of wrongly interconnected services (Wrong Cuts) detected in a microservice network graph.
  */
 @Data
-public class WrongCuts extends AntiPattern{
+public class WrongCuts extends AbstractAntiPattern {
     /**
      * Anti-pattern name
      */

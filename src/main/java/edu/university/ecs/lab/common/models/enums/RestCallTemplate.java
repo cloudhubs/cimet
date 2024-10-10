@@ -5,6 +5,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
+import edu.university.ecs.lab.common.models.ir.MethodCall;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import javassist.expr.Expr;
 import lombok.Getter;
@@ -20,8 +21,8 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class RestCallTemplate {
-    public static final Set<String> REST_OBJECTS = Set.of("RestTemplate", "OAuth2RestOperations", "OAuth2RestTemplate");
-    public static final Set<String> REST_METHODS = Set.of("getForObject", "postForObject", "patchForObject", "put", "delete", "exchange");
+    public static final Set<String> REST_OBJECTS = Set.of("RestTemplate", "OAuth2RestOperations", "OAuth2RestTemplate", "WebClient");
+    public static final Set<String> REST_METHODS = Set.of("getForObject", "postForObject", "patchForObject", "put", "delete", "exchange", "get", "post", "options", "patch");
     private static final String UNKNOWN_VALUE = "{?}";
 
     private final String url;
@@ -29,10 +30,10 @@ public class RestCallTemplate {
     private final CompilationUnit cu;
     private final MethodCallExpr mce;
 
-    public RestCallTemplate(MethodCallExpr mce, CompilationUnit cu) {
+    public RestCallTemplate(MethodCallExpr mce, MethodCall mc, CompilationUnit cu) {
         this.cu = cu;
         this.mce = mce;
-        this.url = mce.getArguments().get(0).toString().isEmpty() ? "" : cleanURL(parseURL(mce.getArguments().get(0)));
+        this.url = simplifyEndpointURL(preParseURL(mce, mc));
         this.httpMethod = getHttpFromName(mce);
     }
 
@@ -46,10 +47,13 @@ public class RestCallTemplate {
         String methodName = mce.getNameAsString();
         switch (methodName) {
             case "getForObject":
+            case "get":
                 return HttpMethod.GET;
             case "postForObject":
+            case "post":
                 return HttpMethod.POST;
             case "patchForObject":
+            case "patch":
                 return HttpMethod.PATCH;
             case "put":
                 return HttpMethod.PUT;
@@ -146,6 +150,12 @@ public class RestCallTemplate {
 
     }
 
+    /**
+     * Shorten URLs to only endpoint query
+     * 
+     * @param str full url
+     * @return url query
+     */
     private static String cleanURL(String str) {
         str = str.replace("http://", "");
         str = str.replace("https://", "");
@@ -156,11 +166,7 @@ public class RestCallTemplate {
             str = str.substring(backslashNdx);
         }
 
-//        int questionNdx = str.indexOf("?");
-//        if (questionNdx > 0) {
-//            str = str.substring(0, questionNdx);
-//        }
-
+        // Remove any trailing quotes
         if (str.endsWith("\"")) {
             str = str.substring(0, str.length() - 1);
         }
@@ -186,15 +192,30 @@ public class RestCallTemplate {
         return "";
     }
 
-//    private String parseNameValue(Expression mceScope, String name) {
-//        for (VariableDeclarationExpr vdc : mceScope.findAll(VariableDeclarationExpr.class)) {
-//            for(VariableDeclarator vd : vdc.getVariables()) {
-//                if(vd.getNameAsString().equals(name)) {
-//
-//                }
-//            }
-//        }
-//
-//        return "";
-//    }
+
+    private String preParseURL(MethodCallExpr mce, MethodCall mc) {
+
+        // Nuance for webclient with method appender pattern
+        if(mc.getObjectType().equals("WebClient")) {
+            if(mce.getParentNode().isPresent()) {
+                if(mce.getParentNode().get() instanceof MethodCallExpr pmce) {
+                    return pmce.getArguments().get(0).toString().isEmpty() ? "" : cleanURL(parseURL(pmce.getArguments().get(0)));
+                }
+            }
+        } else {
+            return mce.getArguments().get(0).toString().isEmpty() ? "" : cleanURL(parseURL(mce.getArguments().get(0)));
+        }
+
+        return "";
+    }
+
+    /**
+     * Simplifies all path arguments to {?}.
+     *
+     * @param url the endpoint URL
+     * @return the simplified endpoint URL
+     */
+    public static String simplifyEndpointURL(String url) {
+        return url.replaceAll("\\{[^{}]*\\}", "{?}");
+    }
 }

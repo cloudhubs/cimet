@@ -17,9 +17,23 @@ import java.util.stream.Collectors;
 @Getter
 public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microservice, RestCallEdge>
         implements JsonSerializable, DependencyGraphI<Microservice, RestCallEdge> {
+    
+    /**
+     * Represents the name of the graph
+     */
     private final String label;
+    /**
+     * The timestamp of the current Network graph
+     * (i.e. the commit ID that the Network graph represents)
+     */
     private final String timestamp;
+    /**
+     * Whether the edges are interpreted as directed
+     */
     private final boolean directed = true;
+    /**
+     * Whether several edges between source and target are allowed
+     */
     private final boolean multigraph = true;
 
     /**
@@ -61,6 +75,7 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microserv
         List<RestCall> restCalls = new ArrayList<>();
         List<Endpoint> endpoints = new ArrayList<>();
 
+        // Add microservices, rest calls, and enpoints to respective lists, add microservice to graph as a vertex
         microserviceSystem.getMicroservices().forEach(microservice -> {
             ms.put(microservice.getName(), microservice);
             this.addVertex(microservice);
@@ -70,6 +85,7 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microserv
 
         List<List<String>> edgesList = new ArrayList<>();
 
+        // Add services with matching rest call/endpoint pairs to edges list
         for (RestCall restCall : restCalls) {
             for (Endpoint endpoint : endpoints) {
                 if (RestCall.matchEndpoint(restCall, endpoint)) {
@@ -78,6 +94,7 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microserv
             }
         }
 
+        // Add edges to map
         edgesList.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).forEach((edgeData, value) -> {
              RestCallEdge edge = this.addEdge(ms.get(edgeData.get(0)), ms.get(edgeData.get(1)));
@@ -86,6 +103,9 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microserv
          });
     }
 
+    /**
+     * Class to serialize a microservice as a json object
+     */
     public static class MicroserviceSerializer implements JsonSerializer<Microservice> {
         @Override
         public JsonElement serialize(Microservice microservice, Type type, JsonSerializationContext jsonSerializationContext) {
@@ -95,6 +115,9 @@ public class ServiceDependencyGraph extends DirectedWeightedMultigraph<Microserv
         }
     }
 
+    /**
+     * Class to serialize a rest call as a json object
+     */
     public class RestCallEdgeSerializer implements JsonSerializer<RestCallEdge> {
         @Override
         public JsonElement serialize(RestCallEdge edge, Type typeOfSrc, JsonSerializationContext context) {

@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class CyclicDependencyMSLevelService {
 
-    private List<List<String>> allCycles = new ArrayList<>(); //
+    private List<List<String>> allCycles = new ArrayList<>();
     private Set<Microservice> visited = new HashSet<>();
     private Set<Microservice> recStack = new HashSet<>();
     private Map<Microservice, Microservice> parentMap = new HashMap<>();
@@ -73,14 +73,17 @@ public class CyclicDependencyMSLevelService {
         List<String> fullCyclePath = new ArrayList<>();
         Microservice node = currentNode;
 
-        // Iterate through each node in parent map until startNode is reached, adding each to 
+        // Iterate through each node in parent map until startNode is reached, adding each to
         // the cycle path
-        fullCyclePath.add(startNode.getName());
         while (node != null && !node.equals(startNode)) {
             fullCyclePath.add(node.getName());
             node = parentMap.get(node);
         }
+
+        // Only add startNode at the end to complete the cycle
         fullCyclePath.add(startNode.getName());
+
+        Collections.reverse(fullCyclePath); // Reverse the path to get correct order
 
         return fullCyclePath;
     }

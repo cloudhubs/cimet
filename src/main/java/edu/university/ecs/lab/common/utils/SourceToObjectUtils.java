@@ -5,6 +5,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
@@ -139,9 +140,9 @@ public class SourceToObjectUtils {
         Set<Method> methods = new HashSet<>();
 
         for (MethodDeclaration methodDeclaration : methodDeclarations) {
-            Set<Field> parameters = new HashSet<>();
+            Set<edu.university.ecs.lab.common.models.ir.Parameter> parameters = new HashSet<>();
             for (Parameter parameter : methodDeclaration.getParameters()) {
-                parameters.add(new Field(parameter.getNameAsString(), packageAndClassName, parameter.getTypeAsString()));
+                parameters.add(new edu.university.ecs.lab.common.models.ir.Parameter(parameter, packageAndClassName));
             }
 
             Method method = new Method(
@@ -192,8 +193,8 @@ public class SourceToObjectUtils {
      * @param methodDeclarations the list of methodDeclarations to be parsed
      * @return a set of MethodCall models representing MethodCallExpressions found in the MethodDeclarations
      */
-    public static Set<MethodCall> parseMethodCalls(List<MethodDeclaration> methodDeclarations) {
-        Set<MethodCall> methodCalls = new HashSet<>();
+    public static List<MethodCall> parseMethodCalls(List<MethodDeclaration> methodDeclarations) {
+        List<MethodCall> methodCalls = new ArrayList<>();
 
         // loop through method calls
         for (MethodDeclaration methodDeclaration : methodDeclarations) {
@@ -231,7 +232,7 @@ public class SourceToObjectUtils {
             return methodCall;
         }
 
-        RestCallTemplate restCallTemplate = new RestCallTemplate(methodCallExpr, cu);
+        RestCallTemplate restCallTemplate = new RestCallTemplate(methodCallExpr,methodCall, cu);
 
         if (restCallTemplate.getUrl().isEmpty()) {
             return methodCall;
@@ -316,22 +317,7 @@ public class SourceToObjectUtils {
         Set<Annotation> annotations = new HashSet<>();
 
         for (AnnotationExpr ae : annotationExprs) {
-            Annotation annotation;
-            if (ae.isNormalAnnotationExpr()) {
-                NormalAnnotationExpr normal = ae.asNormalAnnotationExpr();
-                annotation = new Annotation(ae.getNameAsString(), packageAndClassName, normal.getPairs().toString());
-
-            } else if (ae.isSingleMemberAnnotationExpr()) {
-                annotation =
-                        new Annotation(
-                                ae.getNameAsString(),
-                                packageAndClassName,
-                                ae.asSingleMemberAnnotationExpr().getMemberValue().toString());
-            } else {
-                annotation = new Annotation(ae.getNameAsString(), packageAndClassName, "");
-            }
-
-            annotations.add(annotation);
+            annotations.add(new Annotation(ae, packageAndClassName));
         }
 
         return annotations;
@@ -393,14 +379,37 @@ public class SourceToObjectUtils {
         // New methods for conversion
         Set<Method> newMethods = new HashSet<>();
         // New rest calls for conversion
-        Set<MethodCall> newRestCalls = new HashSet<>();
+        List<MethodCall> newRestCalls = new ArrayList<>();
 
         // For each method that is detected as an endpoint convert into a Method + RestCall
         for(Method method : methods) {
             if(method instanceof Endpoint) {
                 Endpoint endpoint = (Endpoint) method;
                 newMethods.add(new Method(method.getName(), packageAndClassName, method.getParameters(), method.getReturnType(), method.getAnnotations(), method.getMicroserviceName(), method.getClassName()));
-                newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), "", endpoint.getMicroserviceName(), endpoint.getClassName()), endpoint.getUrl(), endpoint.getHttpMethod()));
+
+                StringBuilder queryParams = new StringBuilder();
+                for(edu.university.ecs.lab.common.models.ir.Parameter parameter : method.getParameters()) {
+                    for(Annotation annotation : parameter.getAnnotations()) {
+                        if(annotation.getName().equals("RequestParam")) {
+                            queryParams.append("&");
+                            if(annotation.getAttributes().containsKey("default")) {
+                                queryParams.append(annotation.getAttributes().get("default"));
+                            } else if(annotation.getAttributes().containsKey("name")) {
+                                queryParams.append(annotation.getAttributes().get("name"));
+                            } else {
+                                queryParams.append(parameter.getName());
+                            }
+
+                            queryParams.append("={?}");
+                        }
+                    }
+                }
+
+                if(!queryParams.isEmpty()) {
+                    queryParams.replace(0, 1, "?");
+                }
+
+                newRestCalls.add(new RestCall(new MethodCall("exchange", packageAndClassName, "RestCallTemplate", "restCallTemplate", method.getName(), "", endpoint.getMicroserviceName(), endpoint.getClassName()), endpoint.getUrl() + queryParams, endpoint.getHttpMethod()));
             } else {
                 newMethods.add(method);
             }
@@ -464,7 +473,7 @@ public class SourceToObjectUtils {
         // New methods for conversion
         Set<Method> newEndpoints = new HashSet<>();
         // New rest calls for conversion
-        Set<MethodCall> newRestCalls = new HashSet<>();
+        List<MethodCall> newRestCalls = new ArrayList<>();
 
         // Arbitrary preURL naming scheme if not defined in the annotation
         String preURL = "/" + className.toLowerCase().replace("repository", "") + "s";
@@ -537,7 +546,7 @@ public class SourceToObjectUtils {
     }
 
     private static JClass handleJS(String filePath) {
-        JClass jClass = new JClass(filePath, filePath, "", ClassRole.FEIGN_CLIENT, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+        JClass jClass = new JClass(filePath, filePath, "", ClassRole.FEIGN_CLIENT, new HashSet<>(), new HashSet<>(), new HashSet<>(), new ArrayList<>(), new HashSet<>());
         try {
             Set<RestCall> restCalls = new HashSet<>();
             // Command to run Node.js script

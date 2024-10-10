@@ -9,11 +9,9 @@ import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.enums.ChangeType;
 import lombok.Data;
+import org.apache.poi.ss.formula.functions.T;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -78,21 +76,21 @@ public class AR6 extends AbstractAR {
             return new ArrayList<>();
         }
 
+        List<MethodCall> uniqueMethodCalls = getUniqueMethodCalls(jClass.getMethodCalls(), delta.getClassChange().getMethodCalls());
+
         List<AR6> archRules = new ArrayList<>();
-        Set<Method> affectedMethods = delta.getClassChange().getMethods();
-        Method removeMethod = null;
 
         // For each methodCall added
-        for(MethodCall methodCall : getNewMethodCalls(jClass, delta.getClassChange())) {
+        for(Method method : delta.getClassChange().getMethods()) {
             outer:
             {
-                for (Method method : affectedMethods) {
+
+                for (MethodCall methodCall : uniqueMethodCalls) {
                     // If the called object is the same as the return type of the same method
                     // TODO This will report the first instance
                     // TODO This currently does not check if the affected method is called by an endpoint and actually used, flows needed
                     if (method.getReturnType().equals(methodCall.getObjectType())
                             && method.getName().equals(methodCall.getCalledFrom())) {
-                        removeMethod = method;
 
                         AR6 archRule6 = new AR6();
                         JsonObject jsonObject = new JsonObject();
@@ -110,23 +108,60 @@ public class AR6 extends AbstractAR {
                 }
             }
 
-            if(Objects.nonNull(removeMethod)) {
-                affectedMethods.remove(removeMethod);
-                removeMethod = null;
-            }
         }
 
         return archRules;
     }
 
-    /**
-     * This method gets new method calls not present in oldClass
-     *
-     * @param oldClass old commit class
-     * @param newClass delta class change
-     * @return list of new method calls (not present in old class)
-     */
-    private static Set<MethodCall> getNewMethodCalls(JClass oldClass, JClass newClass) {
-        return newClass.getMethodCalls().stream().filter(methodCall -> !oldClass.getMethodCalls().contains(methodCall)).collect(Collectors.toSet());
+    // Define a custom comparator for the MethodCall class
+    private static Comparator<MethodCall> methodCallComparator = Comparator
+            .comparing(MethodCall::getName)
+            .thenComparing(MethodCall::getParameterContents)
+            .thenComparing(MethodCall::getObjectType)
+            .thenComparing(MethodCall::getCalledFrom);
+
+    public static List<MethodCall> getUniqueMethodCalls(List<MethodCall> oldMethodCalls, List<MethodCall> newMethodCalls) {
+        // Using TreeSet with a custom comparator to enforce uniqueness based on custom logic
+        List<MethodCall> final1 = new ArrayList<>();
+
+
+        boolean foundMatch = false;
+        for(MethodCall oldmethodCall : oldMethodCalls) {
+            outer:
+            {
+                for (MethodCall newMethodCall : newMethodCalls) {
+                    if (methodCallComparator.compare(oldmethodCall, newMethodCall) == 0) {
+                        foundMatch = true;
+                        break outer;
+                    }
+                }
+
+                if(!foundMatch) {
+                    final1.add(oldmethodCall);
+                }
+                foundMatch = false;
+            }
+        }
+
+        for(MethodCall newMethodCall : newMethodCalls) {
+            outer:
+            {
+                for (MethodCall oldmethodCall : oldMethodCalls) {
+                    if (methodCallComparator.compare(oldmethodCall, newMethodCall) == 0) {
+                        foundMatch = true;
+                        break outer;
+                    }
+                }
+
+                if(!foundMatch) {
+                    final1.add(newMethodCall);
+                }
+                foundMatch = false;
+            }
+        }
+
+
+        return final1;
     }
+
 }
