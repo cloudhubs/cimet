@@ -1,5 +1,5 @@
 {
-  "systemName": "sample-spring-microservices-new",
-  "repositoryURL": "https://github.com/piomin/sample-spring-microservices-new.git",
+  "systemName": "spring-cloud-movie-recommendation",
+  "repositoryURL": "https://github.com/mdeket/spring-cloud-movie-recommendation.git",
   "baseBranch": "master"
 }

@@ -45,7 +45,7 @@ public class MergeService {
         // If no changes are present we will write back out same IR
         if (Objects.isNull(systemChange.getChanges())) {
             LoggerManager.debug(() -> "No changes found at " + systemChange.getOldCommit() + " -> " + systemChange.getNewCommit());
-            JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
+            // JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
             return;
         }
 
@@ -72,7 +72,7 @@ public class MergeService {
         microserviceSystem.setCommitID(systemChange.getNewCommit());
 
         LoggerManager.info(() -> "Merged to new IR at " + systemChange.getNewCommit());
-        JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
+        //  JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
     }
 
 
@@ -318,5 +318,19 @@ public class MergeService {
         return null;
     }
 
+    private MicroserviceSystem getMicroserviceSystem() {
+        return this.microserviceSystem;
+    }
+
+    public static MicroserviceSystem create(String configPath, String intermediatePath, String deltaPath, String newCommitID) {
+        MergeService mergeService = new MergeService(intermediatePath, deltaPath, configPath, "");
+        mergeService.generateMergeIR(newCommitID);
+        return mergeService.getMicroserviceSystem();
+    }
+
+    public static void createAndWrite(String configPath, String intermediatePath, String deltaPath, String newCommitID, String outputPath) {
+        MicroserviceSystem microserviceSystem = create(configPath, intermediatePath, deltaPath, newCommitID);
+        JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem);
+    }
 
 }

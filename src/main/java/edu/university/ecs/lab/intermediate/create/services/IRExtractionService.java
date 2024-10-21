@@ -12,6 +12,8 @@ import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.common.utils.SourceToObjectUtils;
+import edu.university.ecs.lab.delta.models.SystemChange;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -249,6 +251,23 @@ public class IRExtractionService {
                 }
             }
         }
+    }
+
+    public static MicroserviceSystem create(String configPath) {
+        IRExtractionService extractionService = new IRExtractionService(configPath, Optional.empty());
+        Set<Microservice> microservices = extractionService.cloneAndScanServices();
+        MicroserviceSystem microserviceSystem = new MicroserviceSystem(extractionService.config.getSystemName(), extractionService.commitID, microservices, new HashSet<>());
+        return microserviceSystem;
+    }
+
+    public static void createAndWrite(String configPath, String outputPath) {
+        MicroserviceSystem microserviceSystem = create(configPath);
+        JsonReadWriteUtils.writeToJSON(outputPath, microserviceSystem.toJsonObject());
+    }
+
+    public static MicroserviceSystem read(String fPath) {
+        MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(fPath, MicroserviceSystem.class);
+        return microserviceSystem;
     }
 
 

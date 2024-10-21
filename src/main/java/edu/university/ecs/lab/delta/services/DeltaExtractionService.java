@@ -5,6 +5,7 @@ import edu.university.ecs.lab.common.config.Config;
 import edu.university.ecs.lab.common.config.ConfigUtil;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.JClass;
+import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.services.GitService;
 import edu.university.ecs.lab.common.services.LoggerManager;
 import edu.university.ecs.lab.common.utils.FileUtils;
@@ -69,7 +70,7 @@ public class DeltaExtractionService {
      * @param commitOld old commit for comparison
      * @param commitNew new commit for comparison
      */
-    public DeltaExtractionService(String configPath, String outputPath, String commitOld, String commitNew) {
+    private DeltaExtractionService(String configPath, String outputPath, String commitOld, String commitNew) {
         this.config = ConfigUtil.readConfig(configPath);
         this.gitService = new GitService(configPath);
         this.commitOld = commitOld;
@@ -80,7 +81,7 @@ public class DeltaExtractionService {
     /**
      * Generates Delta file representing changes between commitOld and commitNew
      */
-    public void generateDelta() {
+    private void generateDelta() {
         List<DiffEntry> differences = null;
 
         // Ensure we start at commitOld
@@ -102,7 +103,7 @@ public class DeltaExtractionService {
      * 
      * @param diffEntries list of differences
      */
-    public void processDelta(List<DiffEntry> diffEntries) {
+    private void processDelta(List<DiffEntry> diffEntries) {
         // Set up a new SystemChangeObject
         systemChange = new SystemChange();
         systemChange.setOldCommit(commitOld);
@@ -160,7 +161,7 @@ public class DeltaExtractionService {
         }
 
         // Output the system changes
-        JsonReadWriteUtils.writeToJSON(outputPath, systemChange);
+        // JsonReadWriteUtils.writeToJSON(outputPath, systemChange);
 
         // Report
         LoggerManager.info(() -> "Delta changes extracted between " + commitOld + " -> " + commitNew);
@@ -197,6 +198,10 @@ public class DeltaExtractionService {
 
     }
 
+    private SystemChange getSystemChange() {
+        return this.systemChange;
+    }
+
     /**
      * This method returns a blank JsonObject() as there is no data to parse
      *
@@ -206,7 +211,20 @@ public class DeltaExtractionService {
         return new JsonObject();
     }
 
+    public static SystemChange create(String configPath, String oldCommit, String newCommit) {
+        DeltaExtractionService extractionService = new DeltaExtractionService(configPath, "", oldCommit, newCommit);
+        extractionService.generateDelta();
+        return extractionService.getSystemChange();
+    }
 
+    public static void createAndWrite(String configPath, String oldCommit, String newCommit, String outputPath) {
+        SystemChange systemChange = DeltaExtractionService.create(configPath, oldCommit, newCommit);
+        JsonReadWriteUtils.writeToJSON(outputPath, systemChange);
+    }
 
+    public static SystemChange read(String fPath) {
+        SystemChange systemChange = JsonReadWriteUtils.readFromJSON(fPath, SystemChange.class);
+        return systemChange;
+    }
 
 }
