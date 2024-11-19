@@ -5,11 +5,13 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import edu.university.ecs.lab.common.models.ir.MethodCall;
 import edu.university.ecs.lab.intermediate.utils.StringParserUtils;
 import javassist.expr.Expr;
 import lombok.Getter;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,8 +113,14 @@ public class RestCallTemplate {
             // Special case
             if(exp.asNameExpr().getNameAsString().contains("uri") || exp.asNameExpr().getNameAsString().contains("url")) {
                 return "";
+            } else {
+                Optional<Node> parentNode = exp.getParentNode();
+                while(parentNode.isPresent() && !(parentNode.get() instanceof BlockStmt)) {
+                    parentNode = parentNode.get().getParentNode();
+                }
+                return parseVariableValue(exp.asNameExpr().getNameAsString(), parentNode.get());
             }
-            return UNKNOWN_VALUE;
+//            return UNKNOWN_VALUE;
         }
 
         // If all fails, try to find some viable url
@@ -190,6 +198,40 @@ public class RestCallTemplate {
         }
 
         return "";
+    }
+
+    private String parseVariableValue(String variableName, Node parentNode) {
+        if(parentNode == null) {
+            return UNKNOWN_VALUE;
+        }
+
+        VariableDeclarator vd = parentNode.findAll(VariableDeclarator.class).stream().filter(variableDeclarator -> variableDeclarator.getNameAsString().equals(variableName)).findFirst().orElse(null);
+        if (vd != null) {
+            if (vd.getInitializer().isPresent()) {
+                Expression init = vd.getInitializer().get();
+                if(init instanceof StringLiteralExpr) {
+                    return init.asStringLiteralExpr().asString();
+                } else if(init instanceof BinaryExpr) {
+
+                    BinaryExpr bin = (BinaryExpr) init;
+                    String returnString = "";
+
+                    if(bin.getLeft() instanceof StringLiteralExpr) {
+                        returnString += bin.getLeft().asStringLiteralExpr().asString();
+                    }
+
+                    if(bin.getRight() instanceof StringLiteralExpr) {
+                        returnString += bin.getRight().asStringLiteralExpr().asString();
+                    }
+
+
+                    return returnString.isEmpty() ? UNKNOWN_VALUE : returnString;
+                }
+            }
+        }
+
+
+        return UNKNOWN_VALUE;
     }
 
 
