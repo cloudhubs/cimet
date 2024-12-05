@@ -101,10 +101,12 @@ public class RestCallTemplate {
             return parseFieldValue(exp.asFieldAccessExpr().getNameAsString());
         } else if (exp.isBinaryExpr()) {
             String left = parseURL(exp.asBinaryExpr().getLeft());
+            left = left.equals(UNKNOWN_VALUE) ? "" : left;
             String right = parseURL(exp.asBinaryExpr().getRight());
+            right = right.equals(UNKNOWN_VALUE) ? "" : right;
             return left + right;
         } else if(exp.isEnclosedExpr()) {
-            return parseURL(exp.asEnclosedExpr());
+            return parseURL(exp.asEnclosedExpr().getInner());
         // Base case, if we are a method call or a u
         } else if(exp.isMethodCallExpr()) {
             // Here we may try to find a modified url in a method call expr
@@ -209,24 +211,30 @@ public class RestCallTemplate {
         if (vd != null) {
             if (vd.getInitializer().isPresent()) {
                 Expression init = vd.getInitializer().get();
-                if(init instanceof StringLiteralExpr) {
-                    return init.asStringLiteralExpr().asString();
-                } else if(init instanceof BinaryExpr) {
+                return parseURL(init);
+                // if(init instanceof StringLiteralExpr) {
+                //     return init.asStringLiteralExpr().asString();
+                // } else if(init instanceof BinaryExpr) {
 
-                    BinaryExpr bin = (BinaryExpr) init;
-                    String returnString = "";
+                //     BinaryExpr bin = (BinaryExpr) init;
+                //     String returnString = "";
 
-                    if(bin.getLeft() instanceof StringLiteralExpr) {
-                        returnString += bin.getLeft().asStringLiteralExpr().asString();
-                    }
+                //     if(bin.getLeft() instanceof StringLiteralExpr) {
+                //         returnString += bin.getLeft().asStringLiteralExpr().asString();
+                //     }
+                //     else {
+                //         returnString += parseURL(bin.getLeft()).equals(UNKNOWN_VALUE) ? "" : parseURL(bin.getLeft());
+                //     }
 
-                    if(bin.getRight() instanceof StringLiteralExpr) {
-                        returnString += bin.getRight().asStringLiteralExpr().asString();
-                    }
+                //     if(bin.getRight() instanceof StringLiteralExpr) {
+                //         returnString += bin.getRight().asStringLiteralExpr().asString();
+                //     } else {
+                //         returnString += parseURL(bin.getRight()).equals(UNKNOWN_VALUE) ? "" : parseURL(bin.getRight());
+                //     }
 
 
-                    return returnString.isEmpty() ? UNKNOWN_VALUE : returnString;
-                }
+                //     return returnString.isEmpty() ? UNKNOWN_VALUE : returnString;
+                // }
             }
         }
 
