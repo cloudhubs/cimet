@@ -226,7 +226,7 @@
         <profile>
             <id>run-history</id>
             <properties>
-                <mainClass>edu.university.ecs.lab.detection.ExcelOutputRunner</mainClass>
+                <mainClass>edu.university.ecs.lab.detection_old.ExcelOutputRunner</mainClass>
             </properties>
             <build>
                 <defaultGoal>exec:java</defaultGoal>

@@ -8,19 +8,13 @@ import java.util.*;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.ir.*;
-import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
-import edu.university.ecs.lab.detection.antipatterns.services.CyclicDependencyMSLevelService;
-import edu.university.ecs.lab.detection.antipatterns.services.ServiceChainMSLevelService;
+import edu.university.ecs.lab.detection_old.antipatterns.services.CyclicDependencyMSLevelService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
-import edu.university.ecs.lab.common.utils.FileUtils;
-import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-import edu.university.ecs.lab.detection.antipatterns.models.CyclicDependency;
-import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
-import unit.Constants;
+import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.detection_old.antipatterns.models.CyclicDependency;
 
 
 @Ignore

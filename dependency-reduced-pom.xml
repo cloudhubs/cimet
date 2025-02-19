@@ -108,7 +108,7 @@
         <defaultGoal>exec:java</defaultGoal>
       </build>
       <properties>
-        <mainClass>edu.university.ecs.lab.detection.ExcelOutputRunner</mainClass>
+        <mainClass>edu.university.ecs.lab.detection_old.ExcelOutputRunner</mainClass>
       </properties>
     </profile>
   </profiles>

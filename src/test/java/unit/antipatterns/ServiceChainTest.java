@@ -5,17 +5,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import edu.university.ecs.lab.common.models.enums.ClassRole;
 import edu.university.ecs.lab.common.models.enums.HttpMethod;
 import edu.university.ecs.lab.common.models.ir.*;
-import edu.university.ecs.lab.detection.antipatterns.services.ServiceChainMSLevelService;
+import edu.university.ecs.lab.detection_old.antipatterns.services.ServiceChainMSLevelService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.*;
 
-import edu.university.ecs.lab.common.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
+import edu.university.ecs.lab.detection_old.antipatterns.models.ServiceChain;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import unit.Constants;
 
