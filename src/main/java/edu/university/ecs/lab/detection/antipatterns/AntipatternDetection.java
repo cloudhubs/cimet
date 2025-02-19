@@ -9,6 +9,7 @@ import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.*;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,9 +19,9 @@ import java.util.Optional;
  * Class to detect multiple antipatterns from IR of a given system
  */
 public class AntipatternDetection {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, GitAPIException, InterruptedException {
         // Create IR of first commit
-        createIRSystem("./configs/config_spring-boot-microservices.json", "IR.json");
+        createIRSystem("./valid_configs/spring-cloud-movie-recommendation.json", "./output/IR.json");
 
         // Creat Microservice System based on generated IR
         MicroserviceSystem currentSystem = JsonReadWriteUtils.readFromJSON("./output/IR.json", MicroserviceSystem.class);
@@ -134,7 +135,7 @@ public class AntipatternDetection {
      * @param configPath path to configuration file
      * @param fileName name of output file for IR extraction
      */
-    private static void createIRSystem(String configPath, String fileName) {
+    private static void createIRSystem(String configPath, String fileName) throws GitAPIException, IOException, InterruptedException {
         // Create both directories needed
         FileUtils.makeDirs();
 

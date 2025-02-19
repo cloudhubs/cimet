@@ -11,6 +11,7 @@ import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.delta.services.DeltaExtractionService;
+import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
 import edu.university.ecs.lab.detection.architecture.models.*;
 import edu.university.ecs.lab.detection.architecture.services.ARDetectionService;
@@ -25,6 +26,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.FileOutputStream;
@@ -78,7 +80,7 @@ public class DetectionService {
      * Construct with given configuration file path
      * @param configPath YAML file to extract microservice details from
      */
-    public DetectionService(String configPath) {
+    public DetectionService(String configPath) throws IOException, InterruptedException {
         this.configPath = configPath;
         // Read in config
         config = ConfigUtil.readConfig(configPath);
@@ -95,7 +97,7 @@ public class DetectionService {
     /**
      * Method to detect antipatterns, architectural rule violations, and metrics
      */
-    public void runDetection() {
+    public void runDetection() throws GitAPIException, IOException, InterruptedException {
 
         // Get list of commits
         Iterable<RevCommit> iterable = gitService.getLog();
@@ -145,8 +147,8 @@ public class DetectionService {
                 String newIRPath = BASE_IR_PATH + (i+2) + "_" + commitIdNew.substring(0, 4) +".json";
                 String deltaPath = BASE_DELTA_PATH + (i+1) + "_" + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
 
-                deltaExtractionService = new DeltaExtractionService(configPath, deltaPath, commitIdOld, commitIdNew);
-                deltaExtractionService.generateDelta();
+                //deltaExtractionService = new DeltaExtractionService(configPath, deltaPath, commitIdOld, commitIdNew);
+                //deltaExtractionService.generateDelta();
 
                 // Merge Delta changes to old IR to create new IR representing new commit changes
                 MergeService mergeService = new MergeService(oldIRPath, deltaPath, configPath, newIRPath);
@@ -252,6 +254,9 @@ public class DetectionService {
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(microserviceSystem);
         MethodDependencyGraph mdg = new MethodDependencyGraph(microserviceSystem);
 
+        ServiceChainMSLevelService serv = new ServiceChainMSLevelService();
+        ServiceChain s = serv.getServiceChains(sdg);
+
         // KEYS must match columnLabels field
         allAntiPatterns.put("Greedy Microservices", new GreedyService().getGreedyMicroservices(sdg).numGreedyMicro());
         allAntiPatterns.put("Hub-like Microservices", new HubLikeService().getHubLikeMicroservice(sdg).numHubLike());
@@ -266,7 +271,7 @@ public class DetectionService {
 
     }
 
-    private void detectMetrics(MicroserviceSystem microserviceSystem, Map<String, Double> metrics, String oldIRPath) {
+    private void detectMetrics(MicroserviceSystem microserviceSystem, Map<String, Double> metrics, String oldIRPath) throws IOException {
 
         // Create SDG
         ServiceDependencyGraph sdg = new ServiceDependencyGraph(microserviceSystem);

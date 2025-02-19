@@ -9,6 +9,8 @@ import edu.university.ecs.lab.detection.metrics.models.ServiceDescriptor;
 import edu.university.ecs.lab.detection.metrics.services.MetricCalculator;
 import edu.university.ecs.lab.detection.metrics.services.MetricResult;
 import edu.university.ecs.lab.detection.metrics.services.MetricResultCalculation;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ import java.util.List;
  */
 public class RunCohesionMetrics {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         calculateCohesionMetrics("./output/OldIR.json");
     }
 
@@ -27,7 +29,7 @@ public class RunCohesionMetrics {
      * @param IRPath path to intermediate representation JSON
      * @return metric result calculation object
      */
-    public static MetricResultCalculation calculateCohesionMetrics(String IRPath) {
+    public static MetricResultCalculation calculateCohesionMetrics(String IRPath) throws IOException {
         
         // Create microservice system object
         MicroserviceSystem microserviceSystem = JsonReadWriteUtils.readFromJSON(IRPath, MicroserviceSystem.class);

@@ -1,6 +1,8 @@
 package edu.university.ecs.lab;
 
 import edu.university.ecs.lab.detection.ExcelOutputRunner;
+import org.eclipse.jgit.api.errors.GitAPIException;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -9,7 +11,7 @@ import java.io.IOException;
  * NOTE: Must change the ExcelOutputRunner class to take config filepath as input args
  */
 public class AllConfigsExcelRunner {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, GitAPIException, InterruptedException {
 
         File configDir = new File("./valid_configs");
         if (!configDir.exists() || !configDir.isDirectory()) {

@@ -1,6 +1,6 @@
 package edu.university.ecs.lab.detection;
 
-import edu.university.ecs.lab.common.error.Error;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,16 +12,13 @@ import java.util.Optional;
  */
 public class ExcelOutputRunner {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException, GitAPIException {
         String configPath = "./config.json";
-        try {
-            File conifgFile = new File(configPath);
-            if (!conifgFile.exists()) {
-                throw new FileNotFoundException();
-            }
-        } catch (Exception e) {
-            Error.reportAndExit(Error.MISSING_CONFIG, Optional.of(e));
+        File conifgFile = new File(configPath);
+        if (!conifgFile.exists()) {
+            throw new FileNotFoundException();
         }
+
         DetectionService detectionService = new DetectionService(configPath);
         detectionService.runDetection();
     }

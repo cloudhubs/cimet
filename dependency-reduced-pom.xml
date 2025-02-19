@@ -81,7 +81,7 @@
         <defaultGoal>exec:java</defaultGoal>
       </build>
       <properties>
-        <mainClass>edu.university.ecs.lab.intermediate.create.IRExtractionRunner</mainClass>
+        <mainClass>edu.university.ecs.lab.intermediate.IRExtractionRunner</mainClass>
       </properties>
     </profile>
     <profile>
@@ -99,7 +99,7 @@
         <defaultGoal>exec:java</defaultGoal>
       </build>
       <properties>
-        <mainClass>edu.university.ecs.lab.intermediate.merge.IRMergeRunner</mainClass>
+        <mainClass>edu.university.ecs.lab.intermediate.IRMergeRunner</mainClass>
       </properties>
     </profile>
     <profile>

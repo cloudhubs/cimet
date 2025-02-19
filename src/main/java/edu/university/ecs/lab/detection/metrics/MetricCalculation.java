@@ -10,7 +10,9 @@ import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModula
 import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
 import edu.university.ecs.lab.detection.metrics.models.StructuralCoupling;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -18,7 +20,7 @@ import java.util.Optional;
  */
 public class MetricCalculation {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, GitAPIException, InterruptedException {
         Config config = ConfigUtil.readConfig("./config.json");
 
         // Create IR of first commit
@@ -60,7 +62,7 @@ public class MetricCalculation {
         System.out.printf("Amount of Strongly Connected Components: %d%n", m.getSCC().size());
         System.out.printf("Modularity of Strongly Connected Components: %.2f%n", m.getModularity());
     }
-    private static void createIRSystem(Config config, String fileName) {
+    private static void createIRSystem(Config config, String fileName) throws GitAPIException, IOException, InterruptedException {
         // Create both directories needed
         FileUtils.makeDirs();
 

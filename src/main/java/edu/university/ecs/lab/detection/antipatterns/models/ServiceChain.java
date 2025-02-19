@@ -70,4 +70,8 @@ public class ServiceChain extends AbstractAntiPattern {
     public int numServiceChains(){
         return chain.size();
     }
+
+    public String toString() {
+        return chain.toString();
+    }
 }

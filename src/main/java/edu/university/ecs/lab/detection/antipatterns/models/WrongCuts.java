@@ -60,4 +60,8 @@ public class WrongCuts extends AbstractAntiPattern {
     public int numWrongCuts(){
         return wrongCuts.size();
     }
+
+    public String toString() {
+        return getMetaData().toString();
+    }
 }

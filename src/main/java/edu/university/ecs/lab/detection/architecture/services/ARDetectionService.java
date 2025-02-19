@@ -6,6 +6,7 @@ import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
 import edu.university.ecs.lab.detection.architecture.models.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class ARDetectionService {
      * @param OldIRPath path to old commit JSON file
      * @param NewIRPath path to new commit JSON file
      */
-    public ARDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) {
+    public ARDetectionService(String DeltaPath, String OldIRPath, String NewIRPath) throws IOException {
         oldSystem = JsonReadWriteUtils.readFromJSON(DeltaPath, SystemChange.class);
         microserviceSystemOld = JsonReadWriteUtils.readFromJSON(OldIRPath, MicroserviceSystem.class);
         microserviceSystemNew = JsonReadWriteUtils.readFromJSON(NewIRPath, MicroserviceSystem.class);
