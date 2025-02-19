@@ -1,6 +1,6 @@
 {
-    "systemName": "sample-spring-microservices-new",
-    "repositoryURL": "https://github.com/piomin/sample-spring-microservices-new.git",
-    "baseCommit": "922ac448a5b404d16190a9740984251626b2d70e",
-    "baseBranch": "master"
-  }
+  "systemName": "cwa-server",
+  "repositoryURL": "https://github.com/corona-warn-app/cwa-server.git",
+  "baseCommit": "c61d55f6f83b6d005cb6aca9e9b455afac572d72",
+  "baseBranch": "main"
+}

@@ -14,7 +14,6 @@ import edu.university.ecs.lab.delta.services.DeltaExtractionService;
 import edu.university.ecs.lab.detection.antipatterns.models.ServiceChain;
 import edu.university.ecs.lab.detection.antipatterns.services.*;
 import edu.university.ecs.lab.detection.architecture.models.*;
-import edu.university.ecs.lab.detection.architecture.services.ARDetectionService;
 import edu.university.ecs.lab.detection.metrics.RunCohesionMetrics;
 import edu.university.ecs.lab.detection.metrics.models.ConnectedComponentsModularity;
 import edu.university.ecs.lab.detection.metrics.models.DegreeCoupling;
@@ -31,9 +30,6 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /**
@@ -68,13 +64,8 @@ public class DetectionService {
     private final String configPath;
     private final Config config;
     private final GitService gitService;
-    private IRExtractionService irExtractionService;
-    private ARDetectionService arDetectionService;
-    private DeltaExtractionService deltaExtractionService;
-    private MergeService mergeService;
     private final XSSFWorkbook workbook;
     private XSSFSheet sheet;
-//    private final String firstCommitID
 
     /**
      * Construct with given configuration file path
@@ -104,7 +95,7 @@ public class DetectionService {
         List<RevCommit> commits = iterableToList(iterable);
 
         // Generate the initial IR
-        irExtractionService = new IRExtractionService(configPath, Optional.of(commits.get(0).toString().split(" ")[1]));
+        IRExtractionService irExtractionService = new IRExtractionService(configPath, Optional.of(commits.get(0).toString().split(" ")[1]));
         String firstCommit = commits.get(0).getName().substring(0, 4);
         irExtractionService.generateIR(BASE_IR_PATH + "1_" + firstCommit + ".json");
 
@@ -147,12 +138,10 @@ public class DetectionService {
                 String newIRPath = BASE_IR_PATH + (i+2) + "_" + commitIdNew.substring(0, 4) +".json";
                 String deltaPath = BASE_DELTA_PATH + (i+1) + "_" + commitIdOld.substring(0, 4) + "_" + commitIdNew.substring(0, 4) + ".json";
 
-                //deltaExtractionService = new DeltaExtractionService(configPath, deltaPath, commitIdOld, commitIdNew);
-                //deltaExtractionService.generateDelta();
+                DeltaExtractionService.createAndWrite(configPath, commitIdOld, commitIdNew, deltaPath);
 
                 // Merge Delta changes to old IR to create new IR representing new commit changes
-                MergeService mergeService = new MergeService(oldIRPath, deltaPath, configPath, newIRPath);
-                mergeService.generateMergeIR(commitIdNew.substring(0, 4));
+                MergeService.createAndWrite(configPath, oldIRPath, deltaPath, "", newIRPath);
 
                 // Read in the new system and system change
                 newSystem = JsonReadWriteUtils.readFromJSON(newIRPath, MicroserviceSystem.class);
