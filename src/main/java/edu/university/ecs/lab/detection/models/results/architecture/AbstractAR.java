@@ -5,21 +5,18 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import edu.university.ecs.lab.detection.models.results.DetectionResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
  * Architectural Rule class template for all architectural rules.
  */
-@EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
         property = "type"
 )
-@JsonSubTypes({@JsonSubTypes.Type(value = AR1.class, name = "AR1"),
-        @JsonSubTypes.Type(value = AR3.class, name = "AR3"),
+@JsonSubTypes({@JsonSubTypes.Type(value = AR3.class, name = "AR3"),
         @JsonSubTypes.Type(value = AR4.class, name = "AR4"),
         @JsonSubTypes.Type(value = AR6.class, name = "AR6"),
         @JsonSubTypes.Type(value = AR7.class, name = "AR7"),
@@ -29,7 +26,7 @@ import lombok.EqualsAndHashCode;
         @JsonSubTypes.Type(value = AR23.class, name = "AR23"),
         @JsonSubTypes.Type(value = AR24.class, name = "AR24")})
 @Data
-public abstract class AbstractAR extends DetectionResult {
+public abstract class AbstractAR {
     protected String oldCommitID;
     protected String newCommitID;
     protected JsonNode metaData;

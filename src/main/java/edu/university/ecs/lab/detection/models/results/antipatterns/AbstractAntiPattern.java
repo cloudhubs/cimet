@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.university.ecs.lab.detection.models.results.DetectionResult;
 
 /**
  * Abstract implementation of an Antipattern should be the parent
@@ -24,10 +23,13 @@ import edu.university.ecs.lab.detection.models.results.DetectionResult;
         @JsonSubTypes.Type(value = ServiceChain.class, name = "ServiceChain"),
         @JsonSubTypes.Type(value = WobblyServiceInteraction.class, name = "WobblyServiceInteraction"),
         @JsonSubTypes.Type(value = WrongCuts.class, name = "WrongCuts")})
-public abstract class AbstractAntiPattern extends DetectionResult {
+public abstract class AbstractAntiPattern {
+    protected final ObjectMapper objectMapper = new ObjectMapper();
 
     @JsonIgnore
     protected abstract String getName();
+    @JsonIgnore
+    protected abstract String getDescription();
     @JsonIgnore
     protected abstract JsonNode getMetaData();
 }
