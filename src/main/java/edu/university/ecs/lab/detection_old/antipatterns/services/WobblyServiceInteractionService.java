@@ -5,7 +5,7 @@ import edu.university.ecs.lab.common.models.ir.JClass;
 import edu.university.ecs.lab.common.models.ir.Method;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.detection_old.antipatterns.models.WobblyServiceInteraction;
+import edu.university.ecs.lab.detection.models.results.antipatterns.WobblyServiceInteraction;
 
 import java.util.ArrayList;
 import java.util.List;

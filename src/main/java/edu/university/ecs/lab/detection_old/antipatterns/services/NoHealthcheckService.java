@@ -9,7 +9,7 @@ import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.detection_old.antipatterns.models.NoHealthcheck;
+import edu.university.ecs.lab.detection.models.results.antipatterns.NoHealthcheck;
 
 
 /**

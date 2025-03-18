@@ -1,4 +1,4 @@
 package edu.university.ecs.lab.detection.strategies;
 
-public interface ScanStrategy {
+public interface ScanStrategy extends GraphStrategy {
 }

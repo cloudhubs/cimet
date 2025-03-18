@@ -2,13 +2,14 @@ package edu.university.ecs.lab.detection_old.antipatterns;
 
 import com.google.gson.Gson;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.common_old.models.sdg.MethodDependencyGraph;
-import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.detection.models.results.antipatterns.*;
+import edu.university.ecs.lab.detection.models.sdg.MethodDependencyGraph;
+import edu.university.ecs.lab.detection.models.sdg.ServiceDependencyGraph;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
-import edu.university.ecs.lab.detection_old.antipatterns.models.*;
+import edu.university.ecs.lab.detection.models.antipatterns.*;
 import edu.university.ecs.lab.detection_old.antipatterns.services.*;
+import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import java.io.FileWriter;

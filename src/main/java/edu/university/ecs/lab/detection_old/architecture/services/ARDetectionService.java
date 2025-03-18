@@ -4,7 +4,8 @@ import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
 import edu.university.ecs.lab.delta.models.Delta;
 import edu.university.ecs.lab.delta.models.SystemChange;
-import edu.university.ecs.lab.detection_old.architecture.models.*;
+import edu.university.ecs.lab.detection.models.architecture.*;
+import edu.university.ecs.lab.detection.models.results.architecture.*;
 
 import java.io.IOException;
 import java.util.ArrayList;

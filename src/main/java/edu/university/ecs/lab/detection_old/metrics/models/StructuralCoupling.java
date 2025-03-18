@@ -1,7 +1,7 @@
 package edu.university.ecs.lab.detection_old.metrics.models;
 
 import edu.university.ecs.lab.common.models.ir.Microservice;
-import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.detection.models.sdg.ServiceDependencyGraph;
 import lombok.Getter;
 
 import java.util.*;

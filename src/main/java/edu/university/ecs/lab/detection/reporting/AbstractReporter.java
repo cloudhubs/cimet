@@ -1,4 +1,7 @@
 package edu.university.ecs.lab.detection.reporting;
 
-public class AbstractReporter {
+public abstract class AbstractReporter {
+    public void report() {
+
+    }
 }

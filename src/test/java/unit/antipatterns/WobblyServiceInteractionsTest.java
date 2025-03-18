@@ -10,7 +10,7 @@ import org.junit.Before;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
 import edu.university.ecs.lab.common.utils.FileUtils;
 import edu.university.ecs.lab.common.utils.JsonReadWriteUtils;
-import edu.university.ecs.lab.detection_old.antipatterns.models.WobblyServiceInteraction;
+import edu.university.ecs.lab.detection.models.results.antipatterns.WobblyServiceInteraction;
 import edu.university.ecs.lab.detection_old.antipatterns.services.WobblyServiceInteractionService;
 import edu.university.ecs.lab.intermediate.create.services.IRExtractionService;
 import unit.Constants;

@@ -2,7 +2,7 @@ package edu.university.ecs.lab.detection_old.antipatterns.services;
 
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.detection_old.antipatterns.models.WrongCuts;
+import edu.university.ecs.lab.detection.models.results.antipatterns.WrongCuts;
 
 import java.util.*;
 

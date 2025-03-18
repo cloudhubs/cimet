@@ -1,8 +1,8 @@
 package edu.university.ecs.lab.detection_old.antipatterns.services;
 
 import edu.university.ecs.lab.common.models.ir.Method;
-import edu.university.ecs.lab.common_old.models.sdg.MethodDependencyGraph;
-import edu.university.ecs.lab.detection_old.antipatterns.models.CyclicDependency;
+import edu.university.ecs.lab.detection.models.sdg.MethodDependencyGraph;
+import edu.university.ecs.lab.detection.models.results.antipatterns.CyclicDependency;
 
 import java.util.*;
 

@@ -1,8 +1,8 @@
 package edu.university.ecs.lab.detection_old.antipatterns.services;
 
 import edu.university.ecs.lab.common.models.ir.Microservice;
-import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
-import edu.university.ecs.lab.detection_old.antipatterns.models.HubLikeMicroservice;
+import edu.university.ecs.lab.detection.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.detection.models.results.antipatterns.HubLikeMicroservice;
 
 import java.util.List;
 import java.util.stream.Collectors;

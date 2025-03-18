@@ -1,4 +1,5 @@
 package edu.university.ecs.lab.detection.strategies;
 
-public class GraphStrategy {
+public interface GraphStrategy {
+    boolean scan();
 }

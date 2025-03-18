@@ -13,8 +13,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import edu.university.ecs.lab.common_old.models.sdg.ServiceDependencyGraph;
-import edu.university.ecs.lab.detection_old.antipatterns.models.CyclicDependency;
+import edu.university.ecs.lab.detection.models.sdg.ServiceDependencyGraph;
+import edu.university.ecs.lab.detection.models.results.antipatterns.CyclicDependency;
 
 
 @Ignore

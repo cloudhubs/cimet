@@ -6,7 +6,7 @@ import edu.university.ecs.lab.common.models.enums.FileType;
 import edu.university.ecs.lab.common.models.ir.ConfigFile;
 import edu.university.ecs.lab.common.models.ir.Microservice;
 import edu.university.ecs.lab.common.models.ir.MicroserviceSystem;
-import edu.university.ecs.lab.detection_old.antipatterns.models.NoApiGateway;
+import edu.university.ecs.lab.detection.models.results.antipatterns.NoApiGateway;
 
 /**
 * Service class to detect the presence of an API Gateway configuration in a YAML file.
